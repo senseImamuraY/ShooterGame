@@ -19,14 +19,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// 上下の入力を受け取る
-	void MoveForward(float Value);
-	// 左右の入力を受け取る
-	void MoveRight(float Value);
+
+	void MoveForward(float Value);	// 上下の入力を受け取る
+
+	void MoveRight(float Value);	// 左右の入力を受け取る
 
 	// Rateの値を変更する関数
 	void TurnAtRate(float Rate);
+
 	void LookUpAtRate(float Rate);
+
+	void FireWeapon(); // 銃のボタンを押したときに呼び出す
+	 
+	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation);
 
 public:	
 	// Called every frame
@@ -46,11 +51,30 @@ private:
 
 	// 左右の回転の速さ調整 deg/sec 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		float BaseTurnRate;
+	float BaseTurnRate;
 
 	// 上下の回転の速さ調整 deg/sec 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		float BaseLookUpRate;
+	float BaseLookUpRate;
+
+	// 銃を撃ったときにランダムに音声を流す
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class USoundCue* FireSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class UParticleSystem* MuzzleFlash;
+
+	// 銃を撃つためのモンタージュ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class UAnimMontage* HipFireMontage;
+
+	// 銃弾のヒットエフェクト
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* BeamParticles;
+
 public:
 	// オーバーヘッドを減らすためにインライン化
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
