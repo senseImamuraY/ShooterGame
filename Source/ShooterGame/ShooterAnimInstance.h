@@ -34,10 +34,14 @@ private:
 	bool bIsAccelerating;
 
 	// StartMotionÇ≈égópÇ∑ÇÈÇΩÇﬂÇÃOffset
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	float MovementOffsetYaw;
 
 	// StopMotionÇçÏìÆÇ≥ÇπÇÈÇΩÇﬂÇÃOffset
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	float LastMovementOffsetYaw;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"));
+	bool bAiming;
+
 };
