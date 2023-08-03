@@ -60,6 +60,14 @@ protected:
 	UFUNCTION()
 	void FinishCrosshairBulletFire();
 
+	void FireButtonPressed();
+	void FireButtonReleased();
+
+	void StartFireTimer();
+
+	UFUNCTION()
+	void AutoFireReset();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -174,6 +182,18 @@ private:
 	float ShootTimeDuration;
 	bool bFiringBullet;
 	FTimerHandle CrosshairShootTimer;
+
+	// マウスの左がクリックされたかどうか
+	bool bFireButtonPressed;
+
+	// 銃撃できるかどうか
+	bool bShouldFire;
+
+	// 自動発砲のrate
+	float AutomaticFireRate;
+
+	// 銃撃のインターバル
+	FTimerHandle AutoFireTimer;
 
 public:
 	// オーバーヘッドを減らすためにインライン化
