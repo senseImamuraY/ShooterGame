@@ -68,6 +68,27 @@ protected:
 	UFUNCTION()
 	void AutoFireReset();
 
+	// 照準の先にあるアイテムを探す
+	bool TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation);
+
+	// OverlappedItemCount > 0ならアイテムをトレース
+	void TraceForItems();
+
+	// default weaponをスポーンしてそれを返却
+	class AWeapon* SpawnDefaultWeapon();
+
+	// weaponを取得してメッシュにアタッチ
+	void EquipWeapon(AWeapon* WeaponToEquip);
+
+	// weaponを切り離して、地面に捨てる
+	void DropWeapon();
+
+	void SelectButtonPressed();
+	void SelectButtonReleased();
+
+	// 現在装備しているWeaponを落として、新しいWeaponを装備
+	void SwapWeapon(AWeapon* WeaponToSwap);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -195,6 +216,28 @@ private:
 	// 銃撃のインターバル
 	FTimerHandle AutoFireTimer;
 
+	// アイテムをトレースするかどうか
+	bool bShouldTraceForItems;
+
+	// 重なっているアイテムの数
+	int8 OverlappedItemCount;
+
+	// 最後のフレームでヒットしたアイテム
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	class AItem* TraceHitItemLastFrame;
+
+	// 現在装備している武器
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	AWeapon* EquippedWeapon;
+
+	// ブループリントで使用
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AWeapon> DefaultWeaponClass;
+
+	// 現在トレースにヒットしているアイテム(nullの可能性あり)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	AItem* TraceHitItem;
+
 public:
 	// オーバーヘッドを減らすためにインライン化
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -205,4 +248,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetCrosshairSpreadMultiplier() const;
+
+	FORCEINLINE int8 GetOverlappedItemCount() const { return OverlappedItemCount; }
+
+	void IncrementOverlappedItemCount(int8 Amount);
+		
 };
