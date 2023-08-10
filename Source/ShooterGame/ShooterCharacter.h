@@ -101,7 +101,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	// キャラクターのカメラ
+	// キャラクターのカメラで動く
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
@@ -226,17 +226,24 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	class AItem* TraceHitItemLastFrame;
 
-	// 現在装備している武器
+	// 現在装備しているWeapon
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	AWeapon* EquippedWeapon;
 
-	// ブループリントで使用
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AWeapon> DefaultWeaponClass;
 
 	// 現在トレースにヒットしているアイテム(nullの可能性あり)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	AItem* TraceHitItem;
+
+	// 補間アニメーションをする際に使用するx軸(前方向)の距離
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float CameraInterpDistance;
+
+	// 補間アニメーションをする際に使用するz軸(上方向)の距離
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float CameraInterpElevation;
 
 public:
 	// オーバーヘッドを減らすためにインライン化
@@ -251,6 +258,10 @@ public:
 
 	FORCEINLINE int8 GetOverlappedItemCount() const { return OverlappedItemCount; }
 
+	// OverlappedItemCountの増減とbShouldTraceForItemsのUpdateを行う
 	void IncrementOverlappedItemCount(int8 Amount);
 		
+	FVector GetCameraInterpLocation();
+
+	void GetPickupItem(AItem* Item);
 };
