@@ -55,7 +55,10 @@ AShooterCharacter::AShooterCharacter() :
 	OverlappedItemCount(0),
 	// Item獲得時のアニメーションの補間で使う距離
 	CameraInterpDistance(250.f),
-	CameraInterpElevation(65.f)
+	CameraInterpElevation(65.f),
+	// Starting ammo amounts
+	Starting9mmAmmo(85),
+	StartingARAmmo(120)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -556,6 +559,10 @@ void AShooterCharacter::SwapWeapon(AWeapon* WeaponToSwap)
 	EquipWeapon(WeaponToSwap);
 	TraceHitItem = nullptr;
 	TraceHitItemLastFrame = nullptr;
+}
+
+void AShooterCharacter::InitializeAmmoMap()
+{
 }
 
 // Called every frame
