@@ -17,6 +17,20 @@ enum class ECombatState : uint8
 	ECS_MAX UMETA(DisplayName = "Default Max")
 };
 
+USTRUCT(BlueprintType)
+struct FInterpLocation
+{
+	GENERATED_BODY()
+
+	// interpingで使用
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* SceneComponent;
+
+	// interpingで使用するアイテムの数
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 ItemCount;
+};
+
 UCLASS()
 class SHOOTERGAME_API AShooterCharacter : public ACharacter
 {
@@ -138,6 +152,9 @@ protected:
 	void Aim();
 	void StopAiming();
 
+	void PickupAmmo(class AAmmo* Ammo);
+
+	void InitializeInterpLocations();
 
 private:
 	// キャラクターの後ろにカメラを置く
@@ -353,6 +370,46 @@ private:
 
 	bool bAimingButtonPressed;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* WeaponInterpComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp2;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp3;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp4;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp5;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp6;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TArray<FInterpLocation> InterpLocations;
+
+	FTimerHandle PickupSoundTimer;
+	FTimerHandle EquipSoundTimer;
+
+	bool bShouldPlayPickupSound;
+	bool bShouldPlayEquipSound;
+
+	void ResetPickupSoundTimer();
+	void ResetEquipSoundTimer();
+
+	// 他のPickup Soundを鳴らすまでの時間
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float PickupSoundResetTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float EquipSoundResetTime;
+
 public:
 	// オーバーヘッドを減らすためにインライン化
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -369,10 +426,22 @@ public:
 	// OverlappedItemCountの増減とbShouldTraceForItemsのUpdateを行う
 	void IncrementOverlappedItemCount(int8 Amount);
 		
-	FVector GetCameraInterpLocation();
+	//FVector GetCameraInterpLocation();
 
 	void GetPickupItem(AItem* Item);
 
 	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
 	FORCEINLINE bool GetCrouching() const { return bCrouching; }
+	FInterpLocation GetInterpLocation(int32 Index);
+
+	// InterpLocationsの最も小さいItemCountのindexを返す
+	int32 GetInterpLocationIndex();
+
+	void IncrementInterpLocItemCount(int32 Index, int32 Amount);
+
+	FORCEINLINE bool ShouldPlayPickupSound() const { return bShouldPlayPickupSound; }
+	FORCEINLINE bool ShouldPlayEquipSound() const { return bShouldPlayEquipSound; }
+
+	void StartPickupSoundTimer();
+	void StartEquipSoundTimer();
 };

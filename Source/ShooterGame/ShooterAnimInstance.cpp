@@ -58,11 +58,6 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		
 		// ˆÚ“®•ûŒü‚ÆŒü‚¢‚Ä‚¢‚é•ûŒü‚ÌŠp“x‚Ì·
 		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
-		
-		//if (GEngine)
-		//{
-		//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("MovementOffsetYaw: %f"), MovementOffsetYaw));
-		//}
 
 		if (ShooterCharacter->GetVelocity().Size() > 0.f)
 		{

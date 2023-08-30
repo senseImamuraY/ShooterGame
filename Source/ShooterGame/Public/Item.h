@@ -30,6 +30,15 @@ enum class EItemState : uint8
 	EIS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	EIT_Ammo UMETA(DisplayName = "Ammo"),
+	EIT_Weapon UMETA(DisplayName = "Weapon"),
+
+	EIT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class SHOOTERGAME_API AItem : public AActor
 {
@@ -63,7 +72,7 @@ protected:
 	void SetActiveStars();
 
 	// Itemのプロパティ(State)を設定
-	void SetItemProperties(EItemState State);
+	virtual void SetItemProperties(EItemState State);
 
 	// 補間アニメーションが終わると呼ばれる
 	void FinishInterping();
@@ -71,9 +80,16 @@ protected:
 	// EquipIntreping stateのときに補間アニメーションを行う
 	void ItemInterp(float DeltaTime);
 
+	FVector GetInterpLocation();
+
+	void PlayPickupSound();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// AShooterCharacter::GetPickupItemで使用
+	void PlayEquipSound();
 
 private:
 	// Itemのスケルタルメッシュ
@@ -151,6 +167,12 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USoundCue* EquipSound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemType ItemType;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 InterpLocIndex;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
@@ -160,7 +182,7 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetItemMesh() const { return ItemMesh; }
 	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
-
+	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
 
 	void StartItemCurve(AShooterCharacter* Char);
 };
