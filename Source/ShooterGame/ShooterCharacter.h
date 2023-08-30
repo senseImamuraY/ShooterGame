@@ -4,17 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Public/AmmoType.h"
 #include "ShooterCharacter.generated.h"
 
 UENUM(BlueprintType)
-enum class EAmmoType : uint8
+enum class ECombatState : uint8
 {
-	EAT_9mm UMETA(DisplayName = "9mm"),
-	EAT_AR UMETA(DisplayName = "Assault Rifle"),
+	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
+	ECS_FireTimerInProgress UMETA(DisplayName = "FireTimerInProgress"),
+	ECS_Reloading UMETA(DisplayName = "Reloading"),
 
-	EAT_MAX UMETA(DisplayName = "Default Max")
+	ECS_MAX UMETA(DisplayName = "Default Max")
 };
 
+USTRUCT(BlueprintType)
+struct FInterpLocation
+{
+	GENERATED_BODY()
+
+	// interpingで使用
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* SceneComponent;
+
+	// interpingで使用するアイテムの数
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 ItemCount;
+};
 
 UCLASS()
 class SHOOTERGAME_API AShooterCharacter : public ACharacter
@@ -29,7 +44,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
 
 	void MoveForward(float Value);	// 上下の入力を受け取る
 
@@ -103,6 +117,45 @@ protected:
 	// Ammoの値を初期化
 	void InitializeAmmoMap();
 
+	// WeaponにAmmoが残っているか確認
+	bool WeaponHasAmmo();
+
+
+	// FireWeaponで使用する関数
+	void PlayFireSound();
+	void SendBullet();
+	void PlayGunfireMontage();
+
+	// 入力を確認
+	void ReloadButtonPressed();
+
+	void ReloadWeapon();
+
+	// 今装備しているweaponのammoTypeにあったammoを持っているかチェックする
+	bool CarryingAmmo();
+
+	// Animation BlueprintのGrab Clip notifyで呼び出される
+	UFUNCTION(BlueprintCallable)
+	void GrabClip();
+
+	// Animation BlueprintのRelease Clip notifyで呼び出される
+	UFUNCTION(BlueprintCallable)
+	void ReleaseClip();
+
+	void CrouchButtonPressed();
+
+	virtual void Jump() override;
+
+	// 状態によってhalf heightを変更
+	void InterpCapsuleHalfHeight(float DeltaTime);
+
+	void Aim();
+	void StopAiming();
+
+	void PickupAmmo(class AAmmo* Ammo);
+
+	void InitializeInterpLocations();
+
 private:
 	// キャラクターの後ろにカメラを置く
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -175,9 +228,11 @@ private:
 	bool bAiming;
 
 	// カメラの視野
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float CameraDefaultFOV;
 
 	// ズームしたときのカメラの視野
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float CameraZoomedFOV;
 
 	// あるフレームでのカメラの視野
@@ -264,6 +319,97 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
 	int32 StartingARAmmo;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	ECombatState CombatState;
+
+	// reloadアニメーションのMontage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ReloadMontage;
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
+
+	// リロードアニメーション中に使用
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	FTransform ClipTransform;
+
+	// リロードアニメーション中に使用。キャラクターの手のBoneに取り付ける
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* HandSceneComponent;
+
+	// しゃがんでいるときにtrue
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bCrouching;
+
+	// 通常の移動速度
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float BaseMovementSpeed;
+
+	// しゃがみ中の移動速度
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float CrouchMovementSpeed;
+
+	// 現在のカプセルの半分の高さ
+	float CurrentCapsuleHalfHeight;
+
+	// 立っているときのカプセルの半分の高さ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float StandingCapsuleHalfHeight;
+
+	// しゃがみ中のカプセルの半分の高さ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float CrouchingCapsuleHalfHeight;
+
+	// 立っているときの摩擦
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float BaseGroundFriction;
+
+	// しゃがみ中の摩擦
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float CrouchingGroundFriction;
+
+	bool bAimingButtonPressed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* WeaponInterpComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp2;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp3;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp4;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp5;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp6;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TArray<FInterpLocation> InterpLocations;
+
+	FTimerHandle PickupSoundTimer;
+	FTimerHandle EquipSoundTimer;
+
+	bool bShouldPlayPickupSound;
+	bool bShouldPlayEquipSound;
+
+	void ResetPickupSoundTimer();
+	void ResetEquipSoundTimer();
+
+	// 他のPickup Soundを鳴らすまでの時間
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float PickupSoundResetTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float EquipSoundResetTime;
+
 public:
 	// オーバーヘッドを減らすためにインライン化
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -280,7 +426,22 @@ public:
 	// OverlappedItemCountの増減とbShouldTraceForItemsのUpdateを行う
 	void IncrementOverlappedItemCount(int8 Amount);
 		
-	FVector GetCameraInterpLocation();
+	//FVector GetCameraInterpLocation();
 
 	void GetPickupItem(AItem* Item);
+
+	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
+	FORCEINLINE bool GetCrouching() const { return bCrouching; }
+	FInterpLocation GetInterpLocation(int32 Index);
+
+	// InterpLocationsの最も小さいItemCountのindexを返す
+	int32 GetInterpLocationIndex();
+
+	void IncrementInterpLocItemCount(int32 Index, int32 Amount);
+
+	FORCEINLINE bool ShouldPlayPickupSound() const { return bShouldPlayPickupSound; }
+	FORCEINLINE bool ShouldPlayEquipSound() const { return bShouldPlayEquipSound; }
+
+	void StartPickupSoundTimer();
+	void StartEquipSoundTimer();
 };
