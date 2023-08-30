@@ -146,10 +146,8 @@ void AShooterCharacter::MoveForward(float Value)
 {
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
-		const FRotator Rotation{ Controller->GetControlRotation() };
-		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
-
-		const FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::X) };
+		const FRotator YawRotation{ 0.f, Controller->GetControlRotation().Yaw, 0.f };
+		const FVector Direction{ FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X) };
 		AddMovementInput(Direction, Value);
 	}
 }
@@ -158,10 +156,8 @@ void AShooterCharacter::MoveRight(float Value)
 {
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
-		const FRotator Rotation{ Controller->GetControlRotation() };
-		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
-
-		const FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::Y) };
+		const FRotator YawRotation{ 0.f, Controller->GetControlRotation().Yaw, 0.f };
+		const FVector Direction{ FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y) };
 		AddMovementInput(Direction, Value);
 	}
 }

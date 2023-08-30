@@ -33,62 +33,58 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	{
 		ShooterCharacter = Cast<AShooterCharacter>(TryGetPawnOwner());
 	}
-	if (ShooterCharacter)
-	{
-		bCrouching = ShooterCharacter->GetCrouching();
-		bReloading = ShooterCharacter->GetCombatState() == ECombatState::ECS_Reloading;
 
-		FVector Velocity{ ShooterCharacter->GetVelocity() };
-		Velocity.Z = 0;
-		Speed = Velocity.Size();
+	if (ShooterCharacter == nullptr) return;
 
-		bIsInAir = ShooterCharacter->GetCharacterMovement()->IsFalling();
+	bCrouching = ShooterCharacter->GetCrouching();
+	bReloading = ShooterCharacter->GetCombatState() == ECombatState::ECS_Reloading;
 
-		if (ShooterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f)
-		{
-			bIsAccelerating = true;
-		}
-		else
-		{
-			bIsAccelerating = false;
-		}
+	FVector Velocity{ ShooterCharacter->GetVelocity() };
+	Velocity.Z = 0;
+	Speed = Velocity.Size();
 
-		FRotator AimRotation = ShooterCharacter->GetBaseAimRotation();
-		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ShooterCharacter->GetVelocity());
+	bIsInAir = ShooterCharacter->GetCharacterMovement()->IsFalling();
+	bIsAccelerating = ShooterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
+
+	FRotator AimRotation = ShooterCharacter->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ShooterCharacter->GetVelocity());
 		
-		// 移動方向と向いている方向の角度の差
-		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
+	// 移動方向と向いている方向の角度の差
+	MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
 
-		if (ShooterCharacter->GetVelocity().Size() > 0.f)
-		{
-			LastMovementOffsetYaw = MovementOffsetYaw;
-		}
-
-		bAiming = ShooterCharacter->GetAiming();
-
-		if (bReloading)
-		{
-			OffsetState = EOffsetState::EOS_Reloading;
-		}
-		else if (bIsInAir)
-		{
-			OffsetState = EOffsetState::EOS_InAir;
-		}
-		else if (ShooterCharacter->GetAiming())
-		{
-			OffsetState = EOffsetState::EOS_Aiming;
-		}
-		else
-		{
-			OffsetState = EOffsetState::EOS_Hip;
-		}
+	if (ShooterCharacter->GetVelocity().Size() > 0.f)
+	{
+		LastMovementOffsetYaw = MovementOffsetYaw;
 	}
+
+	bAiming = ShooterCharacter->GetAiming();
+
+	if (bReloading)
+	{
+		OffsetState = EOffsetState::EOS_Reloading;
+	}
+	else if (bIsInAir)
+	{
+		OffsetState = EOffsetState::EOS_InAir;
+	}
+	else if (ShooterCharacter->GetAiming())
+	{
+		OffsetState = EOffsetState::EOS_Aiming;
+	}
+	else
+	{
+		OffsetState = EOffsetState::EOS_Hip;
+	}
+	
 	TurnInPlace();
 	Lean(DeltaTime);
 }
 
 void UShooterAnimInstance::NativeInitializeAnimation()
 {
+	// 空であるが、形式として記述
+	Super::NativeInitializeAnimation();
+
 	ShooterCharacter = Cast<AShooterCharacter>(TryGetPawnOwner());
 }
 
