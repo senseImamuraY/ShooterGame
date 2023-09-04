@@ -58,6 +58,7 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		
 		// 移動方向と向いている方向の角度の差
 		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
+		GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Cyan, FString::Printf(TEXT("MovementOffsetYaw: %f"), MovementOffsetYaw));
 
 		if (ShooterCharacter->GetVelocity().Size() > 0.f)
 		{
@@ -83,6 +84,7 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 			OffsetState = EOffsetState::EOS_Hip;
 		}
 	}
+	if (ShooterCharacter && ShooterCharacter->GetIsWallRunning()) return;
 	TurnInPlace();
 	Lean(DeltaTime);
 }
@@ -130,6 +132,8 @@ void UShooterAnimInstance::TurnInPlace()
 			// RootYawOffset > 0なら左回転、 RootYawOffset < 0 なら右回転
 			RootYawOffset > 0 ? RootYawOffset -= DeltaRotation : RootYawOffset += DeltaRotation;
 
+			GEngine->AddOnScreenDebugMessage(11, 1.f, FColor::Purple, FString::Printf(TEXT("TurnInPlace")));
+
 			const float ABSRootYawOffset{ FMath::Abs(RootYawOffset) };
 			if (ABSRootYawOffset > 90.f)
 			{
@@ -142,6 +146,7 @@ void UShooterAnimInstance::TurnInPlace()
 			bTurningInPlace = false;
 		}
 	}
+	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
 
 	// アニメーションの見栄えを良くするために、反動を調整
 	if (bTurningInPlace)
