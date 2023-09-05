@@ -29,6 +29,10 @@ private:
 	float PreviousYaw;
 	float DefaultYaw;
 
+	FVector InitialCameraLocation;
+	FRotator InitialCameraRotation;
+
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
