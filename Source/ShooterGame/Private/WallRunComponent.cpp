@@ -313,7 +313,11 @@ void UWallRunComponent::WallRun()
 					Camera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 
 				}
+				// 上方向に力を与えるベクトルを定義
+				FVector LaunchVelocity(30, 0, 500); // Z軸方向に500の力を与える
 
+				// キャラクターを打ち上げる
+				ShooterCharacter->LaunchCharacter(LaunchVelocity, true, true);
 			}
 		}
 	}
