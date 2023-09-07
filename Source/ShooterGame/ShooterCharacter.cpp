@@ -18,6 +18,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Ammo.h"
 
+
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
 	// Šî–{‚Ìrate
@@ -120,6 +121,10 @@ AShooterCharacter::AShooterCharacter() :
 
 	InterpComp6 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 6"));
 	InterpComp6->SetupAttachment(GetFollowCamera());
+
+	// Create and attach WallRunningComponent to the character
+	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRunComponent"));
+
 }
 
 
@@ -144,7 +149,7 @@ void AShooterCharacter::BeginPlay()
 
 void AShooterCharacter::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f) && !WallRunComponent->GetIsWallRunning())
 	{
 		const FRotator Rotation{ Controller->GetControlRotation() };
 		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
@@ -152,16 +157,32 @@ void AShooterCharacter::MoveForward(float Value)
 		const FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::X) };
 		AddMovementInput(Direction, Value);
 	}
+	else if ((Controller != nullptr) && (Value != 0.0f) && WallRunComponent->GetIsWallRunning())
+	{
+		const FRotator Rotation{ Controller->GetControlRotation() };
+		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
+
+		const FVector Direction{ GetActorForwardVector()};
+		AddMovementInput(Direction, Value);
+	}
 }
 
 void AShooterCharacter::MoveRight(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f) && !WallRunComponent->GetIsWallRunning())
 	{
 		const FRotator Rotation{ Controller->GetControlRotation() };
 		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
 
 		const FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::Y) };
+		AddMovementInput(Direction, Value);
+	}
+	else if ((Controller != nullptr) && (Value != 0.0f) && WallRunComponent->GetIsWallRunning())
+	{
+		const FRotator Rotation{ Controller->GetControlRotation() };
+		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
+
+		const FVector Direction{ GetActorRightVector()};
 		AddMovementInput(Direction, Value);
 	}
 }
@@ -187,7 +208,14 @@ void AShooterCharacter::Turn(float Value)
 	{
 		TurnScaleFactor = MouseHipTurnRate;
 	}
+
+	if (WallRunComponent->GetIsWallRunning())
+	{
+		TurnScaleFactor = 0.f;
+	}
+
 	AddControllerYawInput(Value * TurnScaleFactor);
+	GEngine->AddOnScreenDebugMessage(9, 50.f, FColor::Orange, FString::Printf(TEXT("TurnValue=%f"),Value));
 }
 
 void AShooterCharacter::LookUp(float Value)
@@ -201,7 +229,14 @@ void AShooterCharacter::LookUp(float Value)
 	{
 		LookUPScaleFactor = MouseHipLookUpRate;
 	}
+
+	if (WallRunComponent->GetIsWallRunning())
+	{
+		LookUPScaleFactor = 0.f;
+	}
+
 	AddControllerPitchInput(Value * LookUPScaleFactor);
+	GEngine->AddOnScreenDebugMessage(10, 50.f, FColor::Orange, FString::Printf(TEXT("LuckupValue=%f"), Value));
 }
 
 void AShooterCharacter::FireWeapon()
@@ -755,7 +790,23 @@ void AShooterCharacter::Jump()
 	}
 	else
 	{
-		ACharacter::Jump();
+		if (WallRunComponent->GetIsWallRunning())
+		{
+			//float YawDelection = GetActorRotation().Yaw - 180;
+			FRotator JumpDirection = WallRunComponent->GetHitWallNormal().Rotation();
+
+
+
+			SetActorRotation(JumpDirection);
+			FVector LaunchVelocity = GetActorForwardVector() * 400 + FVector(0.f, 0.f, 1200.f);
+			LaunchCharacter(LaunchVelocity, true, true);
+			
+		}
+		else
+		{
+			ACharacter::Jump();
+		}
+		
 	}
 }
 
@@ -904,6 +955,12 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 	// ó‘Ô‚É‚æ‚Á‚Äcapsule‚Ìhalf height‚ð•âŠÔ
 	InterpCapsuleHalfHeight(DeltaTime);
+
+	if (WallRunComponent)
+	{
+		WallRunComponent->WallRun();
+	}
+
 }
 
 // Called to bind functionality to input

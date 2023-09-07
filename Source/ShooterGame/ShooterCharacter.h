@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Public/AmmoType.h"
+#include "Public/WallRunComponent.h"
 #include "ShooterCharacter.generated.h"
+
 
 UENUM(BlueprintType)
 enum class ECombatState : uint8
@@ -393,7 +395,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<FInterpLocation> InterpLocations;
-
+	
 	FTimerHandle PickupSoundTimer;
 	FTimerHandle EquipSoundTimer;
 
@@ -409,6 +411,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	float EquipSoundResetTime;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UWallRunComponent* WallRunComponent;
 
 public:
 	// オーバーヘッドを減らすためにインライン化
@@ -444,4 +449,6 @@ public:
 
 	void StartPickupSoundTimer();
 	void StartEquipSoundTimer();
+
+	FORCEINLINE bool GetIsWallRunning() const { return WallRunComponent->GetIsWallRunning(); }
 };
