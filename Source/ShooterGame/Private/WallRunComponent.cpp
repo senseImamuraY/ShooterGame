@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values for this component's properties
@@ -16,7 +17,8 @@ UWallRunComponent::UWallRunComponent() :
 	MouseXValue(0.f),
 	MouseYValue(0.f),
 	InitialCameraLocation(0.f),
-	InitialCameraRotation(0.f)
+	InitialCameraRotation(0.f),
+	HitWallNormal(0.f)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -65,6 +67,7 @@ void UWallRunComponent::WallRun()
 				UCharacterMovementComponent* CharMovement = Cast<UCharacterMovementComponent>(ShooterCharacter->GetMovementComponent());
 				if (!CharMovement) return;
 
+				HitWallNormal = HitResult.Normal;
 				// 3. MovementModeをFlyingに設定
 				CharMovement->SetMovementMode(MOVE_Flying);
 				CharMovement->bOrientRotationToMovement = false;
@@ -89,18 +92,38 @@ void UWallRunComponent::WallRun()
 				//NewRotation.Pitch = 0.1f;
 				// 画面にNewRotationの値を表示
 				CharMovement->RotationRate = FRotator(100.f, 100.f, 0.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
-
+				
 				GEngine->AddOnScreenDebugMessage(3, 50.f, FColor::Blue, FString::Printf(TEXT("NewRotation: Pitch=%f, Yaw=%f, Roll=%f"), NewRotation.Pitch, NewRotation.Yaw, NewRotation.Roll));
+
+				//NewCam *= -1;
+				NewCam = FRotator(-90.f, 0.f, 0.f);
 
 				ShooterCharacter->SetActorRotation(NewRotation);
 
 				//UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
 				if (Camera)
 				{
-					InitialCameraLocation = Camera->GetComponentLocation();
+					//InitialCameraLocation = FVector(-230.f, 35.f, 100.f);
+					InitialCameraLocation = FVector(-270.f, -30.f, -160.f);
+					//InitialCameraLocation = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation() + FVector(-150.f, 0.f, 50.f);
+					GEngine->AddOnScreenDebugMessage(17, 50.f, FColor::Blue, FString::Printf(TEXT("InitialCameraLocation: X=%f, Y=%f, Z=%f"), InitialCameraLocation.X, InitialCameraLocation.Y, InitialCameraLocation.Z));
+
 					InitialCameraRotation = Camera->GetComponentRotation();
 					//Camera->SetRelativeRotation(NewCam);
 					//Camera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
+
+					// キャラクターの回転に合わせてFollowCameraの位置を更新
+					FVector NewCameraOffset = NewRotation.RotateVector(InitialCameraLocation);
+					Camera->SetWorldLocation(NewCameraOffset + ShooterCharacter->GetActorLocation());
+
+					// FindLookAtRotationを使用して、カメラがプレイヤーを向くための回転を計算
+					FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(Camera->GetComponentLocation(), ShooterCharacter->GetActorLocation());
+					LookAtRotation.Roll = LookAtRotation.Roll - 180.f;
+					// 計算された回転をカメラに適用
+					Camera->SetWorldRotation(LookAtRotation);
+
+					//Camera->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f)); // 必要に応じて回転をリセットまたは調整
+					//Camera->SetRelativeRotation(NewCam); // 必要に応じて回転をリセットまたは調整
 				}				//ShooterCharacter->SetActorRotation(NewCharacterQuat.Rotator());
 				// 5. SetActorRotationを使用して新しい回転を適用
 
@@ -164,7 +187,7 @@ void UWallRunComponent::WallRun()
 
 		FHitResult HitResult;
 		const FVector LineLocationStart = ShooterCharacter->GetActorLocation();
-		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorUpVector() * -100.f;
+		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorUpVector() * -200.f;
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
 			LineLocationStart,
@@ -178,54 +201,81 @@ void UWallRunComponent::WallRun()
 		////ShooterCharacter->bUseControllerRotationRoll = true;
 		////ShooterCharacter->bUseControllerRotationPitch = true;
 
-		////CharMovement->RotationRate = FRotator(0.f, 0.f, 540.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
-		FRotator CurrentRotation2 = ShooterCharacter->GetActorRotation();
-		GEngine->AddOnScreenDebugMessage(4, 50.f, FColor::Orange, FString::Printf(TEXT("CurrentRotation: Pitch=%f, Yaw=%f, Roll=%f"), CurrentRotation2.Pitch, CurrentRotation2.Yaw, CurrentRotation2.Roll));
+		//////CharMovement->RotationRate = FRotator(0.f, 0.f, 540.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
+		//FRotator CurrentRotation2 = ShooterCharacter->GetActorRotation();
+		//GEngine->AddOnScreenDebugMessage(4, 50.f, FColor::Orange, FString::Printf(TEXT("CurrentRotation: Pitch=%f, Yaw=%f, Roll=%f"), CurrentRotation2.Pitch, CurrentRotation2.Yaw, CurrentRotation2.Roll));
 
+		// キャラクターの回転を更新
+		FRotator CharacterDeltaRotation(0.0f, MouseXValue, 0.0f);
+		ShooterCharacter->AddActorLocalRotation(CharacterDeltaRotation);
 
-
-
-		// 1. キャラクターの現在のクオータニオンを取得
-		FQuat CurrentCharacterQuat = ShooterCharacter->GetActorQuat();
-
-		// 2. キャラクター用の新しいクオータニオン回転を作成
-		FQuat CharacterDeltaQuat = FQuat(FVector(0.0f, 0.0f, 1.0f), FMath::DegreesToRadians(MouseXValue));
-
-		// 3. キャラクターのクオータニオンと新しいクオータニオンを組み合わせる
-		FQuat NewCharacterQuat = CurrentCharacterQuat * CharacterDeltaQuat;
-
-		// 4. この組み合わせたクオータニオンをキャラクターの回転に適用
-		ShooterCharacter->SetActorRotation(NewCharacterQuat.Rotator());
-
-		// 5. カメラ用の新しいクオータニオン回転を作成
-		// この例では、Z軸（ヨー）を中心にMouseYValueだけ回転させるクオータニオンを作成します。
-		FQuat CameraDeltaQuat = FQuat(FVector(0.0f, 0.0f, 1.0f), FMath::DegreesToRadians(MouseXValue));
-
-
-		// 2. 入力値Valueを使用して、ピッチ回転のクオータニオンを計算
-		FQuat PitchQuat = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(MouseYValue));
-
-		// 6. カメラの現在のクオータニオンを取得
+		// カメラの回転を更新
 		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
-
 		if (Camera) {
-			FQuat CurrentCameraQuat = Camera->GetComponentQuat();
-
-			//// 7. カメラのクオータニオンと新しいクオータニオンを組み合わせる
-			//FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat;
-
-			//// 3. 現在のクオータニオンと新しいクオータニオンを組み合わせる
-			//FQuat NewQuat = CurrentCameraQuat * PitchQuat;
-			 // 7. カメラのクオータニオンと新しいクオータニオンを組み合わせる
-			FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat * PitchQuat;
-
-
-			// 8. この組み合わせたクオータニオンをカメラの回転に適用
-			Camera->SetWorldRotation(NewCameraQuat.Rotator());
-
-			// 4. 新しい回転をカメラに適用
-			//Camera->SetWorldRotation(NewQuat.Rotator());
+			FRotator CameraDeltaRotation(-MouseYValue, MouseXValue, 0.0f);
+			Camera->AddLocalRotation(CameraDeltaRotation);
 		}
+
+
+		//// 1. キャラクターの現在のクオータニオンを取得
+		//FQuat CurrentCharacterQuat = ShooterCharacter->GetActorQuat();
+
+		//// 2. キャラクター用の新しいクオータニオン回転を作成
+		//FQuat CharacterDeltaQuat = FQuat(FVector(0.0f, 0.0f, 1.0f), FMath::DegreesToRadians(MouseXValue));
+
+		//// 3. キャラクターのクオータニオンと新しいクオータニオンを組み合わせる
+		//FQuat NewCharacterQuat = CurrentCharacterQuat * CharacterDeltaQuat;
+
+		//// 4. この組み合わせたクオータニオンをキャラクターの回転に適用
+		//ShooterCharacter->SetActorRotation(NewCharacterQuat.Rotator());
+
+		//// 5. カメラ用の新しいクオータニオン回転を作成
+		//// この例では、Z軸（ヨー）を中心にMouseYValueだけ回転させるクオータニオンを作成します。
+		//FQuat CameraDeltaQuat = FQuat(FVector(0.0f, 0.0f, 1.0f), FMath::DegreesToRadians(MouseXValue));
+
+
+		//// 2. 入力値Valueを使用して、ピッチ回転のクオータニオンを計算
+		//FQuat PitchQuat = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(MouseYValue));
+
+		//// 6. カメラの現在のクオータニオンを取得
+		//UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
+
+		//if (Camera) {
+		//	FQuat CurrentCameraQuat = Camera->GetComponentQuat();
+
+		//	//// 7. カメラのクオータニオンと新しいクオータニオンを組み合わせる
+		//	//FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat;
+
+		//	//// 3. 現在のクオータニオンと新しいクオータニオンを組み合わせる
+		//	//FQuat NewQuat = CurrentCameraQuat * PitchQuat;
+		//	 // 7. カメラのクオータニオンと新しいクオータニオンを組み合わせる
+		//	FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat * PitchQuat;
+		//	//FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat * PitchQuat;
+
+
+		//	// 8. この組み合わせたクオータニオンをカメラの回転に適用
+		//	Camera->SetWorldRotation(NewCameraQuat.Rotator());
+
+		//	// 4. 新しい回転をカメラに適用
+		//	//Camera->SetWorldRotation(NewQuat.Rotator());
+
+		//	FVector NextCameraLocation = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation();
+		//	//FRotator NextCameraRotation = Camera->GetComponentRotation();
+		//	//Camera->SetRelativeRotation(NewCam);
+		//	//Camera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
+
+		//	// キャラクターの回転に合わせてFollowCameraの位置を更新
+		//	FVector NewNextCameraOffset = NewCameraQuat.RotateVector(NextCameraLocation);
+
+
+		//	GEngine->AddOnScreenDebugMessage(15, 50.f, FColor::Red, FString::Printf(TEXT("NewNextCameraOffset: %s"), *NewNextCameraOffset.ToString()));
+		//	GEngine->AddOnScreenDebugMessage(16, 50.f, FColor::Red, FString::Printf(TEXT("NextCameraLocation: %s"), *NextCameraLocation.ToString()));
+
+
+		//	Camera->SetWorldLocation(NewNextCameraOffset + ShooterCharacter->GetActorLocation());
+
+
+		//}
 		if (!bHit)
 		{
 
@@ -252,6 +302,7 @@ void UWallRunComponent::WallRun()
 
 				CharMovement->RotationRate = FRotator(0.f, 540.f, 0.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
 				//UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
+				HitWallNormal = FVector(0.f, 0.f, 0.f);
 
 				if (Camera)
 				{
@@ -259,6 +310,7 @@ void UWallRunComponent::WallRun()
 					//Camera->SetWorldRotation(InitialCameraRotation);
 					Camera->SetRelativeRotation(InitialCameraRotation);
 					Camera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
+					Camera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 
 				}
 

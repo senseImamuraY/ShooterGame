@@ -790,7 +790,23 @@ void AShooterCharacter::Jump()
 	}
 	else
 	{
-		ACharacter::Jump();
+		if (WallRunComponent->GetIsWallRunning())
+		{
+			//float YawDelection = GetActorRotation().Yaw - 180;
+			FRotator JumpDirection = WallRunComponent->GetHitWallNormal().Rotation();
+
+
+
+			SetActorRotation(JumpDirection);
+			FVector LaunchVelocity = GetActorForwardVector() * 400 + FVector(0.f, 0.f, 1200.f);
+			LaunchCharacter(LaunchVelocity, true, true);
+			
+		}
+		else
+		{
+			ACharacter::Jump();
+		}
+		
 	}
 }
 

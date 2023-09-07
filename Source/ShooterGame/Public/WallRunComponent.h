@@ -32,10 +32,12 @@ private:
 	FVector InitialCameraLocation;
 	FRotator InitialCameraRotation;
 
+	FVector HitWallNormal;
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FORCEINLINE bool GetIsWallRunning() const { return bWallRun; }
+	FORCEINLINE FVector GetHitWallNormal() const { return HitWallNormal; }
 };
