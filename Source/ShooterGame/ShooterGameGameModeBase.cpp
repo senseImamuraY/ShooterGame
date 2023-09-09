@@ -3,3 +3,7 @@
 
 #include "ShooterGameGameModeBase.h"
 
+void AShooterGameGameModeBase::GameClear()
+{
+	UE_LOG(LogTemp, Display, TEXT("GameClear"));
+}

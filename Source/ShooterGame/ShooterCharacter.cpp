@@ -145,6 +145,11 @@ void AShooterCharacter::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
 
 	InitializeInterpLocations();
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	PlayerController->SetShowMouseCursor(false);
+	PlayerController->SetInputMode(FInputModeGameOnly());
+
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -215,7 +220,7 @@ void AShooterCharacter::Turn(float Value)
 	}
 
 	AddControllerYawInput(Value * TurnScaleFactor);
-	GEngine->AddOnScreenDebugMessage(9, 50.f, FColor::Orange, FString::Printf(TEXT("TurnValue=%f"),Value));
+	//GEngine->AddOnScreenDebugMessage(9, 50.f, FColor::Orange, FString::Printf(TEXT("TurnValue=%f"),Value));
 }
 
 void AShooterCharacter::LookUp(float Value)
@@ -236,7 +241,7 @@ void AShooterCharacter::LookUp(float Value)
 	}
 
 	AddControllerPitchInput(Value * LookUPScaleFactor);
-	GEngine->AddOnScreenDebugMessage(10, 50.f, FColor::Orange, FString::Printf(TEXT("LuckupValue=%f"), Value));
+	//GEngine->AddOnScreenDebugMessage(10, 50.f, FColor::Orange, FString::Printf(TEXT("LuckupValue=%f"), Value));
 }
 
 void AShooterCharacter::FireWeapon()
@@ -496,7 +501,7 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 	FVector2D ViewportSize;
 	if (GEngine && GEngine->GameViewport)
 	{
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
+		//GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
 
 	// Æ€ü‚ÌˆÊ’u‚ðÝ’è

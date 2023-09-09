@@ -29,7 +29,7 @@ UWallRunComponent::UWallRunComponent() :
 
 void UWallRunComponent::WallRun()
 {
-	GEngine->AddOnScreenDebugMessage(8, 50.f, FColor::Purple, FString::Printf(TEXT("bWallRun = %s"), bWallRun ? TEXT("true") : TEXT("false")));
+	//GEngine->AddOnScreenDebugMessage(8, 50.f, FColor::Purple, FString::Printf(TEXT("bWallRun = %s"), bWallRun ? TEXT("true") : TEXT("false")));
 	if (!bWallRun)
 	{
 		AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner());
@@ -46,8 +46,8 @@ void UWallRunComponent::WallRun()
 
 		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
 		//Camera->SetWorldRotation(FRotator(0.f, 0.f, 0.f));
-		GEngine->AddOnScreenDebugMessage(14, 50.f, FColor::Cyan, FString::Printf(TEXT("Camera Name: %s"), *Camera->GetName()));
-		GEngine->AddOnScreenDebugMessage(13, 50.f, FColor::Green, FString::Printf(TEXT("Camera Rotation: Pitch=%f, Yaw=%f, Roll=%f"), Camera->GetComponentRotation().Pitch, Camera->GetComponentRotation().Yaw, Camera->GetComponentRotation().Roll));
+		//GEngine->AddOnScreenDebugMessage(14, 50.f, FColor::Cyan, FString::Printf(TEXT("Camera Name: %s"), *Camera->GetName()));
+		//GEngine->AddOnScreenDebugMessage(13, 50.f, FColor::Green, FString::Printf(TEXT("Camera Rotation: Pitch=%f, Yaw=%f, Roll=%f"), Camera->GetComponentRotation().Pitch, Camera->GetComponentRotation().Yaw, Camera->GetComponentRotation().Roll));
 		
 		if (bHit)
 		{
@@ -61,7 +61,7 @@ void UWallRunComponent::WallRun()
 			if (dotProduct < threshold)
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("Dot Product: %f"), dotProduct);
-				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Yellow, FString::Printf(TEXT("dotProduct: %f"), dotProduct));
+				//GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Yellow, FString::Printf(TEXT("dotProduct: %f"), dotProduct));
 
 				// 1. CharacterMovementコンポーネントを取得
 				UCharacterMovementComponent* CharMovement = Cast<UCharacterMovementComponent>(ShooterCharacter->GetMovementComponent());
@@ -93,7 +93,7 @@ void UWallRunComponent::WallRun()
 				// 画面にNewRotationの値を表示
 				CharMovement->RotationRate = FRotator(100.f, 100.f, 0.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
 				
-				GEngine->AddOnScreenDebugMessage(3, 50.f, FColor::Blue, FString::Printf(TEXT("NewRotation: Pitch=%f, Yaw=%f, Roll=%f"), NewRotation.Pitch, NewRotation.Yaw, NewRotation.Roll));
+				//GEngine->AddOnScreenDebugMessage(3, 50.f, FColor::Blue, FString::Printf(TEXT("NewRotation: Pitch=%f, Yaw=%f, Roll=%f"), NewRotation.Pitch, NewRotation.Yaw, NewRotation.Roll));
 
 				//NewCam *= -1;
 				NewCam = FRotator(-90.f, 0.f, 0.f);
@@ -106,7 +106,7 @@ void UWallRunComponent::WallRun()
 					//InitialCameraLocation = FVector(-230.f, 35.f, 100.f);
 					InitialCameraLocation = FVector(-270.f, -30.f, -160.f);
 					//InitialCameraLocation = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation() + FVector(-150.f, 0.f, 50.f);
-					GEngine->AddOnScreenDebugMessage(17, 50.f, FColor::Blue, FString::Printf(TEXT("InitialCameraLocation: X=%f, Y=%f, Z=%f"), InitialCameraLocation.X, InitialCameraLocation.Y, InitialCameraLocation.Z));
+					//GEngine->AddOnScreenDebugMessage(17, 50.f, FColor::Blue, FString::Printf(TEXT("InitialCameraLocation: X=%f, Y=%f, Z=%f"), InitialCameraLocation.X, InitialCameraLocation.Y, InitialCameraLocation.Z));
 
 					InitialCameraRotation = Camera->GetComponentRotation();
 					//Camera->SetRelativeRotation(NewCam);
@@ -306,7 +306,7 @@ void UWallRunComponent::WallRun()
 
 				if (Camera)
 				{
-					GEngine->AddOnScreenDebugMessage(12, 50.f, FColor::Red, TEXT("Setting Camera Rotation..."));
+					//GEngine->AddOnScreenDebugMessage(12, 50.f, FColor::Red, TEXT("Setting Camera Rotation..."));
 					//Camera->SetWorldRotation(InitialCameraRotation);
 					Camera->SetRelativeRotation(InitialCameraRotation);
 					Camera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
