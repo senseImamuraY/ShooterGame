@@ -15,5 +15,6 @@ class SHOOTERGAME_API AShooterGameGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	AShooterGameGameModeBase();
 	void GameClear();
 };

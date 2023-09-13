@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../Public/MainMenu/MainMenuHUD.h"
+#include "../Public/UI/MainMenu/MainMenuHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 

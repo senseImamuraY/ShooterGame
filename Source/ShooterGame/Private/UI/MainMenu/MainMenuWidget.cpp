@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../Public/MainMenu/MainMenuWidget.h"
+#include "../Public/UI/MainMenu/MainMenuWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Public/Player/ShooterCharacter.h"
