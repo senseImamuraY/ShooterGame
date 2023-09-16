@@ -187,7 +187,7 @@ void UWallRunComponent::WallRun()
 
 		FHitResult HitResult;
 		const FVector LineLocationStart = ShooterCharacter->GetActorLocation();
-		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorUpVector() * -200.f;
+		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorUpVector() * -250.f;
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
 			LineLocationStart,

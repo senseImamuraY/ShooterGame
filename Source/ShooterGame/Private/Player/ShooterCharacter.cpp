@@ -42,11 +42,11 @@ AShooterCharacter::AShooterCharacter() :
 	CameraCurrentFOV(0.f),
 	ZoomInterpSpeed(20.f),
 	// Crosshair spread factors
-	CrosshairSpreadMultiplier(0.f),
-	CrosshairVelocityFactor(0.f),
-	CrosshairInAirFactor(0.f),
-	CrosshairAimFactor(0.f),
-	CrosshairShootingFactor(0.f),
+	//CrosshairSpreadMultiplier(0.f),
+	//CrosshairVelocityFactor(0.f),
+	//CrosshairInAirFactor(0.f),
+	//CrosshairAimFactor(0.f),
+	//CrosshairShootingFactor(0.f),
 	// Automatic gun fire rate
 	AutomaticFireRate(0.1f),
 	bShouldFire(true),
@@ -363,83 +363,83 @@ void AShooterCharacter::SetLookRates()
 	}
 }
 
-void AShooterCharacter::CalculateCrosshairSpread(float DeltaTime)
-{
-	FVector2D WalkSpeedRange{ 0.f, 600.f };
-	FVector2D VelocityMultiplierRange{ 0.f, 1.f };
-	FVector Velocity{ GetVelocity() };
-	Velocity.Z = 0.f;
-
-	// 速度による十字線調整
-	CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(
-		WalkSpeedRange,
-		VelocityMultiplierRange,
-		Velocity.Size());
-
-	// 空中にいるときの十字線を計算
-	if (GetCharacterMovement()->IsFalling())
-	{
-		// 空中にいるときは、十字線を拡張する
-		CrosshairInAirFactor = FMath::FInterpTo(
-			CrosshairInAirFactor,
-			2.25f,
-			DeltaTime,
-			2.25f);
-	}
-	else
-	{
-		// 地面にいるときは、十字線を縮小する
-		CrosshairInAirFactor = FMath::FInterpTo(
-			CrosshairInAirFactor, 
-			0.f,
-			DeltaTime,
-			30.f);
-	}
-
-	// エイム中の計算
-	if (bAiming)
-	{
-		// エイム中は、十字線を縮小する
-		CrosshairAimFactor = FMath::FInterpTo(
-			CrosshairAimFactor,
-			0.6f, 
-			DeltaTime,
-			30.f);
-	}
-	else
-	{
-		CrosshairAimFactor = FMath::FInterpTo(
-			CrosshairAimFactor,
-			0.f, 
-			DeltaTime,
-			30.f);
-	}
-
-	// 射撃後0.05sの間のみtrueになる
-	if (bFiringBullet)
-	{
-		CrosshairShootingFactor = FMath::FInterpTo(
-			CrosshairShootingFactor, 
-			0.3f,
-			DeltaTime,
-			60.f);
-	}
-	else
-	{
-		CrosshairShootingFactor = FMath::FInterpTo(
-			CrosshairShootingFactor,
-			0.f,
-			DeltaTime,
-			60.f);
-	}
-
-	CrosshairSpreadMultiplier = 
-		0.5f +
-		CrosshairVelocityFactor +
-		CrosshairInAirFactor -
-		CrosshairAimFactor + 
-		CrosshairShootingFactor;
-}
+//void AShooterCharacter::CalculateCrosshairSpread(float DeltaTime)
+//{
+//	FVector2D WalkSpeedRange{ 0.f, 600.f };
+//	FVector2D VelocityMultiplierRange{ 0.f, 1.f };
+//	FVector Velocity{ GetVelocity() };
+//	Velocity.Z = 0.f;
+//
+//	// 速度による十字線調整
+//	CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(
+//		WalkSpeedRange,
+//		VelocityMultiplierRange,
+//		Velocity.Size());
+//
+//	// 空中にいるときの十字線を計算
+//	if (GetCharacterMovement()->IsFalling())
+//	{
+//		// 空中にいるときは、十字線を拡張する
+//		CrosshairInAirFactor = FMath::FInterpTo(
+//			CrosshairInAirFactor,
+//			2.25f,
+//			DeltaTime,
+//			2.25f);
+//	}
+//	else
+//	{
+//		// 地面にいるときは、十字線を縮小する
+//		CrosshairInAirFactor = FMath::FInterpTo(
+//			CrosshairInAirFactor, 
+//			0.f,
+//			DeltaTime,
+//			30.f);
+//	}
+//
+//	// エイム中の計算
+//	if (bAiming)
+//	{
+//		// エイム中は、十字線を縮小する
+//		CrosshairAimFactor = FMath::FInterpTo(
+//			CrosshairAimFactor,
+//			0.6f, 
+//			DeltaTime,
+//			30.f);
+//	}
+//	else
+//	{
+//		CrosshairAimFactor = FMath::FInterpTo(
+//			CrosshairAimFactor,
+//			0.f, 
+//			DeltaTime,
+//			30.f);
+//	}
+//
+//	// 射撃後0.05sの間のみtrueになる
+//	if (bFiringBullet)
+//	{
+//		CrosshairShootingFactor = FMath::FInterpTo(
+//			CrosshairShootingFactor, 
+//			0.3f,
+//			DeltaTime,
+//			60.f);
+//	}
+//	else
+//	{
+//		CrosshairShootingFactor = FMath::FInterpTo(
+//			CrosshairShootingFactor,
+//			0.f,
+//			DeltaTime,
+//			60.f);
+//	}
+//
+//	CrosshairSpreadMultiplier = 
+//		0.5f +
+//		CrosshairVelocityFactor +
+//		CrosshairInAirFactor -
+//		CrosshairAimFactor + 
+//		CrosshairShootingFactor;
+//}
 
 void AShooterCharacter::StartCrosshairBulletFire()
 {
@@ -501,7 +501,7 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 	FVector2D ViewportSize;
 	if (GEngine && GEngine->GameViewport)
 	{
-		//GEngine->GameViewport->GetViewportSize(ViewportSize);
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
 
 	// 照準線の位置を設定
@@ -953,7 +953,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 	SetLookRates();
 
 	// 十字線の乗数を計算
-	CalculateCrosshairSpread(DeltaTime);
+	//CalculateCrosshairSpread(DeltaTime);
 
 	// OverlappedItemCountをチェックしてからitemをトレース
 	TraceForItems();
@@ -1041,11 +1041,11 @@ void AShooterCharacter::ResetEquipSoundTimer()
 {
 	bShouldPlayEquipSound = true;
 }
-
-float AShooterCharacter::GetCrosshairSpreadMultiplier() const
-{
-	return CrosshairSpreadMultiplier;
-}
+//
+//float AShooterCharacter::GetCrosshairSpreadMultiplier() const
+//{
+//	return CrosshairSpreadMultiplier;
+//}
 
 void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)
 {

@@ -9,7 +9,8 @@
 
 
 // Sets default values
-AGoal::AGoal()
+AGoal::AGoal() :
+    bIsGoalAchieved(false)
 {
     // StaticMeshComponentÇí«â¡ÇµÅARootComponentÇ…ê›íËÇ∑ÇÈ
     Goal = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
@@ -48,6 +49,7 @@ void AGoal::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
     if (const AShooterCharacter* Player = Cast<AShooterCharacter>(OtherActor))
     {
         UE_LOG(LogTemp, Display, TEXT("Goal"));
+        bIsGoalAchieved = true;
     }
 }
 

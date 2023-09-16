@@ -80,7 +80,7 @@ protected:
 	// Aimingの値に基づいてBaseTurnRateとBaseLookUpRateを設定する
 	void SetLookRates();
 
-	void CalculateCrosshairSpread(float DeltaTime);
+	//void CalculateCrosshairSpread(float DeltaTime);
 
 	void StartCrosshairBulletFire();
 
@@ -244,25 +244,25 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float ZoomInterpSpeed;
 
-	// 十字線の大きさを決定
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	float CrosshairSpreadMultiplier;
+	//// 十字線の大きさを決定
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	//float CrosshairSpreadMultiplier;
 
-	// 十字線の速度
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	float CrosshairVelocityFactor;
+	//// 十字線の速度
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	//float CrosshairVelocityFactor;
 
-	// 空中での十字線
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	float CrosshairInAirFactor;
+	//// 空中での十字線
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	//float CrosshairInAirFactor;
 
-	// エイム中の十字線
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	float CrosshairAimFactor;
+	//// エイム中の十字線
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	//float CrosshairAimFactor;
 
-	// 銃撃の十字線
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	float CrosshairShootingFactor;
+	//// 銃撃の十字線
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	//float CrosshairShootingFactor;
 
 	float ShootTimeDuration;
 	bool bFiringBullet;
@@ -423,8 +423,10 @@ public:
 
 	FORCEINLINE bool GetAiming() const { return bAiming; }
 
-	UFUNCTION(BlueprintCallable)
-	float GetCrosshairSpreadMultiplier() const;
+	FORCEINLINE bool GetbFiringBullet() const { return bFiringBullet; }
+
+	//UFUNCTION(BlueprintCallable)
+	//float GetCrosshairSpreadMultiplier() const;
 
 	FORCEINLINE int8 GetOverlappedItemCount() const { return OverlappedItemCount; }
 

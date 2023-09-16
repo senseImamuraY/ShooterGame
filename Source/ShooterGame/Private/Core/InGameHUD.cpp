@@ -6,9 +6,29 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "../Public/Player/ShooterPlayerController.h"
+#include "../Public/UI/Player/CrosshairWidget.h"
+#include "CanvasItem.h"
+#include "Engine/Canvas.h"
+
+AInGameHUD::AInGameHUD()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	//// Tickが有効かどうかを確認
+	//if (IsActorTickEnabled())
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Tick is enabled for this actor."));
+	//}
+	//else
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tick is NOT enabled for this actor."));
+	//}
+}
 
 void AInGameHUD::BeginPlay()
 {
+	Super::BeginPlay();
+
 	// WidgetBlueprintのClassを取得する
 	FString PauseWidgetPath = TEXT("/Game/ShooterGame/Blueprints/Widgets/BPW_Pause.BPW_Pause_C");
 	TSubclassOf<UUserWidget> PauseWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*PauseWidgetPath)).LoadSynchronous();
@@ -28,7 +48,45 @@ void AInGameHUD::BeginPlay()
 		// Viewportに追加する
 		PauseWidget->AddToViewport(1);
 	}
+
+	// UCrosshairWidgetのインスタンスを作成します。
+	CrosshairWidgetInstance = CreateWidget<UCrosshairWidget>(GetWorld());
+	if (CrosshairWidgetInstance)
+	{
+		CrosshairWidgetInstance->AddToViewport();
+	}
+
+	CrosshairWidgetInstance->InitializeWidget();
+
+	// Tickが有効かどうかを確認
+	if (IsActorTickEnabled())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Tick is enabled for this actor."));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tick is NOT enabled for this actor."));
+	}
 }
+
+void AInGameHUD::DrawHUD()
+{
+	//Super::DrawHUD();
+
+	//// スクリーンサイズを取得
+	//FVector2D ScreenSize = FVector2D(Canvas->SizeX, Canvas->SizeY);
+
+	//// 例として、スクリーンサイズを画面に出力
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Screen Size: %f x %f"), ScreenSize.X, ScreenSize.Y));
+}
+
+void AInGameHUD::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	CrosshairWidgetInstance->UpdateCrosshairPosition(DeltaTime);
+}
+
 
 void AInGameHUD::DispPause(const bool IsPause)
 {
@@ -81,3 +139,5 @@ void AInGameHUD::QuitGame()
 	// ゲームを終了する
 	UKismetSystemLibrary::QuitGame(GetWorld(), GetOwningPlayerController(), EQuitPreference::Quit, false);
 }
+
+

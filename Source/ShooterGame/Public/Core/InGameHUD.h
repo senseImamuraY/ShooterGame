@@ -15,6 +15,9 @@ class SHOOTERGAME_API AInGameHUD : public AHUD
 	GENERATED_BODY()
 	
 public:
+
+	AInGameHUD();
+
 	// Pauseメニューの表示/非表示
 	void DispPause(const bool IsPause);
 
@@ -23,10 +26,18 @@ public:
 
 	// Gameを終了する
 	void QuitGame();
+
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void DrawHUD() override;
 
 private:
 	// PauseWidgetを保持する変数
 	UUserWidget* PauseWidget;
+
+	UPROPERTY()
+	class UCrosshairWidget* CrosshairWidgetInstance;
 };
