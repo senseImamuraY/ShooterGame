@@ -6,11 +6,12 @@
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
 #include "../Public/Player/ShooterCharacter.h"
+#include "../Public/Core/InGameHUD.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
-AGoal::AGoal() :
-    bIsGoalAchieved(false)
+AGoal::AGoal()
 {
     // StaticMeshComponentを追加し、RootComponentに設定する
     Goal = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
@@ -49,7 +50,15 @@ void AGoal::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
     if (const AShooterCharacter* Player = Cast<AShooterCharacter>(OtherActor))
     {
         UE_LOG(LogTemp, Display, TEXT("Goal"));
-        bIsGoalAchieved = true;
+
+        // PlayerControllerを取得する
+        const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+        // InGameHUDクラスを取得する
+        AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
+
+        // ゲームオーバー画面を表示する
+        HUD->DispGameClear();
     }
 }
 

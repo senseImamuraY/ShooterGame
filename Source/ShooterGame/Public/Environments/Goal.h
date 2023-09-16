@@ -20,11 +20,12 @@ public:
 	// Sets default values for this actor's properties
 	AGoal();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	bool bIsGoalAchieved;
 
 private:
 	// Goal—p‚ÌStaticMesh  
@@ -40,7 +41,5 @@ private:
 
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 };

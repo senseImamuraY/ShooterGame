@@ -29,6 +29,11 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	void DispGameClear();
+
+	// Game‚ğÄŠJ‚·‚é
+	void ContinueGame();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,6 +42,8 @@ protected:
 private:
 	// PauseWidget‚ğ•Û‚·‚é•Ï”
 	UUserWidget* PauseWidget;
+
+	UUserWidget* GameClearWidget;
 
 	UPROPERTY()
 	class UCrosshairWidget* CrosshairWidgetInstance;

@@ -33,20 +33,27 @@ void AInGameHUD::BeginPlay()
 	FString PauseWidgetPath = TEXT("/Game/ShooterGame/Blueprints/Widgets/BPW_Pause.BPW_Pause_C");
 	TSubclassOf<UUserWidget> PauseWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*PauseWidgetPath)).LoadSynchronous();
 
+	FString GameClearWidgetPath = TEXT("/Game/ShooterGame/Blueprints/Widgets/BPW_GameClear.BPW_GameClear_C");
+	TSubclassOf<UUserWidget> GameClearWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*GameClearWidgetPath)).LoadSynchronous();
+
 	// PlayerControllerを取得する
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
 	// WidgetClassとPlayerControllerが取得できたか判定する
-	if (PauseWidgetClass && PlayerController)
+	if (GameClearWidgetClass && PauseWidgetClass && PlayerController)
 	{
-		
 		PauseWidget = UWidgetBlueprintLibrary::Create(GetWorld(), PauseWidgetClass, PlayerController);
 
 		// Pauseメニューを折りたたみ状態にする
 		PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
 
-		// Viewportに追加する
 		PauseWidget->AddToViewport(1);
+
+		GameClearWidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameClearWidgetClass, PlayerController);
+
+		GameClearWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+		GameClearWidget->AddToViewport(2);
 	}
 
 	// UCrosshairWidgetのインスタンスを作成します。
@@ -85,6 +92,28 @@ void AInGameHUD::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	CrosshairWidgetInstance->UpdateCrosshairPosition(DeltaTime);
+}
+
+void AInGameHUD::DispGameClear()
+{
+	GameClearWidget->SetVisibility(ESlateVisibility::Visible);
+
+	APlayerController* PlayerController = GetOwningPlayerController();
+
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, GameClearWidget, EMouseLockMode::DoNotLock, false);
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+	PlayerController->SetShowMouseCursor(true);
+}
+
+void AInGameHUD::ContinueGame()
+{
+	// 現在のLevelNameを取得する
+	const FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+	// 現在のLevelを開きなおす
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevelName));
 }
 
 
