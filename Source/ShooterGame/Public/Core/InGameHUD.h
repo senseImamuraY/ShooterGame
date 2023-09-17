@@ -31,6 +31,8 @@ public:
 
 	void DispGameClear();
 
+	void DispGameOver();
+
 	// Game‚ğÄŠJ‚·‚é
 	void ContinueGame();
 
@@ -44,6 +46,8 @@ private:
 	UUserWidget* PauseWidget;
 
 	UUserWidget* GameClearWidget;
+
+	UUserWidget* GameOverWidget;
 
 	UPROPERTY()
 	class UCrosshairWidget* CrosshairWidgetInstance;

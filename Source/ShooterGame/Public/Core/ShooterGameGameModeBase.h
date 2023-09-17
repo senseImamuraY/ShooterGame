@@ -16,5 +16,12 @@ class SHOOTERGAME_API AShooterGameGameModeBase : public AGameModeBase
 	
 public:
 	AShooterGameGameModeBase();
-	void GameClear();
+	
+	void KillPlayer();
+
+	void RestartGame();
+
+private:
+
+
 };

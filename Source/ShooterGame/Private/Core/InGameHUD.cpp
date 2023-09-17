@@ -35,25 +35,34 @@ void AInGameHUD::BeginPlay()
 
 	FString GameClearWidgetPath = TEXT("/Game/ShooterGame/Blueprints/Widgets/BPW_GameClear.BPW_GameClear_C");
 	TSubclassOf<UUserWidget> GameClearWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*GameClearWidgetPath)).LoadSynchronous();
+	
+	FString GameOverWidgetPath = TEXT("/Game/ShooterGame/Blueprints/Widgets/BPW_GameOver.BPW_GameOver_C");
+	TSubclassOf<UUserWidget> GameOverWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*GameOverWidgetPath)).LoadSynchronous();
 
 	// PlayerControllerを取得する
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
 	// WidgetClassとPlayerControllerが取得できたか判定する
-	if (GameClearWidgetClass && PauseWidgetClass && PlayerController)
+	if (GameOverWidgetClass && GameClearWidgetClass && PauseWidgetClass && PlayerController)
 	{
 		PauseWidget = UWidgetBlueprintLibrary::Create(GetWorld(), PauseWidgetClass, PlayerController);
 
 		// Pauseメニューを折りたたみ状態にする
 		PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
 
-		PauseWidget->AddToViewport(1);
+		PauseWidget->AddToViewport(0);
 
 		GameClearWidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameClearWidgetClass, PlayerController);
 
 		GameClearWidget->SetVisibility(ESlateVisibility::Collapsed);
 
-		GameClearWidget->AddToViewport(2);
+		GameClearWidget->AddToViewport(1);
+
+		GameOverWidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameOverWidgetClass, PlayerController);
+
+		GameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+		GameOverWidget->AddToViewport(2);
 	}
 
 	// UCrosshairWidgetのインスタンスを作成します。
@@ -101,6 +110,19 @@ void AInGameHUD::DispGameClear()
 	APlayerController* PlayerController = GetOwningPlayerController();
 
 	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, GameClearWidget, EMouseLockMode::DoNotLock, false);
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+	PlayerController->SetShowMouseCursor(true);
+}
+
+void AInGameHUD::DispGameOver()
+{
+	GameOverWidget->SetVisibility(ESlateVisibility::Visible);
+
+	APlayerController* PlayerController = GetOwningPlayerController();
+
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, GameOverWidget, EMouseLockMode::DoNotLock, false);
 
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
 
