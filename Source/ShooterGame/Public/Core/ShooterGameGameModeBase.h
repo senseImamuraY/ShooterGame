@@ -21,7 +21,12 @@ public:
 
 	void RestartGame();
 
+	virtual void BeginPlay() override;
+
 private:
+	FTimerHandle SpawnEnemyTimerHandle;
 
-
+	void SpawnEnemy();
+	
+	class UClass* EnemyClass;
 };

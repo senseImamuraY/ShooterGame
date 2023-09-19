@@ -17,6 +17,9 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "../Public/Pickups/Ammo.h"
+#include "../Public/Interfaces/BulletHitInterface.h"
+#include "../Public/Enemies/Enemy.h"
+
 
 
 // Sets default values
@@ -262,8 +265,9 @@ void AShooterCharacter::FireWeapon()
 	}
 }
 
-bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
+bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult)
 {
+	FVector OutBeamLocation;
 	// crosshairのtrace hitをチェック
 	FHitResult CrosshairHitResult;
 	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairHitResult, OutBeamLocation);
@@ -278,7 +282,7 @@ bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 	//}
 
 	// Barrelからトレースを行う。Barrelからの軌道を優先して当たり判定を行う。
-	FHitResult WeaponTraceHit;
+
 	const FVector WeaponTraceStart{ MuzzleSocketLocation };
 	const FVector StartToEnd{ OutBeamLocation - MuzzleSocketLocation };
 	// Locationがピッタリの場合、接触しない（桁落ちで衝突判定が不安定になる）可能性があるため、1.25倍する
@@ -286,28 +290,17 @@ bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 
 
 	GetWorld()->LineTraceSingleByChannel(
-		WeaponTraceHit,
+		OutHitResult,
 		WeaponTraceStart,
 		WeaponTraceEnd,
 		ECollisionChannel::ECC_Visibility);
-	if (WeaponTraceHit.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
+	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
 	{
-		//AActor* HitActor = CrosshairHitResult.GetActor();
-		//if (HitActor)
-		//{
-		//	FString HitActorName = HitActor->GetName();
-		//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("hit wall: %s"), *HitActorName));
-		//}
-		//else
-		//{
-		//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("nothing"));
-		//}
-
-		OutBeamLocation = WeaponTraceHit.Location;
-		return true;
+		OutHitResult.Location = OutBeamLocation;;
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 
@@ -667,17 +660,39 @@ void AShooterCharacter::SendBullet()
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
 		}
 
-		FVector BeamEnd;
-		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamEnd);
+		FHitResult BeamHitResult;
+		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResult);
 
 		if (bBeamEnd)
 		{
-			if (ImpactParticles)
+			if (BeamHitResult.GetActor())
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					ImpactParticles,
-					BeamEnd);
+				IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
+				if (BulletHitInterface)
+				{
+					BulletHitInterface->BulletHit_Implementation(BeamHitResult);
+
+					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
+					if (HitEnemy)
+					{
+						UGameplayStatics::ApplyDamage(
+							BeamHitResult.GetActor(),
+							EquippedWeapon->GetDamage(),
+							GetController(),
+							this,
+							UDamageType::StaticClass());
+					}
+				}
+				else
+				{
+					if (ImpactParticles)
+					{
+						UGameplayStatics::SpawnEmitterAtLocation(
+							GetWorld(),
+							ImpactParticles,
+							BeamHitResult.Location);
+					}
+				}
 			}
 
 			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
@@ -686,7 +701,7 @@ void AShooterCharacter::SendBullet()
 				SocketTransform);
 			if (Beam)
 			{
-				Beam->SetVectorParameter(FName("Target"), BeamEnd);
+				Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
 			}
 		}
 	}
