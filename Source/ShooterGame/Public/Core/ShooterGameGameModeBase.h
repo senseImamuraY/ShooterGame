@@ -29,4 +29,11 @@ private:
 	void SpawnEnemy();
 	
 	class UClass* EnemyClass;
+
+	FTimerHandle GoalTimerHandle;
+
+	void SpawnGoal();
+
+	class AGoal* Goal;
+
 };

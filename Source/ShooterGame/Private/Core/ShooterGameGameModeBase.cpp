@@ -6,7 +6,7 @@
 #include "./Player/ShooterPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Public/Enemies/Enemy.h"
-
+#include "../Public/Environments/Goal.h"
 
 AShooterGameGameModeBase::AShooterGameGameModeBase() 
 {
@@ -26,6 +26,10 @@ void AShooterGameGameModeBase::BeginPlay()
 
 	// Set a timer to spawn an enemy every 5 seconds
 	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, 5.0f, true);
+	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, 10.0f, false);
+
+	// AGoalクラスのインスタンスを生成
+	Goal = GetWorld()->SpawnActor<AGoal>();
 }
 
 void AShooterGameGameModeBase::KillPlayer()
@@ -66,9 +70,35 @@ void AShooterGameGameModeBase::SpawnEnemy()
         FActorSpawnParameters SpawnParams;
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
+		// ステージの中心位置
+		FVector StageCenter(0.0f, 0.0f, 0.0f);
+
+		// ステージを円に見立てたときの、中心からの距離（半径）。やや大きめにとる。
+		float Radius = 6000.0f;
+
+		// ランダムな角度を0から360度の間で生成
+		float RandomAngle = FMath::RandRange(0.0f, 360.0f);
+
+		// 角度を使用してxおよびyのオフセットを計算。回転する際はUEの座標に合わせる。
+		float OffsetX = Radius * FMath::Sin(FMath::DegreesToRadians(RandomAngle));  
+		float OffsetY = Radius * FMath::Cos(FMath::DegreesToRadians(RandomAngle));
+
+		// 新しいスポーン位置を計算
+		FVector SpawnLocation = StageCenter + FVector(OffsetX, OffsetY, 0.0f);
+
+		// 敵を新しいスポーン位置でスポーン
+		GetWorld()->SpawnActor<AEnemy>(EnemyClass, SpawnLocation, FRotator(0, 0, 0), SpawnParams);
+
         // Spawn the enemy using the Blueprint class
-        GetWorld()->SpawnActor<AEnemy>(EnemyClass, FVector(0, 0, 100), FRotator(0, 0, 0), SpawnParams);
+        //GetWorld()->SpawnActor<AEnemy>(EnemyClass, FVector(5200.f, 5200.f, 200.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
     }
 }
+
+void AShooterGameGameModeBase::SpawnGoal()
+{
+	Goal->Spawn();
+}
+
+
 
 
