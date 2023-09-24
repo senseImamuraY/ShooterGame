@@ -7,22 +7,38 @@
 #include "Kismet/GameplayStatics.h"
 #include "../Public/Enemies/Enemy.h"
 #include "../Public/Environments/Goal.h"
+#include "../Public/Enemies/EnemyPool.h"
+#include "EngineUtils.h"
+#include "Engine/Engine.h"
+
 
 AShooterGameGameModeBase::AShooterGameGameModeBase() 
 {
 	HUDClass = AInGameHUD::StaticClass();
 	PlayerControllerClass = AShooterPlayerController::StaticClass();
-
-	static ConstructorHelpers::FObjectFinder<UClass> EnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_Enemy.BP_Enemy_C"));
-	if (EnemyBlueprint.Succeeded())
-	{
-		EnemyClass = EnemyBlueprint.Object;
-	}
 }
 
 void AShooterGameGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// EnemyPoolのインスタンスを生成
+	EnemyPoolInstance = NewObject<UEnemyPool>();
+
+	// EnemyPoolを初期化
+	if (EnemyPoolInstance)
+	{
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("GetWorld() succeeded!"));
+			EnemyPoolInstance->Initialize(World);
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("GetWorld() returned nullptr!"));
+		}
+	}
 
 	// Set a timer to spawn an enemy every 5 seconds
 	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, 5.0f, true);
@@ -30,6 +46,39 @@ void AShooterGameGameModeBase::BeginPlay()
 
 	// AGoalクラスのインスタンスを生成
 	Goal = GetWorld()->SpawnActor<AGoal>();
+
+	// 例: AShooterGameGameModeBaseのBeginPlay関数内
+	for (TActorIterator<AEnemy> It(GetWorld()); It; ++It)
+	{
+		AEnemy* Enemy = *It;
+		if (Enemy)
+		{
+			// Enemyの名前を取得
+			FString EnemyName = Enemy->GetName();
+
+			// Enemyの位置を取得
+			FVector EnemyLocation = Enemy->GetActorLocation();
+			FString LocationString = FString::Printf(TEXT("X: %f, Y: %f, Z: %f"), EnemyLocation.X, EnemyLocation.Y, EnemyLocation.Z);
+
+			// デバッグメッセージを表示
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Enemy Name: %s, Location: %s"), *EnemyName, *LocationString));
+			}
+
+			Enemy->OnEnemyDead.AddDynamic(this, &AShooterGameGameModeBase::HandleEnemyDeath);
+		}
+	}
+
+	if (GetWorldTimerManager().IsTimerActive(SpawnEnemyTimerHandle))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("SpawnEnemyTimer is active!"));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("SpawnEnemyTimer is not active!"));
+	}
+
 }
 
 void AShooterGameGameModeBase::KillPlayer()
@@ -57,42 +106,18 @@ void AShooterGameGameModeBase::RestartGame()
 
 void AShooterGameGameModeBase::SpawnEnemy()
 {
-	//// Define the spawn parameters
-	//FActorSpawnParameters SpawnParams;
-	//SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+	if (EnemyPoolInstance)
+	{
+		AEnemy* SpawnedEnemy = EnemyPoolInstance->GetEnemy();
+		if (SpawnedEnemy)
+		{
+			// ... スポーン位置や回転の計算 ...
+			FVector SpawnLocation = EnemyPoolInstance->GetRandomLocation();
+			// 敵の位置と回転を設定
+			SpawnedEnemy->SetActorLocationAndRotation(SpawnLocation, FRotator(0, 0, 0));
 
-	//// Spawn the enemy at a specific location and rotation
-	//GetWorld()->SpawnActor<AEnemy>(AEnemy::StaticClass(), FVector(0, 0, 100), FRotator(0, 0, 0), SpawnParams);
-	// Blueprintのアセットパス
-	
-    if (EnemyClass)
-    {
-        // Define the spawn parameters
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-		// ステージの中心位置
-		FVector StageCenter(0.0f, 0.0f, 0.0f);
-
-		// ステージを円に見立てたときの、中心からの距離（半径）。やや大きめにとる。
-		float Radius = 6000.0f;
-
-		// ランダムな角度を0から360度の間で生成
-		float RandomAngle = FMath::RandRange(0.0f, 360.0f);
-
-		// 角度を使用してxおよびyのオフセットを計算。回転する際はUEの座標に合わせる。
-		float OffsetX = Radius * FMath::Sin(FMath::DegreesToRadians(RandomAngle));  
-		float OffsetY = Radius * FMath::Cos(FMath::DegreesToRadians(RandomAngle));
-
-		// 新しいスポーン位置を計算
-		FVector SpawnLocation = StageCenter + FVector(OffsetX, OffsetY, 0.0f);
-
-		// 敵を新しいスポーン位置でスポーン
-		GetWorld()->SpawnActor<AEnemy>(EnemyClass, SpawnLocation, FRotator(0, 0, 0), SpawnParams);
-
-        // Spawn the enemy using the Blueprint class
-        //GetWorld()->SpawnActor<AEnemy>(EnemyClass, FVector(5200.f, 5200.f, 200.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
-    }
+		}
+	}
 }
 
 void AShooterGameGameModeBase::SpawnGoal()
@@ -100,6 +125,11 @@ void AShooterGameGameModeBase::SpawnGoal()
 	Goal->Spawn();
 }
 
-
+void AShooterGameGameModeBase::HandleEnemyDeath(AEnemy* DeadEnemy)
+{
+	// ここでEnemyPoolのReturnEnemy関数を呼び出して、DeadEnemyを返却するなどの処理を行う
+	EnemyPoolInstance->ReturnEnemy(DeadEnemy);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("AEnemy::HandleEnemyDeath() is called."));
+}
 
 

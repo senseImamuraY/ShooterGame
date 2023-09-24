@@ -29,6 +29,11 @@ AEnemy::AEnemy() :
 	CombatRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnSphereBeginOverlap);
 }
 
+void AEnemy::InitEnemyHealth()
+{
+	Health = MaxHealth;
+}
+
 // Called when the game starts or when spawned
 void AEnemy::BeginPlay()
 {
@@ -54,9 +59,13 @@ void AEnemy::ShowHealthBar_Implementation()
 }
 
 void AEnemy::Die()
-{
+{	
+	OnEnemyDead.Broadcast(this);
 	HideHealthBar();
-	Destroy();
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("AEnemy::Die() is called."));
+	}
 }
 
 void AEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

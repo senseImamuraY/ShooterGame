@@ -250,10 +250,10 @@ void UWallRunComponent::WallRun()
 		if (Camera) {
 			// キャラクターの現在の回転をゲーム画面に出力
 			FRotator CurrentCharacterRotation = ShooterCharacter->GetActorRotation();
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Character Rotation: Pitch: %f, Yaw: %f, Roll: %f"), CurrentCharacterRotation.Pitch, CurrentCharacterRotation.Yaw, CurrentCharacterRotation.Roll));
-			}
+			//if (GEngine)
+			//{
+			//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Character Rotation: Pitch: %f, Yaw: %f, Roll: %f"), CurrentCharacterRotation.Pitch, CurrentCharacterRotation.Yaw, CurrentCharacterRotation.Roll));
+			//}
 
 			// 以下のコードは既存のものです。
 			Camera->SetupAttachment(ShooterCharacter->GetRootComponent());

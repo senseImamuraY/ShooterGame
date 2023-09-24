@@ -30,6 +30,12 @@ private:
 	
 	class UClass* EnemyClass;
 
+	UPROPERTY()
+	class UEnemyPool* EnemyPoolInstance; // EnemyPoolのインスタンスを保持するためのポインタ
+
+	UFUNCTION()
+	void HandleEnemyDeath(class AEnemy* DeadEnemy);
+
 	FTimerHandle GoalTimerHandle;
 
 	void SpawnGoal();

@@ -7,6 +7,10 @@
 #include "../Interfaces/BulletHitInterface.h"
 #include "Enemy.generated.h"
 
+
+// デリゲートの定義
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDied, AEnemy*, DeadEnemy);
+
 UCLASS()
 class SHOOTERGAME_API AEnemy : public ACharacter, public IBulletHitInterface
 {
@@ -15,6 +19,20 @@ class SHOOTERGAME_API AEnemy : public ACharacter, public IBulletHitInterface
 public:
 	// Sets default values for this character's properties
 	AEnemy();
+
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void BulletHit_Implementation(FHitResult HitResult) override;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnEnemyDied OnEnemyDead;
+
+	void InitEnemyHealth();
 
 protected:
 	// Called when the game starts or when spawned
@@ -58,15 +76,5 @@ private:
 
 	void ChasePlayer(float Deltatime);
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual void BulletHit_Implementation(FHitResult HitResult) override;
-
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-
-
+	// Called every frame 
 };
