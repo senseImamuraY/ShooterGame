@@ -96,7 +96,7 @@ void UWallRunComponent::WallRun()
 				//GEngine->AddOnScreenDebugMessage(3, 50.f, FColor::Blue, FString::Printf(TEXT("NewRotation: Pitch=%f, Yaw=%f, Roll=%f"), NewRotation.Pitch, NewRotation.Yaw, NewRotation.Roll));
 
 				//NewCam *= -1;
-				NewCam = FRotator(-90.f, 0.f, 0.f);
+				//NewCam = FRotator(-89.f, 0.f, 0.f);
 
 				ShooterCharacter->SetActorRotation(NewRotation);
 
@@ -104,7 +104,7 @@ void UWallRunComponent::WallRun()
 				if (Camera)
 				{
 					//InitialCameraLocation = FVector(-230.f, 35.f, 100.f);
-					InitialCameraLocation = FVector(-270.f, -30.f, -160.f);
+					InitialCameraLocation = FVector(-230.f, -30.f, -160.f);
 					//InitialCameraLocation = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation() + FVector(-150.f, 0.f, 50.f);
 					//GEngine->AddOnScreenDebugMessage(17, 50.f, FColor::Blue, FString::Printf(TEXT("InitialCameraLocation: X=%f, Y=%f, Z=%f"), InitialCameraLocation.X, InitialCameraLocation.Y, InitialCameraLocation.Z));
 
@@ -121,6 +121,18 @@ void UWallRunComponent::WallRun()
 					LookAtRotation.Roll = LookAtRotation.Roll - 180.f;
 					// 計算された回転をカメラに適用
 					Camera->SetWorldRotation(LookAtRotation);
+
+					USpringArmComponent* CameraBoom = Cast<USpringArmComponent>(ShooterCharacter->FindComponentByClass<USpringArmComponent>());
+					if (CameraBoom)
+					{
+						CameraBoom->TargetArmLength = 85.f; // DesiredLengthは望む長さに設定します。
+					}
+
+					if (CameraBoom)
+					{
+						CameraBoom->SocketOffset = FVector(-110.f, 80.f, 200.f); // DesiredRotationは望むFRotator値に設定します。
+					}
+
 
 					//Camera->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f)); // 必要に応じて回転をリセットまたは調整
 					//Camera->SetRelativeRotation(NewCam); // 必要に応じて回転をリセットまたは調整
@@ -179,8 +191,39 @@ void UWallRunComponent::WallRun()
 		////FRotator NewRollRotation = FRotator(ShooterCharacter->GetActorRotation().Pitch, DefaultYaw, NewRoll);
 		////ShooterCharacter->SetActorRotation(NewRollRotation);
 
+		//AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner());
+		//if (!ShooterCharacter) return;
+		//// 1. CharacterMovementコンポーネントを取得
+		//UCharacterMovementComponent* CharMovement = Cast<UCharacterMovementComponent>(ShooterCharacter->GetMovementComponent());
+		//if (!CharMovement) return;
+
+		//FHitResult HitResult;
+		//const FVector LineLocationStart = ShooterCharacter->GetActorLocation();
+		//const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorUpVector() * -250.f;
+		//bool bHit = GetWorld()->LineTraceSingleByChannel(
+		//	HitResult,
+		//	LineLocationStart,
+		//	LineLocationEnd,
+		//	ECollisionChannel::ECC_Visibility);
+
+		//MouseXValue = ShooterCharacter->GetInputAxisValue("Turn");
+		//MouseYValue = ShooterCharacter->GetInputAxisValue("LookUp");
+
+		//ShooterCharacter->bUseControllerRotationYaw = false;
+
+		//// キャラクターの回転を更新
+		//FRotator CharacterDeltaRotation(0.0f, MouseXValue, 0.0f);
+		//ShooterCharacter->AddActorLocalRotation(CharacterDeltaRotation);
+
+		//// カメラの回転を更新
+		//UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
+		//if (Camera) {
+		//	FRotator CameraDeltaRotation(-MouseYValue, MouseXValue, 0.0f);
+		//	Camera->AddLocalRotation(CameraDeltaRotation);
+		//}
 		AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner());
 		if (!ShooterCharacter) return;
+
 		// 1. CharacterMovementコンポーネントを取得
 		UCharacterMovementComponent* CharMovement = Cast<UCharacterMovementComponent>(ShooterCharacter->GetMovementComponent());
 		if (!CharMovement) return;
@@ -198,84 +241,43 @@ void UWallRunComponent::WallRun()
 		MouseYValue = ShooterCharacter->GetInputAxisValue("LookUp");
 
 		ShooterCharacter->bUseControllerRotationYaw = false;
-		////ShooterCharacter->bUseControllerRotationRoll = true;
-		////ShooterCharacter->bUseControllerRotationPitch = true;
-
-		//////CharMovement->RotationRate = FRotator(0.f, 0.f, 540.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
-		//FRotator CurrentRotation2 = ShooterCharacter->GetActorRotation();
-		//GEngine->AddOnScreenDebugMessage(4, 50.f, FColor::Orange, FString::Printf(TEXT("CurrentRotation: Pitch=%f, Yaw=%f, Roll=%f"), CurrentRotation2.Pitch, CurrentRotation2.Yaw, CurrentRotation2.Roll));
 
 		// キャラクターの回転を更新
-		FRotator CharacterDeltaRotation(0.0f, MouseXValue, 0.0f);
-		ShooterCharacter->AddActorLocalRotation(CharacterDeltaRotation);
+		FQuat CharacterYawRotation(FVector::UpVector, FMath::DegreesToRadians(MouseXValue));
+		ShooterCharacter->AddActorLocalRotation(CharacterYawRotation);
 
-		// カメラの回転を更新
 		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
 		if (Camera) {
-			FRotator CameraDeltaRotation(-MouseYValue, MouseXValue, 0.0f);
-			Camera->AddLocalRotation(CameraDeltaRotation);
+			// キャラクターの現在の回転をゲーム画面に出力
+			FRotator CurrentCharacterRotation = ShooterCharacter->GetActorRotation();
+			//if (GEngine)
+			//{
+			//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Character Rotation: Pitch: %f, Yaw: %f, Roll: %f"), CurrentCharacterRotation.Pitch, CurrentCharacterRotation.Yaw, CurrentCharacterRotation.Roll));
+			//}
+
+			// 以下のコードは既存のものです。
+			Camera->SetupAttachment(ShooterCharacter->GetRootComponent());
+			FVector CameraToCharacter = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation();
+			FQuat CameraYawRotation(ShooterCharacter->GetActorUpVector(), FMath::DegreesToRadians(MouseXValue));
+			FQuat CameraPitchRotation(ShooterCharacter->GetActorRightVector(), FMath::DegreesToRadians(MouseYValue));
+			FQuat CombinedRotation = CameraYawRotation * CameraPitchRotation;
+
+			// ピッチの値を-89から89の範囲に制限
+			FRotator CombinedRotator = CombinedRotation.Rotator();
+			//CombinedRotator.Pitch = -89.f;
+			//CombinedRotator.Pitch = FMath::Clamp(CombinedRotator.Pitch, -89.0f, 89.0f);
+			CombinedRotation = CombinedRotator.Quaternion();
+
+			FVector RotatedVector = CombinedRotation.RotateVector(CameraToCharacter);
+			FVector NewCameraLocation = ShooterCharacter->GetActorLocation() + RotatedVector;
+			Camera->SetWorldLocation(NewCameraLocation);
+			Camera->AddWorldRotation(CombinedRotation);
+
 		}
 
 
-		//// 1. キャラクターの現在のクオータニオンを取得
-		//FQuat CurrentCharacterQuat = ShooterCharacter->GetActorQuat();
-
-		//// 2. キャラクター用の新しいクオータニオン回転を作成
-		//FQuat CharacterDeltaQuat = FQuat(FVector(0.0f, 0.0f, 1.0f), FMath::DegreesToRadians(MouseXValue));
-
-		//// 3. キャラクターのクオータニオンと新しいクオータニオンを組み合わせる
-		//FQuat NewCharacterQuat = CurrentCharacterQuat * CharacterDeltaQuat;
-
-		//// 4. この組み合わせたクオータニオンをキャラクターの回転に適用
-		//ShooterCharacter->SetActorRotation(NewCharacterQuat.Rotator());
-
-		//// 5. カメラ用の新しいクオータニオン回転を作成
-		//// この例では、Z軸（ヨー）を中心にMouseYValueだけ回転させるクオータニオンを作成します。
-		//FQuat CameraDeltaQuat = FQuat(FVector(0.0f, 0.0f, 1.0f), FMath::DegreesToRadians(MouseXValue));
 
 
-		//// 2. 入力値Valueを使用して、ピッチ回転のクオータニオンを計算
-		//FQuat PitchQuat = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(MouseYValue));
-
-		//// 6. カメラの現在のクオータニオンを取得
-		//UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
-
-		//if (Camera) {
-		//	FQuat CurrentCameraQuat = Camera->GetComponentQuat();
-
-		//	//// 7. カメラのクオータニオンと新しいクオータニオンを組み合わせる
-		//	//FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat;
-
-		//	//// 3. 現在のクオータニオンと新しいクオータニオンを組み合わせる
-		//	//FQuat NewQuat = CurrentCameraQuat * PitchQuat;
-		//	 // 7. カメラのクオータニオンと新しいクオータニオンを組み合わせる
-		//	FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat * PitchQuat;
-		//	//FQuat NewCameraQuat = CurrentCameraQuat * CameraDeltaQuat * PitchQuat;
-
-
-		//	// 8. この組み合わせたクオータニオンをカメラの回転に適用
-		//	Camera->SetWorldRotation(NewCameraQuat.Rotator());
-
-		//	// 4. 新しい回転をカメラに適用
-		//	//Camera->SetWorldRotation(NewQuat.Rotator());
-
-		//	FVector NextCameraLocation = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation();
-		//	//FRotator NextCameraRotation = Camera->GetComponentRotation();
-		//	//Camera->SetRelativeRotation(NewCam);
-		//	//Camera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
-
-		//	// キャラクターの回転に合わせてFollowCameraの位置を更新
-		//	FVector NewNextCameraOffset = NewCameraQuat.RotateVector(NextCameraLocation);
-
-
-		//	GEngine->AddOnScreenDebugMessage(15, 50.f, FColor::Red, FString::Printf(TEXT("NewNextCameraOffset: %s"), *NewNextCameraOffset.ToString()));
-		//	GEngine->AddOnScreenDebugMessage(16, 50.f, FColor::Red, FString::Printf(TEXT("NextCameraLocation: %s"), *NextCameraLocation.ToString()));
-
-
-		//	Camera->SetWorldLocation(NewNextCameraOffset + ShooterCharacter->GetActorLocation());
-
-
-		//}
 		if (!bHit)
 		{
 
@@ -314,10 +316,21 @@ void UWallRunComponent::WallRun()
 
 				}
 				// 上方向に力を与えるベクトルを定義
-				FVector LaunchVelocity(30, 0, 500); // Z軸方向に500の力を与える
+				FVector LaunchVelocity(50, 0, 600); // Z軸方向に500の力を与える
 
 				// キャラクターを打ち上げる
 				ShooterCharacter->LaunchCharacter(LaunchVelocity, true, true);
+
+				USpringArmComponent* CameraBoom = Cast<USpringArmComponent>(ShooterCharacter->FindComponentByClass<USpringArmComponent>());
+				if (CameraBoom)
+				{
+					CameraBoom->TargetArmLength = 230.f; // DesiredLengthは望む長さに設定します。
+				}
+
+				if (CameraBoom)
+				{
+					CameraBoom->SocketOffset = FVector(0.f, 35.f, 80.f); // DesiredRotationは望むFRotator値に設定します。
+				}
 			}
 		}
 	}

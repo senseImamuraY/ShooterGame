@@ -21,7 +21,30 @@ public:
 
 	void RestartGame();
 
-private:
+	virtual void BeginPlay() override;
 
+protected:
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartGame();
+
+private:
+	FTimerHandle SpawnEnemyTimerHandle;
+	void SpawnEnemy();
+	class UClass* EnemyClass;
+
+	UPROPERTY()
+	class UEnemyPool* EnemyPoolInstance; 
+
+	UFUNCTION()
+	void HandleEnemyDeath(class AEnemy* DeadEnemy);
+
+	FTimerHandle GoalTimerHandle;
+	void SpawnGoal();
+	class AGoal* Goal;
+
+	float StartDelaty;
+
+	void HandleGameStart();
+	void EnablePlayer();
 
 };

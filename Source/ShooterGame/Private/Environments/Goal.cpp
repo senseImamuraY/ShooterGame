@@ -18,23 +18,31 @@ AGoal::AGoal()
     RootComponent = Goal;
 
     // NiagaraComponentを追加する
-    UNiagaraComponent* NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraEffect"));
+    NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraEffect"));
     NiagaraComp->SetupAttachment(RootComponent);
 
     // NiagaraSystemをLoadしてNiagaraComponentに設定する
     UNiagaraSystem* NiagaraSystemAsset = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/ShooterGame/Effects/Items/Goal"));
     NiagaraComp->SetAsset(NiagaraSystemAsset);
-    NiagaraComp->Activate(true);
 
     // SphereCollisionを追加する
     Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
     Sphere->SetupAttachment(RootComponent);
 
     // Radiusを設定する
-    Sphere->SetSphereRadius(72.0f);
+    Sphere->SetSphereRadius(25.0f);
 
     Sphere->OnComponentBeginOverlap.AddDynamic(this, &AGoal::OnSphereBeginOverlap);
 
+    // 初期状態で非表示とコリジョン無効にする
+    NiagaraComp->SetVisibility(false);
+    Sphere->SetVisibility(false);
+    Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // コリジョンを無効にする
+
+    // スケールを(2.0, 2.0, 2.0)に設定する
+    Goal->SetRelativeScale3D(FVector(10.0f, 10.0f, 10.0f));
+
+    SetActorLocation(FVector(0.f, 0.f, 350.0f));
 }
 
 // Called when the game starts or when spawned
@@ -67,5 +75,15 @@ void AGoal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AGoal::Spawn()
+{
+    // コンポーネントを表示し、コリジョンを有効にする
+    NiagaraComp->SetVisibility(true);
+    NiagaraComp->Activate(true);
+
+    Sphere->SetVisibility(true);
+    Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly); // コリジョンを有効にする
 }
 
