@@ -4,6 +4,7 @@
 #include "../Public/Core/ShooterGameGameModeBase.h"
 #include "Core/InGameHUD.h"
 #include "./Player/ShooterPlayerController.h"
+#include "./Player/ShooterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Public/Enemies/Enemy.h"
 #include "../Public/Environments/Goal.h"
@@ -12,7 +13,8 @@
 #include "Engine/Engine.h"
 
 
-AShooterGameGameModeBase::AShooterGameGameModeBase() 
+AShooterGameGameModeBase::AShooterGameGameModeBase() :
+	StartDelaty(3.f)
 {
 	HUDClass = AInGameHUD::StaticClass();
 	PlayerControllerClass = AShooterPlayerController::StaticClass();
@@ -21,6 +23,8 @@ AShooterGameGameModeBase::AShooterGameGameModeBase()
 void AShooterGameGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	HandleGameStart();
 
 	// EnemyPoolのインスタンスを生成
 	EnemyPoolInstance = NewObject<UEnemyPool>();
@@ -39,10 +43,6 @@ void AShooterGameGameModeBase::BeginPlay()
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("GetWorld() returned nullptr!"));
 		}
 	}
-
-	// Set a timer to spawn an enemy every 5 seconds
-	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, 5.0f, true);
-	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, 10.0f, false);
 
 	// AGoalクラスのインスタンスを生成
 	Goal = GetWorld()->SpawnActor<AGoal>();
@@ -70,14 +70,10 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
-	if (GetWorldTimerManager().IsTimerActive(SpawnEnemyTimerHandle))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("SpawnEnemyTimer is active!"));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("SpawnEnemyTimer is not active!"));
-	}
+
+	// Set a timer to spawn an enemy every 5 seconds
+	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, 5.0f, true);
+	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, 60.0f, false);
 
 }
 
@@ -123,6 +119,32 @@ void AShooterGameGameModeBase::SpawnEnemy()
 void AShooterGameGameModeBase::SpawnGoal()
 {
 	Goal->Spawn();
+}
+
+void AShooterGameGameModeBase::HandleGameStart()
+{
+	AShooterCharacter* Player = Cast<AShooterCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
+	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
+
+	StartGame();
+
+	if (PlayerController)
+	{
+		PlayerController->SetPlayerEnabledState(false);
+		
+		// 3秒後にEnablePlayer関数を呼び出す
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &AShooterGameGameModeBase::EnablePlayer, StartDelaty, false);
+	}
+}
+
+void AShooterGameGameModeBase::EnablePlayer()
+{
+	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
+	if (PlayerController)
+	{
+		PlayerController->SetPlayerEnabledState(true);
+	}
 }
 
 void AShooterGameGameModeBase::HandleEnemyDeath(AEnemy* DeadEnemy)

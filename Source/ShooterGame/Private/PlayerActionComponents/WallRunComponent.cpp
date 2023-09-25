@@ -316,7 +316,7 @@ void UWallRunComponent::WallRun()
 
 				}
 				// 上方向に力を与えるベクトルを定義
-				FVector LaunchVelocity(30, 0, 500); // Z軸方向に500の力を与える
+				FVector LaunchVelocity(50, 0, 600); // Z軸方向に500の力を与える
 
 				// キャラクターを打ち上げる
 				ShooterCharacter->LaunchCharacter(LaunchVelocity, true, true);

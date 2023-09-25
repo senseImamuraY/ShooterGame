@@ -23,6 +23,8 @@ public:
 	// APlayerController‚©‚çOverride‚·‚é
 	virtual void SetupInputComponent() override;
 
+	void SetPlayerEnabledState(bool bPlayerEnabled);
+
 protected:
 	virtual void BeginPlay() override;
 
