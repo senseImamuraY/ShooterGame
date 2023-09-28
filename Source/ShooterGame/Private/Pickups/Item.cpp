@@ -93,8 +93,10 @@ void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 
 void AItem::SetActiveStars()
 {
-	// 
-	for (int32 i = 0; i <= 5; i++)
+	const int MaxStar = 5;
+
+	// 配列のインデックスと星の数を一致させるために、便宜上0~5まで格納する。0のインデックスは使用しない。
+	for (int32 i = 0; i <= MaxStar; i++)
 	{
 		ActiveStars.Add(false);
 	}
@@ -201,12 +203,15 @@ void AItem::SetItemProperties(EItemState State)
 void AItem::FinishInterping()
 {
 	bInterping = false;
+
 	if (Character)
 	{
 		Character->IncrementInterpLocItemCount(InterpLocIndex, -1);
 		Character->GetPickupItem(this);
 	}
-	SetActorScale3D(FVector(1.f));
+
+	const FVector ActorScale = FVector(1.f);
+	SetActorScale3D(ActorScale);
 }
 
 void AItem::ItemInterp(float DeltaTime)
@@ -226,18 +231,20 @@ void AItem::ItemInterp(float DeltaTime)
 		const FVector ItemToCamera{ FVector(0.f, 0.f, (CameraInterpLocation - ItemLocation).Z) };
 		const float DeltaZ = ItemToCamera.Size();
 
+		const float InterpSpeed = 30.f;
+
 		const FVector CurrentLocation{ GetActorLocation() };
 		const float InterpXValue = FMath::FInterpTo(
 			CurrentLocation.X,
 			CameraInterpLocation.X,
 			DeltaTime,
-			30.0f);
+			InterpSpeed);
 
 		const float InterpYValue = FMath::FInterpTo(
 			CurrentLocation.Y,
 			CameraInterpLocation.Y,
 			DeltaTime,
-			30.0f);
+			InterpSpeed);
 
 		ItemLocation.X = InterpXValue;
 		ItemLocation.Y = InterpYValue;

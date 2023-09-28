@@ -6,6 +6,8 @@
 #include "GameFramework/HUD.h"
 #include "InGameHUD.generated.h"
 
+class UCrosshairWidget;
+
 /**
  * 
  */
@@ -19,7 +21,7 @@ public:
 	AInGameHUD();
 
 	// Pauseメニューの表示/非表示
-	void DispPause(const bool IsPause);
+	void DispPause(const bool bIsPause);
 
 	// Levelを開く
 	void OpenLevel(const FName LevelName);
@@ -39,8 +41,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void DrawHUD() override;
-
 private:
 	// PauseWidgetを保持する変数
 	UUserWidget* PauseWidget;
@@ -50,5 +50,5 @@ private:
 	UUserWidget* GameOverWidget;
 
 	UPROPERTY()
-	class UCrosshairWidget* CrosshairWidgetInstance;
+	UCrosshairWidget* CrosshairWidgetInstance;
 };

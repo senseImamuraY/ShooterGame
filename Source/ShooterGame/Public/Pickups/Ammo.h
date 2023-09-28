@@ -7,6 +7,8 @@
 #include "AmmoType.h"
 #include "Ammo.generated.h"
 
+class USphereComponent;
+
 /**
  * 
  */
@@ -47,7 +49,7 @@ private:
 
 	// ê⁄êGÇµÇΩç€Ç…ÅAAmmoÇèEÇ§ÇΩÇﬂÇÃsphere
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	class USphereComponent* AmmoCollisionSphere;
+	USphereComponent* AmmoCollisionSphere;
 
 public:
 	FORCEINLINE UStaticMeshComponent* GetAmmoMesh() const { return AmmoMesh; }

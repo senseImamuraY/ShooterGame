@@ -20,10 +20,6 @@ void UMainMenuWidget::NativeConstruct()
 
 void UMainMenuWidget::OnButtonPlayClicked()
 {
-	// GameInstance‚Ì•Ï”‚ğ‰Šú‰»‚·‚é
-	//AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(UGameplayStatics::GetGameInstance(GetWorld()));
-	//ShooterCharacter->Initialize();
-
 	// Level01‚ğLoad‚·‚é
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("DefaultMap")));
 }

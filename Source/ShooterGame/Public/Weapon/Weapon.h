@@ -65,10 +65,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	float Damage;
 
-	//// ヘッドショットした時に相手に与えるダメージ
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
-	//float HeadShotDamage;
-
 public:
 	void ThrowWeapon();
 
@@ -82,8 +78,6 @@ public:
 	FORCEINLINE FName GetReloadMontageSection() const { return ReloadMontageSection; }
 	FORCEINLINE FName GetClipBoneName() const { return ClipBoneName; }
 	FORCEINLINE float GetDamage() const { return Damage; }
-	//FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
-
 
 	void ReloadAmmo(int32 Amount);
 

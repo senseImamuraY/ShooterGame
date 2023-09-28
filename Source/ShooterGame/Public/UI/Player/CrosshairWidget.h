@@ -8,6 +8,10 @@
 #include "Runtime/UMG/Public/Components/Image.h"
 #include "CrosshairWidget.generated.h"
 
+class UCanvasPanel;
+class UCanvasPanelSlot;
+class AShooterCharacter;
+
 /**
  * 
  */
@@ -29,8 +33,6 @@ protected:
 	void NativeConstruct() override;
 
 	void CalculateCrosshairSpread(float DeltaTime);
-
-	void SetCrosshairTexture(UTexture2D* Textrure);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Texture")
 	UTexture2D* CrosshairTop;
@@ -58,15 +60,15 @@ protected:
 	UImage* CrosshairImageRight;
 
 	UPROPERTY()
-	class UCanvasPanel* CanvasPanel;
+	UCanvasPanel* CanvasPanel;
 
-	class UCanvasPanelSlot* CanvasSlotTop;
+	UCanvasPanelSlot* CanvasSlotTop;
 	UCanvasPanelSlot* CanvasSlotBottom;
 	UCanvasPanelSlot* CanvasSlotLeft;
 	UCanvasPanelSlot* CanvasSlotRight;
 
 private:
-	class AShooterCharacter* ShooterCharacter;
+	AShooterCharacter* ShooterCharacter;
 
 	// è\éöê¸ÇÃëÂÇ´Ç≥ÇåàíË
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))

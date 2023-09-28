@@ -37,6 +37,4 @@ private:
 	// ButtonQuitのOnClickedイベントに関連づける
 	UFUNCTION()
 	void OnButtonQuitClicked();
-
-
 };

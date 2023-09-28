@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
-#include "InputMappingContext.h" // ’Ç‰Á
-#include "InputAction.h" // ’Ç‰Á
+#include "InputMappingContext.h"
+#include "InputAction.h"
 #include "ShooterPlayerController.generated.h"
 
 
@@ -48,6 +48,4 @@ private:
 	TObjectPtr<UInputAction> PauseAction;
 
 	class AInGameHUD* InGameHUDInstance;
-
-	int CalledNum;
 };

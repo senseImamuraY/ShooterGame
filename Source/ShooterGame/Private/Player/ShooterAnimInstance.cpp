@@ -15,8 +15,8 @@ UShooterAnimInstance::UShooterAnimInstance() :
 	bAiming(false),
 	CharacterRotation(FRotator(0.f)),
 	CharacterRotationLastFrame(FRotator(0.f)),
-	TIPCharacterYaw(0.f),
-	TIPCharacterYawLastFrame(0.f),
+	CharacterYawWhenTurningInPlace(0.f),
+	CharacterYawLastFrameWhenTurningInPlace(0.f),
 	YawDelta(0.f),
 	RootYawOffset(0.f),
 	Pitch(0.f),
@@ -58,7 +58,6 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		
 		// 移動方向と向いている方向の角度の差
 		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
-		//GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Cyan, FString::Printf(TEXT("MovementOffsetYaw: %f"), MovementOffsetYaw));
 
 		if (ShooterCharacter->GetVelocity().Size() > 0.f)
 		{
@@ -84,7 +83,9 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 			OffsetState = EOffsetState::EOS_Hip;
 		}
 	}
+
 	if (ShooterCharacter && ShooterCharacter->GetIsWallRunning()) return;
+
 	TurnInPlace();
 	Lean(DeltaTime);
 }
@@ -104,19 +105,19 @@ void UShooterAnimInstance::TurnInPlace()
 	{
 		// キャラクターが移動しているときは、Offsetを0にする
 		RootYawOffset = 0.f;
-		TIPCharacterYaw = ShooterCharacter->GetActorRotation().Yaw;
-		TIPCharacterYawLastFrame = TIPCharacterYaw;
+		CharacterYawWhenTurningInPlace = ShooterCharacter->GetActorRotation().Yaw;
+		CharacterYawLastFrameWhenTurningInPlace = CharacterYawWhenTurningInPlace;
 		RotationCurveLastFrame = 0.f;
 		RotationCurve = 0.f;
 	}
 	else
 	{
-		TIPCharacterYawLastFrame = TIPCharacterYaw;
-		TIPCharacterYaw = ShooterCharacter->GetActorRotation().Yaw;
-		const float TIPYawDelta{ TIPCharacterYaw - TIPCharacterYawLastFrame };
+		CharacterYawLastFrameWhenTurningInPlace = CharacterYawWhenTurningInPlace;
+		CharacterYawWhenTurningInPlace = ShooterCharacter->GetActorRotation().Yaw;
+		const float TurnInPlaceYawDelta{ CharacterYawWhenTurningInPlace - CharacterYawLastFrameWhenTurningInPlace };
 
 		// (-180, 180)の間にclampされる
-		RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - TIPYawDelta);
+		RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - TurnInPlaceYawDelta);
 		
 		// 回転中は1.0、そうでないなら0.0
 		// 回転の処理自体はBlueprint側で実装
@@ -132,8 +133,7 @@ void UShooterAnimInstance::TurnInPlace()
 			// RootYawOffset > 0なら左回転、 RootYawOffset < 0 なら右回転
 			RootYawOffset > 0 ? RootYawOffset -= DeltaRotation : RootYawOffset += DeltaRotation;
 
-			//GEngine->AddOnScreenDebugMessage(11, 1.f, FColor::Purple, FString::Printf(TEXT("TurnInPlace")));
-
+			// 値が急激に変化した場合の調整（例: 180から-160になった場合）
 			const float ABSRootYawOffset{ FMath::Abs(RootYawOffset) };
 			if (ABSRootYawOffset > 90.f)
 			{
@@ -146,43 +146,26 @@ void UShooterAnimInstance::TurnInPlace()
 			bTurningInPlace = false;
 		}
 	}
-	//GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
 
 	// アニメーションの見栄えを良くするために、反動を調整
+	const float FullRecoil = 1.f;
+	const float MediumRecoil = 0.5f;
+	const float LightRecoil = 0.1f;
+	const float NoRecoil = 0.f;
+
 	if (bTurningInPlace)
 	{
-		if (bReloading)
-		{
-			RecoilWeight = 1.f;
-		}
-		else
-		{
-			RecoilWeight = 0.f;
-		}
+		RecoilWeight = bReloading ? FullRecoil : NoRecoil;
 	}
 	else
 	{
 		if (bCrouching)
 		{
-			if (bReloading)
-			{
-				RecoilWeight = 1.f;
-			}
-			else
-			{
-				RecoilWeight = 0.1f;
-			}
+			RecoilWeight = bReloading ? FullRecoil : LightRecoil;
 		}
 		else
 		{
-			if (bAiming || bReloading)
-			{
-				RecoilWeight = 1.f;
-			}
-			else
-			{
-				RecoilWeight = 0.5f;
-			}
+			RecoilWeight = (bAiming || bReloading) ? FullRecoil : MediumRecoil;
 		}
 	}
 }
@@ -197,6 +180,10 @@ void UShooterAnimInstance::Lean(float DeltaTime)
 	const FRotator Delta{ UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame) };
 
 	const float Target = Delta.Yaw / DeltaTime;
-	const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, 1.f) };
-	YawDelta = FMath::Clamp(Interp, -85.f, 85.f);
+	const float InterpSpeed = 1.f;
+	const float InterpMin = -85.f;
+	const float InterpMax = 85.f;
+	const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, InterpSpeed) };
+
+	YawDelta = FMath::Clamp(Interp, InterpMin, InterpMax);
 }

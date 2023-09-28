@@ -40,37 +40,37 @@ void AAmmo::SetItemProperties(EItemState State)
 
 	switch (State)
 	{
-	case EItemState::EIS_Pickup:
-		// Mesh AreaSphere CollisionBoxのプロパティを設定
-		AmmoMesh->SetSimulatePhysics(false);
-		AmmoMesh->SetEnableGravity(false);
-		AmmoMesh->SetVisibility(true);
-		AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
-	case EItemState::EIS_Equipped:
-		AmmoMesh->SetSimulatePhysics(false);
-		AmmoMesh->SetEnableGravity(false);
-		AmmoMesh->SetVisibility(true);
-		AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
-	case EItemState::EIS_Falling:
-		AmmoMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AmmoMesh->SetSimulatePhysics(true);
-		AmmoMesh->SetEnableGravity(true);
-		AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		AmmoMesh->SetCollisionResponseToChannel(
-			ECollisionChannel::ECC_WorldStatic,
-			ECollisionResponse::ECR_Block);
-		break;
-	case EItemState::EIS_EquipInterping:
-		AmmoMesh->SetSimulatePhysics(false);
-		AmmoMesh->SetEnableGravity(false);
-		AmmoMesh->SetVisibility(true);
-		AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
+		case EItemState::EIS_Pickup:
+			// Mesh AreaSphere CollisionBoxのプロパティを設定
+			AmmoMesh->SetSimulatePhysics(false);
+			AmmoMesh->SetEnableGravity(false);
+			AmmoMesh->SetVisibility(true);
+			AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
+		case EItemState::EIS_Equipped:
+			AmmoMesh->SetSimulatePhysics(false);
+			AmmoMesh->SetEnableGravity(false);
+			AmmoMesh->SetVisibility(true);
+			AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
+		case EItemState::EIS_Falling:
+			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			AmmoMesh->SetSimulatePhysics(true);
+			AmmoMesh->SetEnableGravity(true);
+			AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			AmmoMesh->SetCollisionResponseToChannel(
+				ECollisionChannel::ECC_WorldStatic,
+				ECollisionResponse::ECR_Block);
+			break;
+		case EItemState::EIS_EquipInterping:
+			AmmoMesh->SetSimulatePhysics(false);
+			AmmoMesh->SetEnableGravity(false);
+			AmmoMesh->SetVisibility(true);
+			AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
 	}
 }
 
@@ -79,6 +79,7 @@ void AAmmo::AmmoSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	if (OtherActor)
 	{
 		auto OverlappedCharacter = Cast<AShooterCharacter>(OtherActor);
+
 		if (OverlappedCharacter)
 		{
 			StartItemCurve(OverlappedCharacter);

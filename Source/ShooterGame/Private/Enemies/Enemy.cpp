@@ -42,6 +42,7 @@ void AEnemy::BeginPlay()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(GetComponentByClass(UCharacterMovementComponent::StaticClass()));
+
 	if (MovementComponent)
 	{
 		MovementComponent->MovementMode = MOVE_Flying;
@@ -62,10 +63,6 @@ void AEnemy::Die()
 {	
 	OnEnemyDead.Broadcast(this);
 	HideHealthBar();
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("AEnemy::Die() is called."));
-	}
 }
 
 void AEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -100,7 +97,7 @@ void AEnemy::ChasePlayer(float DeltaTime)
 	Direction.Normalize();
 
 	// 敵を一定の速度でプレイヤーの方向に移動させる
-	float Speed = 400.0f;  // これは適切な速度に調整してください
+	float Speed = 400.0f;
 	SetActorLocation(GetActorLocation() + Direction * Speed * DeltaTime);
 
 	// 敵がプレイヤーの方向を向くようにする
@@ -120,7 +117,6 @@ void AEnemy::Tick(float DeltaTime)
 void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void AEnemy::BulletHit_Implementation(FHitResult HitResult)
@@ -129,10 +125,12 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
+
 	if (ImpactParticles)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
 	}
+
 	ShowHealthBar();
 }
 
@@ -147,6 +145,7 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	{
 		Health -= DamageAmount;
 	}
+
 	return DamageAmount;
 }
 

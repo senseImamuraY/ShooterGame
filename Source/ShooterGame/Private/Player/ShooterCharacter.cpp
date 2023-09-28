@@ -21,7 +21,6 @@
 #include "../Public/Enemies/Enemy.h"
 
 
-
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
 	// 基本のrate
@@ -44,12 +43,6 @@ AShooterCharacter::AShooterCharacter() :
 	CameraZoomedFOV(25.f),
 	CameraCurrentFOV(0.f),
 	ZoomInterpSpeed(20.f),
-	// Crosshair spread factors
-	//CrosshairSpreadMultiplier(0.f),
-	//CrosshairVelocityFactor(0.f),
-	//CrosshairInAirFactor(0.f),
-	//CrosshairAimFactor(0.f),
-	//CrosshairShootingFactor(0.f),
 	// Automatic gun fire rate
 	AutomaticFireRate(0.1f),
 	bShouldFire(true),
@@ -223,7 +216,6 @@ void AShooterCharacter::Turn(float Value)
 	}
 
 	AddControllerYawInput(Value * TurnScaleFactor);
-	//GEngine->AddOnScreenDebugMessage(9, 50.f, FColor::Orange, FString::Printf(TEXT("TurnValue=%f"),Value));
 }
 
 void AShooterCharacter::LookUp(float Value)
@@ -244,7 +236,6 @@ void AShooterCharacter::LookUp(float Value)
 	}
 
 	AddControllerPitchInput(Value * LookUPScaleFactor);
-	//GEngine->AddOnScreenDebugMessage(10, 50.f, FColor::Orange, FString::Printf(TEXT("LuckupValue=%f"), Value));
 }
 
 void AShooterCharacter::FireWeapon()
@@ -272,17 +263,7 @@ bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 	FHitResult CrosshairHitResult;
 	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairHitResult, OutBeamLocation);
 
-	//if (bCrosshairHit)
-	//{
-	//	OutBeamLocation = CrosshairHitResult.Location;
-	//}
-	//else
-	//{
-	//	// trace hitしなかった場合はOutBeamLocationはEndと同じになる
-	//}
-
 	// Barrelからトレースを行う。Barrelからの軌道を優先して当たり判定を行う。
-
 	const FVector WeaponTraceStart{ MuzzleSocketLocation };
 	const FVector StartToEnd{ OutBeamLocation - MuzzleSocketLocation };
 	// Locationがピッタリの場合、接触しない（桁落ちで衝突判定が不安定になる）可能性があるため、1.25倍する
@@ -294,6 +275,7 @@ bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 		WeaponTraceStart,
 		WeaponTraceEnd,
 		ECollisionChannel::ECC_Visibility);
+
 	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
 	{
 		OutHitResult.Location = OutBeamLocation;;
@@ -307,6 +289,7 @@ bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 void AShooterCharacter::AimingButtonPressed()
 {
 	bAimingButtonPressed = true;
+
 	if (CombatState != ECombatState::ECS_Reloading)
 	{
 		Aim();
@@ -355,84 +338,6 @@ void AShooterCharacter::SetLookRates()
 		BaseLookUpRate = HipLookUpRate;
 	}
 }
-
-//void AShooterCharacter::CalculateCrosshairSpread(float DeltaTime)
-//{
-//	FVector2D WalkSpeedRange{ 0.f, 600.f };
-//	FVector2D VelocityMultiplierRange{ 0.f, 1.f };
-//	FVector Velocity{ GetVelocity() };
-//	Velocity.Z = 0.f;
-//
-//	// 速度による十字線調整
-//	CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(
-//		WalkSpeedRange,
-//		VelocityMultiplierRange,
-//		Velocity.Size());
-//
-//	// 空中にいるときの十字線を計算
-//	if (GetCharacterMovement()->IsFalling())
-//	{
-//		// 空中にいるときは、十字線を拡張する
-//		CrosshairInAirFactor = FMath::FInterpTo(
-//			CrosshairInAirFactor,
-//			2.25f,
-//			DeltaTime,
-//			2.25f);
-//	}
-//	else
-//	{
-//		// 地面にいるときは、十字線を縮小する
-//		CrosshairInAirFactor = FMath::FInterpTo(
-//			CrosshairInAirFactor, 
-//			0.f,
-//			DeltaTime,
-//			30.f);
-//	}
-//
-//	// エイム中の計算
-//	if (bAiming)
-//	{
-//		// エイム中は、十字線を縮小する
-//		CrosshairAimFactor = FMath::FInterpTo(
-//			CrosshairAimFactor,
-//			0.6f, 
-//			DeltaTime,
-//			30.f);
-//	}
-//	else
-//	{
-//		CrosshairAimFactor = FMath::FInterpTo(
-//			CrosshairAimFactor,
-//			0.f, 
-//			DeltaTime,
-//			30.f);
-//	}
-//
-//	// 射撃後0.05sの間のみtrueになる
-//	if (bFiringBullet)
-//	{
-//		CrosshairShootingFactor = FMath::FInterpTo(
-//			CrosshairShootingFactor, 
-//			0.3f,
-//			DeltaTime,
-//			60.f);
-//	}
-//	else
-//	{
-//		CrosshairShootingFactor = FMath::FInterpTo(
-//			CrosshairShootingFactor,
-//			0.f,
-//			DeltaTime,
-//			60.f);
-//	}
-//
-//	CrosshairSpreadMultiplier = 
-//		0.5f +
-//		CrosshairVelocityFactor +
-//		CrosshairInAirFactor -
-//		CrosshairAimFactor + 
-//		CrosshairShootingFactor;
-//}
 
 void AShooterCharacter::StartCrosshairBulletFire()
 {
@@ -492,13 +397,16 @@ void AShooterCharacter::AutoFireReset()
 bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation)
 {
 	FVector2D ViewportSize;
+
 	if (GEngine && GEngine->GameViewport)
 	{
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
 
+	FVector2D CenterPosition = FVector2D(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+
 	// 照準線の位置を設定
-	FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+	FVector2D CrosshairLocation(CenterPosition);
 	FVector CrosshairWorldPosition;
 	FVector CrosshairWorldDirection;
 
@@ -511,14 +419,17 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 
 	if (bScreenToWorld)
 	{
+		const float RaycastDistance = 50'000.f;
+
 		const FVector Start{ CrosshairWorldPosition };
-		const FVector End{ Start + CrosshairWorldDirection * 50'000.f };
+		const FVector End{ Start + CrosshairWorldDirection * RaycastDistance };
 		OutHitLocation = End;
 		GetWorld()->LineTraceSingleByChannel(
 			OutHitResult,
 			Start,
 			End,
 			ECollisionChannel::ECC_Visibility);
+
 		if (OutHitResult.bBlockingHit)
 		{
 			OutHitLocation = OutHitResult.Location;
@@ -534,11 +445,13 @@ void AShooterCharacter::TraceForItems()
 	if (bShouldTraceForItems)
 	{
 		FHitResult ItemTraceResult;
-		FVector HitLocation; // 処理の都合上仮に入れているだけ
+		FVector HitLocation; // 処理の都合上入れているだけ。
 		TraceUnderCrosshairs(ItemTraceResult, HitLocation);
+
 		if (ItemTraceResult.bBlockingHit)
 		{
 			TraceHitItem = Cast<AItem>(ItemTraceResult.GetActor());
+
 			if (TraceHitItem && TraceHitItem->GetPickupWidget() && TraceHitItem->IsOverlappingActor(this))
 			{
 				// ItemのPickup Widgetを出現させる
@@ -584,6 +497,7 @@ void AShooterCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 
 		const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(
 			FName("RightHandSocket"));
+
 		if (HandSocket)
 		{
 			HandSocket->AttachActor(WeaponToEquip, GetMesh());
@@ -668,11 +582,13 @@ void AShooterCharacter::SendBullet()
 			if (BeamHitResult.GetActor())
 			{
 				IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
+
 				if (BulletHitInterface)
 				{
 					BulletHitInterface->BulletHit_Implementation(BeamHitResult);
 
 					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
+
 					if (HitEnemy)
 					{
 						UGameplayStatics::ApplyDamage(
@@ -699,6 +615,7 @@ void AShooterCharacter::SendBullet()
 				GetWorld(),
 				BeamParticles,
 				SocketTransform);
+
 			if (Beam)
 			{
 				Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
@@ -710,6 +627,7 @@ void AShooterCharacter::SendBullet()
 void AShooterCharacter::PlayGunfireMontage()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
 	if (AnimInstance && HipFireMontage)
 	{
 		AnimInstance->Montage_Play(HipFireMontage);
@@ -737,6 +655,7 @@ void AShooterCharacter::ReloadWeapon()
 
 		CombatState = ECombatState::ECS_Reloading;
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
 		if (AnimInstance && ReloadMontage)
 		{
 			AnimInstance->Montage_Play(ReloadMontage);
@@ -776,7 +695,6 @@ void AShooterCharacter::GrabClip()
 
 void AShooterCharacter::ReleaseClip()
 {
-
 	EquippedWeapon->SetMovingClip(false);
 }
 
@@ -812,23 +730,32 @@ void AShooterCharacter::Jump()
 	{
 		if (WallRunComponent->GetIsWallRunning())
 		{
-			//float YawDelection = GetActorRotation().Yaw - 180;
+			// 壁ジャンプできないバグを修正するために一定時間WallRunを無効にする
+			WallRunComponent->SetCanWallRun(false);
+			FTimerHandle& TimerHandle = WallRunComponent->GetWallRunTimerHandle();
+			float WallRunInterval = 0.5f;
+			GetWorldTimerManager().SetTimer(TimerHandle, WallRunComponent, &UWallRunComponent::EnableWallRun, WallRunInterval, false);
+
 			FRotator JumpDirection = WallRunComponent->GetHitWallNormal().Rotation();
 			SetActorRotation(JumpDirection);
-			FVector LaunchVelocity = GetActorForwardVector() * 7000 + FVector(0.f, 0.f, 15000.f);
+
+			const FVector JumpForwardBoost = FVector(25000.f, 0.f, 0.f);
+			const FVector JumpUpwardForce = FVector(0.f, 0.f, 15000.f);
+
+			FVector LaunchVelocity = GetActorForwardVector() * JumpForwardBoost + JumpUpwardForce;
 			LaunchCharacter(LaunchVelocity, true, true);
 		}
 		else
 		{
 			ACharacter::Jump();
 		}
-		
 	}
 }
 
 void AShooterCharacter::InterpCapsuleHalfHeight(float DeltaTime)
 {
-	float TargetCapsuleHalfHeight{};
+	float TargetCapsuleHalfHeight = 0;
+
 	if (bCrouching)
 	{
 		TargetCapsuleHalfHeight = CrouchingCapsuleHalfHeight;
@@ -856,6 +783,7 @@ void AShooterCharacter::Aim()
 void AShooterCharacter::StopAiming()
 {
 	bAiming = false;
+
 	if (!bCrouching)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
@@ -884,25 +812,27 @@ void AShooterCharacter::PickupAmmo(AAmmo* Ammo)
 
 void AShooterCharacter::InitializeInterpLocations()
 {
-	FInterpLocation WeaponLocation{ WeaponInterpComp, 0 };
+	float InitialItemCount = 0;
+
+	FInterpLocation WeaponLocation{ WeaponInterpComp, InitialItemCount };
 	InterpLocations.Add(WeaponLocation);
 
-	FInterpLocation InterpLoc1{ InterpComp1, 0 };
+	FInterpLocation InterpLoc1{ InterpComp1, InitialItemCount };
 	InterpLocations.Add(InterpLoc1);
 
-	FInterpLocation InterpLoc2{ InterpComp2, 0 };
+	FInterpLocation InterpLoc2{ InterpComp2, InitialItemCount };
 	InterpLocations.Add(InterpLoc2);
 
-	FInterpLocation InterpLoc3{ InterpComp3, 0 };
+	FInterpLocation InterpLoc3{ InterpComp3, InitialItemCount };
 	InterpLocations.Add(InterpLoc3);
 
-	FInterpLocation InterpLoc4{ InterpComp4, 0 };
+	FInterpLocation InterpLoc4{ InterpComp4, InitialItemCount };
 	InterpLocations.Add(InterpLoc4);
 
-	FInterpLocation InterpLoc5{ InterpComp5, 0 };
+	FInterpLocation InterpLoc5{ InterpComp5, InitialItemCount };
 	InterpLocations.Add(InterpLoc5);
 
-	FInterpLocation InterpLoc6{ InterpComp6, 0 };
+	FInterpLocation InterpLoc6{ InterpComp6, InitialItemCount };
 	InterpLocations.Add(InterpLoc6);
 }
 
@@ -962,9 +892,6 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 	// AimingしたときにLook感度調整
 	SetLookRates();
-
-	// 十字線の乗数を計算
-	//CalculateCrosshairSpread(DeltaTime);
 
 	// OverlappedItemCountをチェックしてからitemをトレース
 	TraceForItems();
@@ -1052,11 +979,6 @@ void AShooterCharacter::ResetEquipSoundTimer()
 {
 	bShouldPlayEquipSound = true;
 }
-//
-//float AShooterCharacter::GetCrosshairSpreadMultiplier() const
-//{
-//	return CrosshairSpreadMultiplier;
-//}
 
 void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)
 {
@@ -1071,14 +993,6 @@ void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)
 		bShouldTraceForItems = true;
 	}
 }
-
-//FVector AShooterCharacter::GetCameraInterpLocation()
-//{
-//	const FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
-//	const FVector CameraForward{ FollowCamera->GetForwardVector() };
-//	return CameraWorldLocation + CameraForward * CameraInterpDistance 
-//		+ FVector(0.f, 0.f, CameraInterpElevation);
-//}
 
 void AShooterCharacter::GetPickupItem(AItem* Item)
 {

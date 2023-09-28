@@ -21,7 +21,7 @@ public:
 
 	/** Box Collision‚ÌƒTƒCƒY‚ğİ’è‚·‚é•Ï” **/
 	UPROPERTY(EditAnywhere, Category = "Kill Volume")
-	FVector BoxExtent = FVector(6000.0f, 6000.0f, 100.0f);
+	FVector BoxExtent;
 
 private:
 	/** Default Scene Root **/

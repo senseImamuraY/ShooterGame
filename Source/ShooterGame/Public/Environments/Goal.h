@@ -10,6 +10,7 @@
 
 class UStaticMeshComponent;
 class USphereComponent;
+class UNiagaraComponent;
 
 UCLASS()
 class SHOOTERGAME_API AGoal : public AActor
@@ -34,7 +35,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Goal, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> Goal;
 
-	class UNiagaraComponent* NiagaraComp;
+	UNiagaraComponent* NiagaraComp;
 
 	// ê⁄êGîªíËópÇÃCollision
 	UPROPERTY(VisibleAnywhere, Category = Goal, meta = (AllowPrivateAccess = "true"))
@@ -42,7 +43,4 @@ private:
 
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-public:	
-
 };

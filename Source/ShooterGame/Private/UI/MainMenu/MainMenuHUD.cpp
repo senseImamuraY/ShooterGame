@@ -11,37 +11,19 @@ void AMainMenuHUD::BeginPlay()
 	// WidgetBlueprint‚ÌClass‚ðŽæ“¾‚·‚é
 	FString Path = TEXT("/Game/ShooterGame/Blueprints/Widgets/BPW_MainMenu.BPW_MainMenu_C");
 	TSubclassOf<UUserWidget> WidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*Path)).LoadSynchronous();
-	UE_LOG(LogTemp, Display, TEXT("Title"));
+	
 	// PlayerController‚ðŽæ“¾‚·‚é
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	//UE_LOG(LogTemp, Display, TEXT(PlayerController));
-	// WidgetClass‚ÆPlayerController‚ªŽæ“¾‚Å‚«‚½‚©”»’è‚·‚é
-		// PlayerController‚Ìî•ñ‚ð‰æ–Ê‚Éo—Í
-	if (PlayerController)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("PlayerController is valid."));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("PlayerController is NOT valid."));
-	}
 
-	// WidgetClass‚Ìî•ñ‚ð‰æ–Ê‚Éo—Í
-	if (WidgetClass)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("WidgetClass is valid."));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("WidgetClass is NOT valid."));
-	}
 	if (WidgetClass && PlayerController)
 	{
 		// Widget‚ðì¬‚·‚é
 		UUserWidget* UserWidget = UWidgetBlueprintLibrary::Create(GetWorld(), WidgetClass, PlayerController);
 
+		float UserWidgetZOrder = 0;
+
 		// Viewport‚É’Ç‰Á‚·‚é
-		UserWidget->AddToViewport(0);
+		UserWidget->AddToViewport(UserWidgetZOrder);
 
 		// MouseCursor‚ð•\Ž¦‚·‚é
 		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(PlayerController, UserWidget, EMouseLockMode::DoNotLock, true, false);

@@ -6,6 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "Item.generated.h"
 
+class UBoxComponent;
+class UWidgetComponent;
+class USphereComponent;
+class UCurveFloat;
+class AShooterCharacter;
+class USoundCue;
+
 UENUM(BlueprintType)
 enum class EItemRarity : uint8
 {
@@ -98,15 +105,15 @@ private:
 
 	// ItemのCollision
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionBox;
+	UBoxComponent* CollisionBox;
 
 	// アイテムに表示されるPopup widget
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* PickupWidget;
+	UWidgetComponent* PickupWidget;
 
 	// 接触しているアイテムのみをトレースできるようにする
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class USphereComponent* AreaSphere;
+	USphereComponent* AreaSphere;
 
 	// Pickup Widgetに表示されるアイテムの名前
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
@@ -128,7 +135,7 @@ private:
 
 	// 補間に使うアセット
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* ItemZCurve;
+	UCurveFloat* ItemZCurve;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	FVector ItemInterpStartLocation;
@@ -148,7 +155,7 @@ private:
 	float ZCurveTime;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class AShooterCharacter* Character;
+	AShooterCharacter* Character;
 
 	// Item取得補間アニメーションに使用
 	float ItemInterpX;
@@ -162,7 +169,7 @@ private:
 
 	// アイテム取得時のサウンド
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class USoundCue* PickupSound;
+	USoundCue* PickupSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USoundCue* EquipSound;

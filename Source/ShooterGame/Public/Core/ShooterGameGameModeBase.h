@@ -6,6 +6,10 @@
 #include "GameFramework/GameModeBase.h"
 #include "ShooterGameGameModeBase.generated.h"
 
+class UClass;
+class UEnemyPool;
+class AGoal;
+
 /**
  * 
  */
@@ -30,21 +34,19 @@ protected:
 private:
 	FTimerHandle SpawnEnemyTimerHandle;
 	void SpawnEnemy();
-	class UClass* EnemyClass;
+	UClass* EnemyClass;
 
 	UPROPERTY()
-	class UEnemyPool* EnemyPoolInstance; 
+	UEnemyPool* EnemyPoolInstance; 
 
 	UFUNCTION()
 	void HandleEnemyDeath(class AEnemy* DeadEnemy);
 
 	FTimerHandle GoalTimerHandle;
 	void SpawnGoal();
-	class AGoal* Goal;
+	AGoal* Goal;
 
 	float StartDelaty;
-
 	void HandleGameStart();
 	void EnablePlayer();
-
 };

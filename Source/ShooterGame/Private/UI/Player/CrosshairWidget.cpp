@@ -37,119 +37,82 @@ UCrosshairWidget::UCrosshairWidget(const FObjectInitializer& ObjectInitializer)
 
 void UCrosshairWidget::InitializeWidget()
 {
+	const FVector2D CenterAnchors(0.5f, 0.5f);
+	const FVector2D CenterAlignment(0.5f, 0.5f);
+	const FVector2D ImageSize(128.f, 128.f);
+	const FString BaseTexturePath = TEXT("/Game/ShooterGame/Textures/Crosshairs/Crosshair_Quad_9_");
+
+	// UImageの設定を行うヘルパー関数
+	auto SetupCanvasSlot = [&](UCanvasPanelSlot* CanvasSlot, const FVector2D& Position) {
+		if (CanvasSlot)
+		{
+			CanvasSlot->SetAnchors(FAnchors(CenterAnchors.X, CenterAnchors.Y)); // 修正
+			CanvasSlot->SetAlignment(CenterAlignment);
+			CanvasSlot->SetPosition(Position);
+			CanvasSlot->SetSize(ImageSize);
+		}
+	};
+
 	// UImageをCanvasPanelの子として追加
-	 CanvasSlotTop = CanvasPanel->AddChildToCanvas(CrosshairImageTop);
-	 CanvasSlotBottom = CanvasPanel->AddChildToCanvas(CrosshairImageBottom);
-	 CanvasSlotLeft = CanvasPanel->AddChildToCanvas(CrosshairImageLeft);
-	 CanvasSlotRight = CanvasPanel->AddChildToCanvas(CrosshairImageRight);
+	CanvasSlotTop = CanvasPanel->AddChildToCanvas(CrosshairImageTop);
+	CanvasSlotBottom = CanvasPanel->AddChildToCanvas(CrosshairImageBottom);
+	CanvasSlotLeft = CanvasPanel->AddChildToCanvas(CrosshairImageLeft);
+	CanvasSlotRight = CanvasPanel->AddChildToCanvas(CrosshairImageRight);
 
-	if (CanvasSlotTop)
-	{
-		FVector2D ScreenSize(0.f);
-	
-		GEngine->GameViewport->GetViewportSize(ScreenSize);
-		//ScreenSize /= 2.0f;
-		// 画面にテキストを出力
-		GEngine->AddOnScreenDebugMessage(-1, 50.f, FColor::Red, FString::Printf(TEXT("Screen Size: %f x %f"), ScreenSize.X, ScreenSize.Y));
+	// UImageの位置を設定
+	SetupCanvasSlot(CanvasSlotTop, FVector2D(0.f, -50.f));
+	SetupCanvasSlot(CanvasSlotBottom, FVector2D(0.f, 50.f));
+	SetupCanvasSlot(CanvasSlotLeft, FVector2D(-50.f, 0.f));
+	SetupCanvasSlot(CanvasSlotRight, FVector2D(50.f, 0.f));
 
-		//ScreenSize.Y -= 50;
-		// UImageの位置やサイズを設定
-		CanvasSlotTop->SetAnchors(FAnchors(0.5f, 0.5f)); // 画面の中央にアンカーを設定
-		CanvasSlotTop->SetAlignment(FVector2D(0.5f, 0.5f)); // 画像の中央をアンカー位置に合わせる
-		//CanvasSlot->SetAlignment(ScreenSize); // 画像の中央をアンカー位置に合わせる
-		CanvasSlotTop->SetPosition(FVector2D(0.f, -50.f));
-		CanvasSlotTop->SetSize(FVector2D(128.f, 128.f)); // 画像のサイズを設定
-	}
+	// テクスチャの読み込みと設定を行うヘルパー関数
+	auto SetupCrosshairImage = [&](UImage* Image, const FString& Direction) {
+		UTexture2D* Texture = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, *(BaseTexturePath + Direction)));
 
-	if (CanvasSlotBottom)
-	{
-		CanvasSlotBottom->SetAnchors(FAnchors(0.5f, 0.5f));
-		CanvasSlotBottom->SetAlignment(FVector2D(0.5f, 0.5f));
-		CanvasSlotBottom->SetPosition(FVector2D(0.f, 50.f));
-		CanvasSlotBottom->SetSize(FVector2D(128.f, 128.f));
-	}
+		if (Texture)
+		{
+			Image->SetBrushFromTexture(Texture);
+		}
+	};
 
-	if (CanvasSlotLeft)
-	{
-		CanvasSlotLeft->SetAnchors(FAnchors(0.5f, 0.5f));
-		CanvasSlotLeft->SetAlignment(FVector2D(0.5f, 0.5f));
-		CanvasSlotLeft->SetPosition(FVector2D(-50.f, 0.f));
-		CanvasSlotLeft->SetSize(FVector2D(128.f, 128.f));
-	}
-
-	if (CanvasSlotRight)
-	{
-		CanvasSlotRight->SetAnchors(FAnchors(0.5f, 0.5f));
-		CanvasSlotRight->SetAlignment(FVector2D(0.5f, 0.5f));
-		CanvasSlotRight->SetPosition(FVector2D(50.f, 0.f));
-		CanvasSlotRight->SetSize(FVector2D(128.f, 128.f));
-	}
-
-
-	CrosshairTop = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, TEXT("/Game/ShooterGame/Textures/Crosshairs/Crosshair_Quad_9_Top.Crosshair_Quad_9_Top")));
-	if (CrosshairTop)
-	{
-		//SetCrosshairTexture(CrosshairTop);
-		CrosshairImageTop->SetBrushFromTexture(CrosshairTop);
-	}
-
-	CrosshairBottom = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, TEXT("/Game/ShooterGame/Textures/Crosshairs/Crosshair_Quad_9_Bottom.Crosshair_Quad_9_Bottom")));
-	if (CrosshairBottom)
-	{
-		//SetCrosshairTexture(CrosshairBottom);
-		CrosshairImageBottom->SetBrushFromTexture(CrosshairBottom);
-	}
-
-	CrosshairLeft = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, TEXT("/Game/ShooterGame/Textures/Crosshairs/Crosshair_Quad_9_Left.Crosshair_Quad_9_Left")));
-	if (CrosshairLeft)
-	{
-		//SetCrosshairTexture(CrosshairLeft);
-		CrosshairImageLeft->SetBrushFromTexture(CrosshairLeft);
-	}
-
-	CrosshairRight = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, TEXT("/Game/ShooterGame/Textures/Crosshairs/Crosshair_Quad_9_Right.Crosshair_Quad_9_Right")));
-	if (CrosshairRight)
-	{
-		SetCrosshairTexture(CrosshairRight);
-		CrosshairImageRight->SetBrushFromTexture(CrosshairRight);
-	}
+	// テクスチャの読み込みと設定
+	SetupCrosshairImage(CrosshairImageTop, TEXT("Top.Crosshair_Quad_9_Top"));
+	SetupCrosshairImage(CrosshairImageBottom, TEXT("Bottom.Crosshair_Quad_9_Bottom"));
+	SetupCrosshairImage(CrosshairImageLeft, TEXT("Left.Crosshair_Quad_9_Left"));
+	SetupCrosshairImage(CrosshairImageRight, TEXT("Right.Crosshair_Quad_9_Right"));
 }
+
 
 void UCrosshairWidget::UpdateCrosshairPosition(float Deltatime)
 {
 	// CalculateCrosshairSpread関数を呼び出してCrosshairSpreadMultiplierを更新
 	CalculateCrosshairSpread(Deltatime);
 
+	const FVector2D BaseOffsetTop = FVector2D(0.f, -50.f);
+	const FVector2D BaseOffsetBottom = FVector2D(0.f, 50.f);
+	const FVector2D BaseOffsetLeft = FVector2D(-50.f, 0.f);
+	const FVector2D BaseOffsetRight = FVector2D(50.f, 0.f);
+
 	// 全てのPositionを変更
 
 	// 現在の位置にCrosshairSpreadMultiplierを掛けて新しい位置を計算
-	FVector2D NewTopPosition = FVector2D(0.f, -50.f) * 1.0f * CrosshairSpreadMultiplier;
-	// 新しい位置を設定
+	FVector2D NewTopPosition = BaseOffsetTop * CrosshairSpreadMultiplier;
 	CanvasSlotTop->SetPosition(NewTopPosition);
 
-	// 現在の位置にCrosshairSpreadMultiplierを掛けて新しい位置を計算
-	FVector2D NewBottomPosition = FVector2D(0.f, 50.f) * 1.0f * CrosshairSpreadMultiplier;
-	// 新しい位置を設定
+	FVector2D NewBottomPosition = BaseOffsetBottom * CrosshairSpreadMultiplier;
 	CanvasSlotBottom->SetPosition(NewBottomPosition);
 
-	// 現在の位置にCrosshairSpreadMultiplierを掛けて新しい位置を計算
-	FVector2D NewLeftPosition = FVector2D(-50.f, 0.f) * 1.0f * CrosshairSpreadMultiplier;
-	// 新しい位置を設定
+	FVector2D NewLeftPosition = BaseOffsetLeft * CrosshairSpreadMultiplier;
 	CanvasSlotLeft->SetPosition(NewLeftPosition);
 
-	// 現在の位置にCrosshairSpreadMultiplierを掛けて新しい位置を計算
-	FVector2D NewRightPosition = FVector2D(50.f, 0.f) * 1.0f * CrosshairSpreadMultiplier;
-	// 新しい位置を設定
+	FVector2D NewRightPosition = BaseOffsetRight * CrosshairSpreadMultiplier;
 	CanvasSlotRight->SetPosition(NewRightPosition);
-
-
 }
-
 
 void UCrosshairWidget::NativeConstruct()
 {
-	//ShooterCharacter = Cast<AShooterCharacter>(TryGetPawnOwner());
 	UWorld* World = GetWorld();
+
 	if (World)
 	{
 		APlayerController* PlayerController = World->GetFirstPlayerController();
@@ -160,18 +123,21 @@ void UCrosshairWidget::NativeConstruct()
 	}
 }
 
-void UCrosshairWidget::SetCrosshairTexture(UTexture2D* Texture)
-{
-	//if (CrosshairImage)
-	//{
-	//	CrosshairImage->SetBrushFromTexture(Texture);
-	//}
-}
-
 void UCrosshairWidget::CalculateCrosshairSpread(float DeltaTime)
 {
-	FVector2D WalkSpeedRange{ 0.f, 600.f };
-	FVector2D VelocityMultiplierRange{ 0.f, 1.f };
+	const FVector2D WalkSpeedRange{ 0.f, 600.f };
+	const FVector2D VelocityMultiplierRange{ 0.f, 1.f };
+
+	const float InterpSpeedSmall = 2.25f;
+	const float InterpSpeedMedium = 30.f;
+	const float InterpSpeedLarge = 60.f;
+
+	const float BaseSpread = 0.5f;
+	const float NoneSpread = 0.f;
+	const float SmallSpread = 0.3f;
+	const float MediumSpread = 0.6f;
+	const float LargeSpread = 2.25f;
+
 	FVector Velocity{ ShooterCharacter->GetVelocity() };
 	Velocity.Z = 0.f;
 
@@ -182,66 +148,31 @@ void UCrosshairWidget::CalculateCrosshairSpread(float DeltaTime)
 		Velocity.Size());
 
 	// 空中にいるときの十字線を計算
-	if (ShooterCharacter->GetCharacterMovement()->IsFalling())
-	{
-		// 空中にいるときは、十字線を拡張する
-		CrosshairInAirFactor = FMath::FInterpTo(
-			CrosshairInAirFactor,
-			2.25f,
-			DeltaTime,
-			2.25f);
-	}
-	else
-	{
-		// 地面にいるときは、十字線を縮小する
-		CrosshairInAirFactor = FMath::FInterpTo(
-			CrosshairInAirFactor, 
-			0.f,
-			DeltaTime,
-			30.f);
-	}
+	CrosshairInAirFactor = FMath::FInterpTo(
+		CrosshairInAirFactor,
+		ShooterCharacter->GetCharacterMovement()->IsFalling() ? LargeSpread : NoneSpread,
+		DeltaTime,
+		ShooterCharacter->GetCharacterMovement()->IsFalling() ? InterpSpeedSmall : InterpSpeedMedium);
 
 	// エイム中の計算
-	if (ShooterCharacter->GetAiming())
-	{
-		// エイム中は、十字線を縮小する
-		CrosshairAimFactor = FMath::FInterpTo(
-			CrosshairAimFactor,
-			0.6f, 
-			DeltaTime,
-			30.f);
-	}
-	else
-	{
-		CrosshairAimFactor = FMath::FInterpTo(
-			CrosshairAimFactor,
-			0.f, 
-			DeltaTime,
-			30.f);
-	}
+	CrosshairAimFactor = FMath::FInterpTo(
+		CrosshairAimFactor,
+		ShooterCharacter->GetAiming() ? MediumSpread : NoneSpread,
+		DeltaTime,
+		InterpSpeedMedium);
 
-	// 射撃後0.05sの間のみtrueになる
-	if (ShooterCharacter->GetbFiringBullet())
-	{
-		CrosshairShootingFactor = FMath::FInterpTo(
-			CrosshairShootingFactor, 
-			0.3f,
-			DeltaTime,
-			60.f);
-	}
-	else
-	{
-		CrosshairShootingFactor = FMath::FInterpTo(
-			CrosshairShootingFactor,
-			0.f,
-			DeltaTime,
-			60.f);
-	}
+	// 射撃後の計算
+	CrosshairShootingFactor = FMath::FInterpTo(
+		CrosshairShootingFactor,
+		ShooterCharacter->GetbFiringBullet() ? SmallSpread : NoneSpread,
+		DeltaTime,
+		InterpSpeedLarge);
 
-	CrosshairSpreadMultiplier = 
-		0.5f +
+	CrosshairSpreadMultiplier =
+		BaseSpread +
 		CrosshairVelocityFactor +
 		CrosshairInAirFactor -
-		CrosshairAimFactor + 
+		CrosshairAimFactor +
 		CrosshairShootingFactor;
 }
+

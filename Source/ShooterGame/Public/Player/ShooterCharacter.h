@@ -8,6 +8,15 @@
 #include "../PlayerActionComponents/WallRunComponent.h"
 #include "ShooterCharacter.generated.h"
 
+class UInputComponent;
+class AWeapon;
+class AAmmo;
+class USpringArmComponent;
+class UCameraComponent;
+class USoundCue;
+class UParticleSystem;
+class UAnimMontage;
+class AItem;
 
 UENUM(BlueprintType)
 enum class ECombatState : uint8
@@ -41,7 +50,7 @@ class SHOOTERGAME_API AShooterCharacter : public ACharacter
 public:
 	AShooterCharacter();
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -80,8 +89,6 @@ protected:
 	// Aimingの値に基づいてBaseTurnRateとBaseLookUpRateを設定する
 	void SetLookRates();
 
-	//void CalculateCrosshairSpread(float DeltaTime);
-
 	void StartCrosshairBulletFire();
 
 	UFUNCTION()
@@ -102,7 +109,7 @@ protected:
 	void TraceForItems();
 
 	// default weaponをスポーンしてそれを返却
-	class AWeapon* SpawnDefaultWeapon();
+	AWeapon* SpawnDefaultWeapon();
 
 	// weaponを取得してメッシュにアタッチ
 	void EquipWeapon(AWeapon* WeaponToEquip);
@@ -154,18 +161,18 @@ protected:
 	void Aim();
 	void StopAiming();
 
-	void PickupAmmo(class AAmmo* Ammo);
+	void PickupAmmo(AAmmo* Ammo);
 
 	void InitializeInterpLocations();
 
 private:
 	// キャラクターの後ろにカメラを置く
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+	USpringArmComponent* CameraBoom;
 
 	// キャラクターのカメラで動く
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+	UCameraComponent* FollowCamera;
 
 	// 左右の回転の速さ調整 deg/sec 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -209,14 +216,14 @@ private:
 
 	// 銃を撃ったときにランダムに音声を流す
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	class USoundCue* FireSound;
+	USoundCue* FireSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	class UParticleSystem* MuzzleFlash;
+	UParticleSystem* MuzzleFlash;
 
 	// 銃を撃つためのモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	class UAnimMontage* HipFireMontage;
+	UAnimMontage* HipFireMontage;
 
 	// 銃弾のヒットエフェクト
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -244,26 +251,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float ZoomInterpSpeed;
 
-	//// 十字線の大きさを決定
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	//float CrosshairSpreadMultiplier;
-
-	//// 十字線の速度
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	//float CrosshairVelocityFactor;
-
-	//// 空中での十字線
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	//float CrosshairInAirFactor;
-
-	//// エイム中の十字線
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	//float CrosshairAimFactor;
-
-	//// 銃撃の十字線
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
-	//float CrosshairShootingFactor;
-
 	float ShootTimeDuration;
 	bool bFiringBullet;
 	FTimerHandle CrosshairShootTimer;
@@ -288,7 +275,7 @@ private:
 
 	// 最後のフレームでヒットしたアイテム
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
-	class AItem* TraceHitItemLastFrame;
+	AItem* TraceHitItemLastFrame;
 
 	// 現在装備しているWeapon
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -418,23 +405,17 @@ private:
 public:
 	// オーバーヘッドを減らすためにインライン化
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	FORCEINLINE bool GetAiming() const { return bAiming; }
 
 	FORCEINLINE bool GetbFiringBullet() const { return bFiringBullet; }
 
-	//UFUNCTION(BlueprintCallable)
-	//float GetCrosshairSpreadMultiplier() const;
-
 	FORCEINLINE int8 GetOverlappedItemCount() const { return OverlappedItemCount; }
 
 	// OverlappedItemCountの増減とbShouldTraceForItemsのUpdateを行う
 	void IncrementOverlappedItemCount(int8 Amount);
 		
-	//FVector GetCameraInterpLocation();
-
 	void GetPickupItem(AItem* Item);
 
 	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
@@ -443,12 +424,10 @@ public:
 
 	// InterpLocationsの最も小さいItemCountのindexを返す
 	int32 GetInterpLocationIndex();
-
 	void IncrementInterpLocItemCount(int32 Index, int32 Amount);
 
 	FORCEINLINE bool ShouldPlayPickupSound() const { return bShouldPlayPickupSound; }
 	FORCEINLINE bool ShouldPlayEquipSound() const { return bShouldPlayEquipSound; }
-
 	void StartPickupSoundTimer();
 	void StartEquipSoundTimer();
 

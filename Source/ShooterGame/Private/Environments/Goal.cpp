@@ -30,8 +30,8 @@ AGoal::AGoal()
     Sphere->SetupAttachment(RootComponent);
 
     // Radiusを設定する
-    Sphere->SetSphereRadius(25.0f);
-
+    float SphereRadius = 25.f;
+    Sphere->SetSphereRadius(SphereRadius);
     Sphere->OnComponentBeginOverlap.AddDynamic(this, &AGoal::OnSphereBeginOverlap);
 
     // 初期状態で非表示とコリジョン無効にする
@@ -39,17 +39,18 @@ AGoal::AGoal()
     Sphere->SetVisibility(false);
     Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // コリジョンを無効にする
 
-    // スケールを(2.0, 2.0, 2.0)に設定する
-    Goal->SetRelativeScale3D(FVector(10.0f, 10.0f, 10.0f));
+    // スケールを設定する
+    FVector GoalScale = FVector(10.0f, 10.0f, 10.0f);
+    Goal->SetRelativeScale3D(GoalScale);
 
-    SetActorLocation(FVector(0.f, 0.f, 350.0f));
+    FVector ActorLocation = FVector(0.f, 0.f, 350.0f);
+    SetActorLocation(ActorLocation);
 }
 
 // Called when the game starts or when spawned
 void AGoal::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AGoal::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -57,8 +58,6 @@ void AGoal::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
     // 接触したActorがBallPlayerか判定する
     if (const AShooterCharacter* Player = Cast<AShooterCharacter>(OtherActor))
     {
-        UE_LOG(LogTemp, Display, TEXT("Goal"));
-
         // PlayerControllerを取得する
         const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
@@ -74,7 +73,6 @@ void AGoal::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
 void AGoal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AGoal::Spawn()

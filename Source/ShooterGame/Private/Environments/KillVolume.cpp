@@ -6,7 +6,8 @@
 #include "../Public/Player/ShooterCharacter.h"
 
 // Sets default values
-AKillVolume::AKillVolume()
+AKillVolume::AKillVolume() :
+	BoxExtent(FVector(6000.f, 6000.f, 100.f))
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;

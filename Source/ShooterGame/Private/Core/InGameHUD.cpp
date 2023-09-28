@@ -13,16 +13,6 @@
 AInGameHUD::AInGameHUD()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	//// Tickが有効かどうかを確認
-	//if (IsActorTickEnabled())
-	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Tick is enabled for this actor."));
-	//}
-	//else
-	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tick is NOT enabled for this actor."));
-	//}
 }
 
 void AInGameHUD::BeginPlay()
@@ -42,58 +32,35 @@ void AInGameHUD::BeginPlay()
 	// PlayerControllerを取得する
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-	// WidgetClassとPlayerControllerが取得できたか判定する
 	if (GameOverWidgetClass && GameClearWidgetClass && PauseWidgetClass && PlayerController)
 	{
+		const int PauseWidgetZOrder = 0;
+		const int GameClearWidgetZOrder = 1;
+		const int GameOverWidgetZOrder = 2;
+
 		PauseWidget = UWidgetBlueprintLibrary::Create(GetWorld(), PauseWidgetClass, PlayerController);
 
 		// Pauseメニューを折りたたみ状態にする
 		PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
-
-		PauseWidget->AddToViewport(0);
+		PauseWidget->AddToViewport(PauseWidgetZOrder);
 
 		GameClearWidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameClearWidgetClass, PlayerController);
-
 		GameClearWidget->SetVisibility(ESlateVisibility::Collapsed);
-
-		GameClearWidget->AddToViewport(1);
+		GameClearWidget->AddToViewport(GameClearWidgetZOrder);
 
 		GameOverWidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameOverWidgetClass, PlayerController);
-
 		GameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
-
-		GameOverWidget->AddToViewport(2);
+		GameOverWidget->AddToViewport(GameOverWidgetZOrder);
 	}
 
-	// UCrosshairWidgetのインスタンスを作成します。
 	CrosshairWidgetInstance = CreateWidget<UCrosshairWidget>(GetWorld());
+
 	if (CrosshairWidgetInstance)
 	{
 		CrosshairWidgetInstance->AddToViewport();
 	}
 
 	CrosshairWidgetInstance->InitializeWidget();
-
-	// Tickが有効かどうかを確認
-	if (IsActorTickEnabled())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Tick is enabled for this actor."));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tick is NOT enabled for this actor."));
-	}
-}
-
-void AInGameHUD::DrawHUD()
-{
-	//Super::DrawHUD();
-
-	//// スクリーンサイズを取得
-	//FVector2D ScreenSize = FVector2D(Canvas->SizeX, Canvas->SizeY);
-
-	//// 例として、スクリーンサイズを画面に出力
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Screen Size: %f x %f"), ScreenSize.X, ScreenSize.Y));
 }
 
 void AInGameHUD::Tick(float DeltaTime)
@@ -108,11 +75,8 @@ void AInGameHUD::DispGameClear()
 	GameClearWidget->SetVisibility(ESlateVisibility::Visible);
 
 	APlayerController* PlayerController = GetOwningPlayerController();
-
 	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, GameClearWidget, EMouseLockMode::DoNotLock, false);
-
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
-
 	PlayerController->SetShowMouseCursor(true);
 }
 
@@ -121,11 +85,8 @@ void AInGameHUD::DispGameOver()
 	GameOverWidget->SetVisibility(ESlateVisibility::Visible);
 
 	APlayerController* PlayerController = GetOwningPlayerController();
-
 	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, GameOverWidget, EMouseLockMode::DoNotLock, false);
-
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
-
 	PlayerController->SetShowMouseCursor(true);
 }
 
@@ -139,13 +100,12 @@ void AInGameHUD::ContinueGame()
 }
 
 
-void AInGameHUD::DispPause(const bool IsPause)
+void AInGameHUD::DispPause(const bool bIsPause)
 {
 	// PlayerControllerを取得する
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	//GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Cyan, FString::Printf(TEXT("IsPause: %s"), IsPause ? TEXT("True") : TEXT("False")));
 
-	if (IsPause)
+	if (bIsPause)
 	{
 		// Pauseメニューを表示する
 

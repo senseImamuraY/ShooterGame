@@ -6,10 +6,11 @@
 #include "Animation/AnimInstance.h"
 #include "ShooterAnimInstance.generated.h"
 
+class AShooterCharacter;
+
 /**
  * 
  */
-
 UENUM(BlueprintType)
 enum class EOffsetState : uint8
 {
@@ -43,7 +44,7 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"));
-	class AShooterCharacter* ShooterCharacter;
+	AShooterCharacter* ShooterCharacter;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	float Speed;
@@ -66,10 +67,10 @@ private:
 	bool bAiming;
 
 	// 現在のフレームのキャラクターのYaw, 地面に立っているときのみ
-	float TIPCharacterYaw;
+	float CharacterYawWhenTurningInPlace;
 
 	// １つ前のフレームのキャラクターのYaw, 地面に立っているときのみ
-	float TIPCharacterYawLastFrame;
+	float CharacterYawLastFrameWhenTurningInPlace;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn In Place", meta = (AllowPrivateAccess = "true"));
 	float RootYawOffset;

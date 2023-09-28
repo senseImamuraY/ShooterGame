@@ -33,57 +33,36 @@ void AShooterGameGameModeBase::BeginPlay()
 	if (EnemyPoolInstance)
 	{
 		UWorld* World = GetWorld();
+
 		if (World)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("GetWorld() succeeded!"));
 			EnemyPoolInstance->Initialize(World);
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("GetWorld() returned nullptr!"));
 		}
 	}
 
 	// AGoalクラスのインスタンスを生成
 	Goal = GetWorld()->SpawnActor<AGoal>();
 
-	// 例: AShooterGameGameModeBaseのBeginPlay関数内
 	for (TActorIterator<AEnemy> It(GetWorld()); It; ++It)
 	{
 		AEnemy* Enemy = *It;
+
 		if (Enemy)
 		{
-			// Enemyの名前を取得
-			FString EnemyName = Enemy->GetName();
-
-			// Enemyの位置を取得
-			FVector EnemyLocation = Enemy->GetActorLocation();
-			FString LocationString = FString::Printf(TEXT("X: %f, Y: %f, Z: %f"), EnemyLocation.X, EnemyLocation.Y, EnemyLocation.Z);
-
-			// デバッグメッセージを表示
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Enemy Name: %s, Location: %s"), *EnemyName, *LocationString));
-			}
-
 			Enemy->OnEnemyDead.AddDynamic(this, &AShooterGameGameModeBase::HandleEnemyDeath);
 		}
 	}
 
+	float EnemySpawnInterval = 5.f;
+	float TimeUntilGoalAppears = 60.f;
 
 	// Set a timer to spawn an enemy every 5 seconds
-	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, 5.0f, true);
-	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, 60.0f, false);
-
+	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
+	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
 }
 
 void AShooterGameGameModeBase::KillPlayer()
 {
-	//	// 現在のLevelNameを取得する
-	//const FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
-
-	//// 現在のLevelを開きなおす
-	//UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevelName));
 	RestartGame();
 }
 
@@ -105,13 +84,14 @@ void AShooterGameGameModeBase::SpawnEnemy()
 	if (EnemyPoolInstance)
 	{
 		AEnemy* SpawnedEnemy = EnemyPoolInstance->GetEnemy();
+
 		if (SpawnedEnemy)
 		{
 			// ... スポーン位置や回転の計算 ...
 			FVector SpawnLocation = EnemyPoolInstance->GetRandomLocation();
+			FRotator SpawnRotation = FRotator(0, 0, 0);
 			// 敵の位置と回転を設定
-			SpawnedEnemy->SetActorLocationAndRotation(SpawnLocation, FRotator(0, 0, 0));
-
+			SpawnedEnemy->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 		}
 	}
 }
@@ -151,7 +131,6 @@ void AShooterGameGameModeBase::HandleEnemyDeath(AEnemy* DeadEnemy)
 {
 	// ここでEnemyPoolのReturnEnemy関数を呼び出して、DeadEnemyを返却するなどの処理を行う
 	EnemyPoolInstance->ReturnEnemy(DeadEnemy);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("AEnemy::HandleEnemyDeath() is called."));
 }
 
 

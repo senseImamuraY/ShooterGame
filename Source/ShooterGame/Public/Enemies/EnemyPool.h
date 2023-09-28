@@ -6,18 +6,21 @@
 #include "GameFramework/Actor.h"
 #include "EnemyPool.generated.h"
 
+class AEnemy;
+class UClass;
+class UWorld;
+
 UCLASS()
 class SHOOTERGAME_API UEnemyPool : public UObject
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	UEnemyPool();
 
 	// 利用可能な敵のリスト
 	UPROPERTY()
-	TArray<class AEnemy*> AvailableEnemies;
+	TArray<AEnemy*> AvailableEnemies;
 
 	// プールの最大サイズ
 	static const int32 MaxEnemies = 15;
@@ -41,7 +44,7 @@ public:
 private:
 	AEnemy* RandomSpawn();
 
-	class UClass* EnemyClass;
+	UClass* EnemyClass;
 
-	class UWorld* WorldReference;
+	UWorld* WorldReference;
 };

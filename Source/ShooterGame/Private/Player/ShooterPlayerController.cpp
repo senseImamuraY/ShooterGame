@@ -21,6 +21,7 @@ AShooterPlayerController::AShooterPlayerController()
 	DefaultMappingContext = LoadObject<UInputMappingContext>(nullptr, TEXT("/Game/ShooterGame/Input/Action/IM_Controls"));
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> AmmoCountWidgetClass(TEXT("/Game/ShooterGame/Blueprints/Widgets/ShooterHUDOverlay.ShooterHUDOverlay_C"));
+
 	if (AmmoCountWidgetClass.Succeeded())
 	{
 		HUDOverlayClass = AmmoCountWidgetClass.Class;
@@ -43,9 +44,9 @@ void AShooterPlayerController::BeginPlay()
 
 	// AInGameHUDのインスタンスを作成
 	InGameHUDInstance = GetWorld()->SpawnActor<AInGameHUD>();
+
 	// 初期状態では非表示にする
 	InGameHUDInstance->SetActorHiddenInGame(true);
-
 }
 
 void AShooterPlayerController::DispPause(const FInputActionValue& Value)
@@ -53,36 +54,14 @@ void AShooterPlayerController::DispPause(const FInputActionValue& Value)
 	// inputのValueはboolに変換できる
 	if (const bool V = Value.Get<bool>())
 	{
-		// HUDのインスタンスを取得
-		AHUD* CurrentHUD = GetHUD();
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("CalledNum: %d"), ++CalledNum));
-
-		//// HUDのインスタンスをログに出力
-		//GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Red, FString::Printf(TEXT("CalledNum: %d"), CalledNum++) );
-		//GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Red, FString::Printf(TEXT("Current HUD: %s"), *CurrentHUD->GetName()));
-
-		//// キャストして確認
-		//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, FString::Printf(TEXT("Is it AInGameHUD?: %s"), Cast<AInGameHUD>(CurrentHUD) ? TEXT("True") : TEXT("False")));		// AInGameHUDを表示
 		InGameHUDInstance->SetActorHiddenInGame(false);
+
 		// Valueの内容を画面に表示
 		if (AInGameHUD* HUD = Cast<AInGameHUD>(GetHUD()))
 		{
-			GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Green, FString::Printf(TEXT("Value: %s"), V ? TEXT("True") : TEXT("False")));
-
 			// Pauseメニューの表示/非表示を実行する
-			//HUD->DispPause(true);
 			HUD->DispPause(!UGameplayStatics::IsGamePaused(GetWorld()));
 		}
-		//bool PauseValue = UGameplayStatics::IsGamePaused(GetWorld());
-		//GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Red, FString::Printf(TEXT("UGameplayStatics::IsGamePaused(GetWorld()): %s"), PauseValue ? TEXT("True") : TEXT("False")));
-
-		////InGameHUDInstance->DispPause(true);
-
-		//InGameHUDInstance->DispPause(!UGameplayStatics::IsGamePaused(GetWorld()));
-
-		//bool PauseValueAfter = UGameplayStatics::IsGamePaused(GetWorld());
-		//GEngine->AddOnScreenDebugMessage(6, 5.f, FColor::Red, FString::Printf(TEXT("UGameplayStatics::IsGamePausedAfter(GetWorld()): %s"), PauseValueAfter ? TEXT("True") : TEXT("False")));
-
 	}
 	else
 	{

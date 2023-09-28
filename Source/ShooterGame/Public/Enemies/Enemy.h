@@ -7,10 +7,17 @@
 #include "../Interfaces/BulletHitInterface.h"
 #include "Enemy.generated.h"
 
+class UInputComponent;
+class UParticleSystem;
+class USoundCue;
+class USphereComponent;
 
 // デリゲートの定義
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDied, AEnemy*, DeadEnemy);
 
+/**
+ *
+ */
 UCLASS()
 class SHOOTERGAME_API AEnemy : public ACharacter, public IBulletHitInterface
 {
@@ -23,7 +30,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void BulletHit_Implementation(FHitResult HitResult) override;
 
@@ -50,10 +57,10 @@ protected:
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	class UParticleSystem* ImpactParticles;
+	UParticleSystem* ImpactParticles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	class USoundCue* ImpactSound;
+	USoundCue* ImpactSound;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float Health;
@@ -69,12 +76,10 @@ private:
 
 	// 攻撃範囲
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	class USphereComponent* CombatRangeSphere;
+	USphereComponent* CombatRangeSphere;
 
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void ChasePlayer(float Deltatime);
-public:	
-	// Called every frame 
 };

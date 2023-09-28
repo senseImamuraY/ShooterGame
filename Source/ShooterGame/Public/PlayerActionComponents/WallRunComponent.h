@@ -17,15 +17,17 @@ public:
 	UWallRunComponent();
 
 	void WallRun();
+
+	void EnableWallRun();
+
 	float MouseXValue;
 	float MouseYValue;
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
 private:
-	bool bWallRun;
+	bool bWallRunning;
+	bool bCanWallRun;
+	FTimerHandle WallRunTimerHandle;
+
 	float PreviousYaw;
 	float DefaultYaw;
 
@@ -35,9 +37,8 @@ private:
 	FVector HitWallNormal;
 
 public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	FORCEINLINE bool GetIsWallRunning() const { return bWallRun; }
+	FORCEINLINE bool GetIsWallRunning() const { return bWallRunning; }
+	FORCEINLINE void SetCanWallRun(bool value) { bCanWallRun = value; }
+	FORCEINLINE FTimerHandle& GetWallRunTimerHandle() { return WallRunTimerHandle; }
 	FORCEINLINE FVector GetHitWallNormal() const { return HitWallNormal; }
 };

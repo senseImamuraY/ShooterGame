@@ -10,6 +10,7 @@
 UEnemyPool::UEnemyPool()
 {
 	static ConstructorHelpers::FObjectFinder<UClass> EnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_Enemy.BP_Enemy_C"));
+
 	if (EnemyBlueprint.Succeeded())
 	{
 		EnemyClass = EnemyBlueprint.Object;
@@ -24,6 +25,7 @@ void UEnemyPool::Initialize(UWorld* World)
 	{
 		// 敵を生成
 		AEnemy* NewEnemy = RandomSpawn();
+
 		if (NewEnemy)
 		{
 			NewEnemy->SetActorHiddenInGame(true); // 初期状態では非表示にする
@@ -36,13 +38,6 @@ void UEnemyPool::Initialize(UWorld* World)
 
 AEnemy* UEnemyPool::GetEnemy()
 {
-	// AvailableEnemiesの数をログに出力
-	if (GEngine)
-	{
-		FString Message = FString::Printf(TEXT("AvailableEnemies count: %d"), AvailableEnemies.Num());
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, Message);
-	}
-
 	if (AvailableEnemies.Num() > 0)
 	{
 		AEnemy* EnemyToReturn = AvailableEnemies.Pop();
@@ -68,14 +63,12 @@ void UEnemyPool::ReturnEnemy(AEnemy* enemy)
 
 		AvailableEnemies.Push(enemy);
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("AEnemy::Return() is called."));
-
 }
 
 FVector UEnemyPool::GetRandomLocation()
 {
 	// ステージの中心位置
-	FVector StageCenter(0.0f, 0.0f, 0.0f);
+	FVector StageCenter = FVector(0.0f, 0.0f, 0.0f);
 
 	// ステージを円に見立てたときの、中心からの距離（半径）。やや大きめにとる。
 	float Radius = 6000.0f;
@@ -86,9 +79,10 @@ FVector UEnemyPool::GetRandomLocation()
 	// 角度を使用してxおよびyのオフセットを計算。回転する際はUEの座標に合わせる。
 	float OffsetX = Radius * FMath::Sin(FMath::DegreesToRadians(RandomAngle));
 	float OffsetY = Radius * FMath::Cos(FMath::DegreesToRadians(RandomAngle));
+	float OffsetZ = 0.f;
 
 	// 新しいスポーン位置を計算
-	return StageCenter + FVector(OffsetX, OffsetY, 0.0f);
+	return StageCenter + FVector(OffsetX, OffsetY, OffsetZ);
 }
 
 AEnemy* UEnemyPool::RandomSpawn()
@@ -101,12 +95,10 @@ AEnemy* UEnemyPool::RandomSpawn()
 
 		// 新しいスポーン位置を計算
 		FVector SpawnLocation = GetRandomLocation();
+		FRotator SpawnRotation = FRotator(0, 0, 0);
 
 		// 敵を新しいスポーン位置でスポーン
-		return WorldReference->SpawnActor<AEnemy>(EnemyClass, SpawnLocation, FRotator(0, 0, 0), SpawnParams);
-
-		// Spawn the enemy using the Blueprint class
-		//GetWorld()->SpawnActor<AEnemy>(EnemyClass, FVector(5200.f, 5200.f, 200.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
+		return WorldReference->SpawnActor<AEnemy>(EnemyClass, SpawnLocation, SpawnRotation, SpawnParams);
 	}
 	else
 	{

@@ -30,7 +30,7 @@ private:
 	void OnButtonPlayClicked();
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* ButtonQuit;
+	UButton* ButtonQuit;
 
 	// ButtonQuitのOnClickedイベントに関連づける
 	UFUNCTION()
