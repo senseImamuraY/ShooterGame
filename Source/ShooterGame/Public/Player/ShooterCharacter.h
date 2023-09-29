@@ -431,5 +431,6 @@ public:
 	void StartPickupSoundTimer();
 	void StartEquipSoundTimer();
 
+	UFUNCTION(BlueprintCallable, Category = "WallRunning")
 	FORCEINLINE bool GetIsWallRunning() const { return WallRunComponent->GetIsWallRunning(); }
 };

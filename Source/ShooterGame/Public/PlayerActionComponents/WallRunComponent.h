@@ -29,7 +29,6 @@ private:
 	FTimerHandle WallRunTimerHandle;
 
 	float PreviousYaw;
-	float DefaultYaw;
 
 	FVector InitialCameraLocation;
 	FRotator InitialCameraRotation;

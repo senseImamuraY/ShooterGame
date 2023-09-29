@@ -14,7 +14,6 @@ UWallRunComponent::UWallRunComponent() :
 	bWallRunning(false),
 	bCanWallRun(true),
 	PreviousYaw(0.f),
-	DefaultYaw(0.f),
 	MouseXValue(0.f),
 	MouseYValue(0.f),
 	InitialCameraLocation(0.f),
@@ -43,6 +42,7 @@ void UWallRunComponent::WallRun()
 			LineLocationEnd,
 			ECollisionChannel::ECC_Visibility);
 
+
 		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
 
 		if (bHit)
@@ -62,49 +62,16 @@ void UWallRunComponent::WallRun()
 				CharMovement->SetMovementMode(MOVE_Flying);
 				CharMovement->bOrientRotationToMovement = false;
 				CharMovement->BrakingDecelerationFlying = 10000.0f;
-
-				bWallRunning = true;
-				DefaultYaw = ShooterCharacter->GetActorRotation().Yaw;
+	
+				bWallRunning = true; 
 
 				FRotator NewRotation = FRotationMatrix::MakeFromXZ(ShooterCharacter->GetActorUpVector(), HitResult.Normal).Rotator();
-				FRotator NewCam = NewRotation;
 
 				// Yawを-90度回転させる。
-				NewRotation.Roll = 0.f;
+				NewRotation.Roll = 0.1f;
 				NewRotation.Pitch = 89.9f;		
 
-				// 画面にNewRotationの値を表示
-				CharMovement->RotationRate = FRotator(100.f, 100.f, 0.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
-				ShooterCharacter->SetActorRotation(NewRotation);
-
-				if (Camera)
-				{
-					InitialCameraLocation = FVector(-230.f, -30.f, -160.f);
-					InitialCameraRotation = Camera->GetComponentRotation();
-
-					// キャラクターの回転に合わせてFollowCameraの位置を更新
-					FVector NewCameraOffset = NewRotation.RotateVector(InitialCameraLocation);
-					Camera->SetWorldLocation(NewCameraOffset + ShooterCharacter->GetActorLocation());
-
-					// FindLookAtRotationを使用して、カメラがプレイヤーを向くための回転を計算
-					FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(Camera->GetComponentLocation(), ShooterCharacter->GetActorLocation());
-					//　そのままだと画面が反転してしまうため、調整する
-					LookAtRotation.Roll = LookAtRotation.Roll - 180.f;
-
-					// 計算された回転をカメラに適用
-					Camera->SetWorldRotation(LookAtRotation);
-
-					USpringArmComponent* CameraBoom = Cast<USpringArmComponent>(ShooterCharacter->FindComponentByClass<USpringArmComponent>());
-					if (CameraBoom)
-					{
-						CameraBoom->TargetArmLength = 85.f;
-					}
-
-					if (CameraBoom)
-					{
-						CameraBoom->SocketOffset = FVector(-110.f, 80.f, 200.f);
-					}
-				}				
+				ShooterCharacter->SetActorRotation(NewRotation);	
 			}
 		}
 	}
@@ -136,10 +103,9 @@ void UWallRunComponent::WallRun()
 		ShooterCharacter->AddActorLocalRotation(CharacterYawRotation);
 
 		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
+		
 		if (Camera) {
 			FRotator CurrentCharacterRotation = ShooterCharacter->GetActorRotation();
-
-			Camera->SetupAttachment(ShooterCharacter->GetRootComponent());
 			FVector CameraToCharacter = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation();
 			FQuat CameraYawRotation(ShooterCharacter->GetActorUpVector(), FMath::DegreesToRadians(MouseXValue));
 			FQuat CameraPitchRotation(ShooterCharacter->GetActorRightVector(), FMath::DegreesToRadians(MouseYValue));
@@ -169,14 +135,12 @@ void UWallRunComponent::WallRun()
 			ShooterCharacter->bUseControllerRotationYaw = true;
 			ShooterCharacter->bUseControllerRotationRoll = false;
 
-			CharMovement->RotationRate = FRotator(0.f, 540.f, 0.f); // 引数がピッチ、ヨー、ロールの順番なのに注意
 			HitWallNormal = FVector(0.f, 0.f, 0.f);
 
 			if (Camera)
 			{
 				Camera->SetRelativeRotation(InitialCameraRotation);
-				Camera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
-				Camera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
+				Camera->SetRelativeLocation(InitialCameraLocation);
 			}
 
 			// 上方向に力を与えるベクトルを定義
@@ -184,18 +148,6 @@ void UWallRunComponent::WallRun()
 
 			// キャラクターを打ち上げる
 			ShooterCharacter->LaunchCharacter(LaunchVelocity, true, true);
-
-			USpringArmComponent* CameraBoom = Cast<USpringArmComponent>(ShooterCharacter->FindComponentByClass<USpringArmComponent>());
-
-			if (CameraBoom)
-			{
-				CameraBoom->TargetArmLength = 230.f; // DesiredLengthは望む長さに設定します。
-			}
-
-			if (CameraBoom)
-			{
-				CameraBoom->SocketOffset = FVector(0.f, 35.f, 80.f); // DesiredRotationは望むFRotator値に設定します。
-			}
 		}
 	}
 }
