@@ -34,9 +34,9 @@ void AInGameHUD::BeginPlay()
 
 	if (GameOverWidgetClass && GameClearWidgetClass && PauseWidgetClass && PlayerController)
 	{
-		const int PauseWidgetZOrder = 0;
 		const int GameClearWidgetZOrder = 1;
 		const int GameOverWidgetZOrder = 2;
+		const int PauseWidgetZOrder = 3;
 
 		PauseWidget = UWidgetBlueprintLibrary::Create(GetWorld(), PauseWidgetClass, PlayerController);
 

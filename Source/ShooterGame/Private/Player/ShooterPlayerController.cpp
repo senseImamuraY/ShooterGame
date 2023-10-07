@@ -63,11 +63,11 @@ void AShooterPlayerController::DispPause(const FInputActionValue& Value)
 			HUD->DispPause(!UGameplayStatics::IsGamePaused(GetWorld()));
 		}
 	}
-	else
-	{
-		// AInGameHUD‚ð”ñ•\Ž¦
-		InGameHUDInstance->SetActorHiddenInGame(true);
-	}
+	//else
+	//{
+	//	// AInGameHUD‚ð”ñ•\Ž¦
+	//	InGameHUDInstance->SetActorHiddenInGame(true);
+	//}
 }
 
 void AShooterPlayerController::SetupInputComponent()
