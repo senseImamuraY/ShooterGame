@@ -61,6 +61,20 @@ void AEnemy::ShowHealthBar_Implementation()
 
 void AEnemy::Die()
 {	
+	// プレイヤーのアクターを取得
+	AActor* Player = GetWorld()->GetFirstPlayerController()->GetPawn();
+	if (!Player) return;
+
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Player);
+	if (!ShooterCharacter) return;
+
+	// プレイヤーが獲得する経験値
+	float ExPoint = 100.f;
+	if (ShooterCharacter->GetClass()->ImplementsInterface(UExPointsInterface::StaticClass()))
+	{
+		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, ExPoint);
+	}
+
 	OnEnemyDead.Broadcast(this);
 	HideHealthBar();
 }
