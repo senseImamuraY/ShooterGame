@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "../Pickups/AmmoType.h"
 #include "../PlayerActionComponents/WallRunComponent.h"
+#include "../Public/Interfaces/ExPointsInterface.h"
 #include "ShooterCharacter.generated.h"
 
 class UInputComponent;
@@ -43,7 +44,7 @@ struct FInterpLocation
 };
 
 UCLASS()
-class SHOOTERGAME_API AShooterCharacter : public ACharacter
+class SHOOTERGAME_API AShooterCharacter : public ACharacter, public IExPointsInterface
 {
 	GENERATED_BODY()
 
@@ -165,6 +166,7 @@ protected:
 
 	void InitializeInterpLocations();
 
+	virtual void CalculateExPoints_Implementation(float AddedExPoints) override; 
 private:
 	// キャラクターの後ろにカメラを置く
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -401,6 +403,15 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	UWallRunComponent* WallRunComponent;
+
+	// 経験値によってステータスを変える
+	int PlayerLevel;
+	int MaxPlayerLevel;
+	float PreExPoints; // レベルアップに必要な経験値
+	float EarnExPoints; // そのレベル帯で獲得した経験値　
+	float AttackPower; // そのレベルの攻撃力
+
+	class USoundBase* LevelUpSound;
 
 public:
 	// オーバーヘッドを減らすためにインライン化

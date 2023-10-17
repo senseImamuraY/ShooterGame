@@ -19,10 +19,12 @@
 #include "../Public/Pickups/Ammo.h"
 #include "../Public/Interfaces/BulletHitInterface.h"
 #include "../Public/Enemies/Enemy.h"
-
+#include "CoreMinimal.h"
+#include "Engine/DataTable.h"
+#include "../Public/Core/LevelSystem/PlayerLevelSystem.h"
 
 // Sets default values
-AShooterCharacter::AShooterCharacter() :
+AShooterCharacter::AShooterCharacter() : 
 	// 基本のrate
 	BaseTurnRate(45.f),
 	BaseLookUpRate(45.f),
@@ -70,7 +72,13 @@ AShooterCharacter::AShooterCharacter() :
 	bShouldPlayPickupSound(true),
 	bShouldPlayEquipSound(true),
 	PickupSoundResetTime(0.2f),
-	EquipSoundResetTime(0.2f)
+	EquipSoundResetTime(0.2f),
+	// プレイヤーレベルシステム
+	PlayerLevel(1),
+	MaxPlayerLevel(5),
+	PreExPoints(100),
+	EarnExPoints(0),
+	AttackPower(0)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -121,6 +129,7 @@ AShooterCharacter::AShooterCharacter() :
 	// Create and attach WallRunningComponent to the character
 	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRunComponent"));
 
+	LevelUpSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/ShooterGame/Audio/SE/LevelUp/LevelUpSound.LevelUpSound"));
 }
 
 
@@ -591,9 +600,12 @@ void AShooterCharacter::SendBullet()
 
 					if (HitEnemy)
 					{
+						float WeaponDamage = EquippedWeapon->GetDamage();
+						float TotalDamage = WeaponDamage + AttackPower;
+
 						UGameplayStatics::ApplyDamage(
 							BeamHitResult.GetActor(),
-							EquippedWeapon->GetDamage(),
+							TotalDamage,
 							GetController(),
 							this,
 							UDamageType::StaticClass());
@@ -978,6 +990,34 @@ void AShooterCharacter::ResetPickupSoundTimer()
 void AShooterCharacter::ResetEquipSoundTimer()
 {
 	bShouldPlayEquipSound = true;
+}
+
+void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
+{
+	EarnExPoints += AddedExPoints;
+
+	while (EarnExPoints >= PreExPoints) {
+		// カンスト処理
+		if (PlayerLevel == MaxPlayerLevel) EarnExPoints = 0;
+		if (!LevelUpSound) return;
+
+		PlayerLevel++;
+		UGameplayStatics::PlaySoundAtLocation(this, LevelUpSound, GetActorLocation());
+		EarnExPoints -= PreExPoints;
+
+		FString DataTablePath(TEXT("/Game/ShooterGame/Blueprints/Core/LevelSystem/DT_PlayerLevelSystem.DT_PlayerLevelSystem"));
+		UDataTable* ExPointsDataTableObject = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *DataTablePath));
+		if (ExPointsDataTableObject) {
+			FPlayerExP* ExPRow = nullptr;
+			// PldayerLevelを文字列に変換します。
+			FString PlayerLevelString = FString::Printf(TEXT("%d"), PlayerLevel);
+
+			// 文字列をFNameに変換して、FindRowに渡します。
+			ExPRow = ExPointsDataTableObject->FindRow<FPlayerExP>(*PlayerLevelString, TEXT(""));
+			PreExPoints = ExPRow->PlayerExp;
+			AttackPower = ExPRow->PlayerAttackPower;
+		}
+	}
 }
 
 void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)
