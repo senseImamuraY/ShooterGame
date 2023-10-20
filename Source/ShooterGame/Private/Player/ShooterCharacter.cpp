@@ -22,6 +22,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "../Public/Core/LevelSystem/PlayerLevelSystem.h"
+#include "../Public/Core/InGameHUD.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() : 
@@ -73,12 +74,15 @@ AShooterCharacter::AShooterCharacter() :
 	bShouldPlayEquipSound(true),
 	PickupSoundResetTime(0.2f),
 	EquipSoundResetTime(0.2f),
-	// プレイヤーレベルシステム
+	// プレイヤーのレベルシステム
 	PlayerLevel(1),
 	MaxPlayerLevel(5),
 	PreExPoints(100),
 	EarnExPoints(0),
-	AttackPower(0)
+	AttackPower(0),
+	// プレイヤーの体力
+	Health(100.f),
+	MaxHealth(100.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -946,6 +950,28 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AShooterCharacter::ReloadButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AShooterCharacter::CrouchButtonPressed);
+}
+
+float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (Health - DamageAmount <= 0.f)
+	{
+		Health = 0.f;
+
+		// PlayerControllerを取得する
+		const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+		// InGameHUDクラスを取得する
+		AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
+
+		// ゲームオーバー画面を表示する
+		HUD->DispGameOver();
+	}
+	else
+	{
+		Health -= DamageAmount;
+	}
+	return DamageAmount;
 }
 
 void AShooterCharacter::FinishReloading()

@@ -4,7 +4,7 @@
 #include "Enemies/Enemy.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
-#include "Particles/ParticleSystemCOmponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "Components/SphereComponent.h"
 #include "../Public/Player/ShooterCharacter.h"
 #include "../Public/Core/InGameHUD.h"
@@ -18,7 +18,8 @@
 AEnemy::AEnemy() :
 	Health(100.f),
 	MaxHealth(100.f),
-	HealthBarDisplayTime(4.f)
+	HealthBarDisplayTime(4.f),
+	BaseEnemyAttackPower(20.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -79,22 +80,36 @@ void AEnemy::Die()
 	HideHealthBar();
 }
 
+void AEnemy::DoDamage(AActor* Victim)
+{
+	if (Victim == nullptr) return;
+	AShooterCharacter* Player = Cast<AShooterCharacter>(Victim);
+
+	// 接触したActorがBallPlayerか判定する
+	if (Player)
+	{
+		UGameplayStatics::ApplyDamage(
+			Player,
+			BaseEnemyAttackPower,
+			nullptr,
+			this,
+			UDamageType::StaticClass()
+		);
+
+		//// PlayerControllerを取得する
+		//const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+		//// InGameHUDクラスを取得する
+		//AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
+
+		//// ゲームオーバー画面を表示する
+		//HUD->DispGameOver();
+	}
+}
+
 void AEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 接触したActorがBallPlayerか判定する
-	if (const AShooterCharacter* Player = Cast<AShooterCharacter>(OtherActor))
-	{
-		UE_LOG(LogTemp, Display, TEXT("Goal"));
-
-		// PlayerControllerを取得する
-		const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-		// InGameHUDクラスを取得する
-		AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
-
-		// ゲームオーバー画面を表示する
-		HUD->DispGameOver();
-	}
+	DoDamage(OtherActor);
 }
 
 void AEnemy::ChasePlayer(float DeltaTime)
