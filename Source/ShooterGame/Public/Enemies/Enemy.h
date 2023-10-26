@@ -54,6 +54,9 @@ protected:
 
 	void Die();
 	
+	FTimerHandle DamageTimerHandle;
+	TMap<AActor*, float> LastDamageTimes;
+	float DamageInterval;
 	void DoDamage(AActor* Victim);
 
 private:

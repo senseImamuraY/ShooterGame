@@ -970,6 +970,22 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	else
 	{
 		Health -= DamageAmount;
+
+		// ダメージを受けた方向を計算する
+		FVector DamageDirection;
+		if (DamageCauser)
+		{
+			DamageDirection = GetActorLocation() - DamageCauser->GetActorLocation();
+			DamageDirection.Normalize();
+		}
+		else
+		{
+			DamageDirection = FVector::BackwardVector;
+		}
+
+		// 吹っ飛ばす力を設定する
+		FVector LaunchVelocity = DamageDirection * 1000.f + FVector::UpVector * 500.f;
+		LaunchCharacter(LaunchVelocity, true, true);
 	}
 	return DamageAmount;
 }
