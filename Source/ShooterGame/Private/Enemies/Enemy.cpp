@@ -97,6 +97,9 @@ void AEnemy::DoDamage(AActor* Victim)
 		this,
 		UDamageType::StaticClass()
 	);
+
+	if (!Player->GetPlayerDamagedSound()) return;
+	UGameplayStatics::PlaySoundAtLocation(this, Player->GetPlayerDamagedSound(), GetActorLocation());
 }
 
 void AEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

@@ -79,7 +79,7 @@ AShooterCharacter::AShooterCharacter() :
 	MaxPlayerLevel(5),
 	PreExPoints(100),
 	EarnExPoints(0),
-	AttackPower(0),
+	PlayerAttackPower(10),
 	// プレイヤーの体力
 	Health(100.f),
 	MaxHealth(100.f)
@@ -605,7 +605,7 @@ void AShooterCharacter::SendBullet()
 					if (HitEnemy)
 					{
 						float WeaponDamage = EquippedWeapon->GetDamage();
-						float TotalDamage = WeaponDamage + AttackPower;
+						float TotalDamage = WeaponDamage + PlayerAttackPower;
 
 						UGameplayStatics::ApplyDamage(
 							BeamHitResult.GetActor(),
@@ -1057,7 +1057,7 @@ void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
 			// 文字列をFNameに変換して、FindRowに渡します。
 			ExPRow = ExPointsDataTableObject->FindRow<FPlayerExP>(*PlayerLevelString, TEXT(""));
 			PreExPoints = ExPRow->PlayerExp;
-			AttackPower = ExPRow->PlayerAttackPower;
+			PlayerAttackPower = ExPRow->PlayerAttackPower;
 		}
 	}
 }

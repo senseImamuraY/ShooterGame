@@ -412,11 +412,15 @@ private:
 	UWallRunComponent* WallRunComponent;
 
 	// 経験値によってステータスを変える
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	int PlayerLevel;
+
 	int MaxPlayerLevel;
 	float PreExPoints; // レベルアップに必要な経験値
 	float EarnExPoints; // そのレベル帯で獲得した経験値　
-	float AttackPower; // そのレベルの攻撃力
+
+	UPROPERTY(meta = (AllowPrivateAccess = "true")) // TODO: バグあり。
+	float PlayerAttackPower; // そのレベルの攻撃力
 
 	class USoundBase* LevelUpSound;
 
@@ -427,6 +431,9 @@ private:
 	// Playerの最大の体力
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USoundBase* PlayerDamagedSound;
 
 public:
 	// オーバーヘッドを減らすためにインライン化
@@ -459,4 +466,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "WallRunning")
 	FORCEINLINE bool GetIsWallRunning() const { return WallRunComponent->GetIsWallRunning(); }
+
+	FORCEINLINE USoundBase* GetPlayerDamagedSound() const { return PlayerDamagedSound; }
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	float GetPlayerAttackPower() const
+	{
+		return PlayerAttackPower;
+	}
 };
