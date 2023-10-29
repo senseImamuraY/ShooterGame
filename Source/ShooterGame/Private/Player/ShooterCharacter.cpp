@@ -521,18 +521,6 @@ void AShooterCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 }
 
-void AShooterCharacter::DropWeapon()
-{
-	if (EquippedWeapon)
-	{
-		FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
-		EquippedWeapon->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
-
-		EquippedWeapon->SetItemState(EItemState::EIS_Falling);
-		EquippedWeapon->ThrowWeapon();
-	}
-}
-
 void AShooterCharacter::SelectButtonPressed()
 {
 	if (TraceHitItem)
@@ -544,14 +532,6 @@ void AShooterCharacter::SelectButtonPressed()
 void AShooterCharacter::SelectButtonReleased()
 {
 
-}
-
-void AShooterCharacter::SwapWeapon(AWeapon* WeaponToSwap)
-{
-	DropWeapon();
-	EquipWeapon(WeaponToSwap);
-	TraceHitItem = nullptr;
-	TraceHitItemLastFrame = nullptr;
 }
 
 void AShooterCharacter::InitializeAmmoMap()
@@ -898,6 +878,22 @@ void AShooterCharacter::StartEquipSoundTimer()
 		EquipSoundResetTime);
 }
 
+void AShooterCharacter::SetEquippedWeapon(AWeapon* NewWeapon)
+{
+	if (!NewWeapon) return;
+	EquippedWeapon = NewWeapon;
+}
+
+void AShooterCharacter::SetTraceHitItem(AItem* NewTraceHitItem)
+{
+	TraceHitItem = NewTraceHitItem;
+}
+
+void AShooterCharacter::SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame)
+{
+	TraceHitItemLastFrame = NewTraceHitItemLastFrame;
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -1078,18 +1074,11 @@ void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)
 
 void AShooterCharacter::GetPickupItem(AItem* Item)
 {
-	Item->PlayEquipSound();
-
-	auto Weapon = Cast<AWeapon>(Item);
-	if (Weapon)
+	// インターフェースを通じて関数を呼び出す
+	IPickupInterface* PickupInterface = Cast<IPickupInterface>(Item);
+	if (PickupInterface)
 	{
-		SwapWeapon(Weapon);
-	}
-
-	auto Ammo = Cast<AAmmo>(Item);
-	if (Ammo)
-	{
-		PickupAmmo(Ammo);
+		PickupInterface->PickupItem(this);
 	}
 }
 

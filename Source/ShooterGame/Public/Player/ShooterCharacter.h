@@ -60,6 +60,12 @@ public:
 		class AController* EventInstigator,
 		AActor* DamageCauser) override;
 
+	void ReloadWeapon();
+
+		// 最後のフレームでヒットしたアイテム
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	AItem* TraceHitItemLastFrame;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -122,14 +128,8 @@ protected:
 	// weaponを取得してメッシュにアタッチ
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
-	// weaponを切り離して、地面に捨てる
-	void DropWeapon();
-
 	void SelectButtonPressed();
 	void SelectButtonReleased();
-
-	// 現在装備しているWeaponを落として、新しいWeaponを装備
-	void SwapWeapon(AWeapon* WeaponToSwap);
 
 	// Ammoの値を初期化
 	void InitializeAmmoMap();
@@ -145,8 +145,6 @@ protected:
 
 	// 入力を確認
 	void ReloadButtonPressed();
-
-	void ReloadWeapon();
 
 	// 今装備しているweaponのammoTypeにあったammoを持っているかチェックする
 	bool CarryingAmmo();
@@ -282,9 +280,6 @@ private:
 	// 重なっているアイテムの数
 	int8 OverlappedItemCount;
 
-	// 最後のフレームでヒットしたアイテム
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
-	AItem* TraceHitItemLastFrame;
 
 	// 現在装備しているWeapon
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -474,4 +469,16 @@ public:
 	{
 		return PlayerAttackPower;
 	}
+
+	FORCEINLINE TMap<EAmmoType, int32>& GetAmmoMap() { return AmmoMap; }
+	FORCEINLINE AWeapon* GetEquippedWeapon() { return EquippedWeapon; }
+	void SetEquippedWeapon(AWeapon* NewWeapon);
+
+	//FORCEINLINE AItem* GetTraceHitItemLastFrame() { return TraceHitItemLastFrame; }
+	//FORCEINLINE AItem* GetTraceHitItem() { return TraceHitItem; }
+	void SetTraceHitItem(AItem* NewTraceHitItem);
+	void SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame);
+
+	//FORCEINLINE TSubclassOf<AWeapon> GetDefaultWeaponClass() { return DefaultWeaponClass; }
+
 };

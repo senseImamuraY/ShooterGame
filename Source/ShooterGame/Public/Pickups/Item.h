@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "../Interfaces/PickupInterface.h"
 #include "Item.generated.h"
 
 class UBoxComponent;
@@ -50,10 +51,12 @@ UCLASS()
 class SHOOTERGAME_API AItem : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AItem();
+
+	//virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
 
 protected:
 	// Called when the game starts or when spawned

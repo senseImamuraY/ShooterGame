@@ -48,6 +48,14 @@ AItem::AItem() :
 	AreaSphere->SetupAttachment(GetRootComponent());
 }
 
+//void AItem::PickupItem(AShooterCharacter* ShooterCharacter)
+//{
+//}
+
+//void AItem::PickupItem_Implementation(AShooterCharacter* ShooterCharacter)
+//{
+//}
+
 // Called when the game starts or when spawned
 void AItem::BeginPlay()
 {
