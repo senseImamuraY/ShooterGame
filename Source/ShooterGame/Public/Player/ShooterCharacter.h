@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "../Pickups/AmmoType.h"
+#include "../Items/AmmoType.h"
 #include "../PlayerActionComponents/WallRunComponent.h"
 #include "../Public/Interfaces/ExPointsInterface.h"
 #include "ShooterCharacter.generated.h"
@@ -52,6 +52,19 @@ public:
 	AShooterCharacter();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	// ダメージを受ける処理をする関数
+	virtual float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		class AController* EventInstigator,
+		AActor* DamageCauser) override;
+
+	void ReloadWeapon();
+
+		// 最後のフレームでヒットしたアイテム
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	AItem* TraceHitItemLastFrame;
 
 protected:
 	// Called when the game starts or when spawned
@@ -115,14 +128,8 @@ protected:
 	// weaponを取得してメッシュにアタッチ
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
-	// weaponを切り離して、地面に捨てる
-	void DropWeapon();
-
 	void SelectButtonPressed();
 	void SelectButtonReleased();
-
-	// 現在装備しているWeaponを落として、新しいWeaponを装備
-	void SwapWeapon(AWeapon* WeaponToSwap);
 
 	// Ammoの値を初期化
 	void InitializeAmmoMap();
@@ -138,8 +145,6 @@ protected:
 
 	// 入力を確認
 	void ReloadButtonPressed();
-
-	void ReloadWeapon();
 
 	// 今装備しているweaponのammoTypeにあったammoを持っているかチェックする
 	bool CarryingAmmo();
@@ -161,8 +166,6 @@ protected:
 
 	void Aim();
 	void StopAiming();
-
-	void PickupAmmo(AAmmo* Ammo);
 
 	void InitializeInterpLocations();
 
@@ -275,9 +278,6 @@ private:
 	// 重なっているアイテムの数
 	int8 OverlappedItemCount;
 
-	// 最後のフレームでヒットしたアイテム
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
-	AItem* TraceHitItemLastFrame;
 
 	// 現在装備しているWeapon
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -405,13 +405,28 @@ private:
 	UWallRunComponent* WallRunComponent;
 
 	// 経験値によってステータスを変える
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	int PlayerLevel;
+
 	int MaxPlayerLevel;
 	float PreExPoints; // レベルアップに必要な経験値
 	float EarnExPoints; // そのレベル帯で獲得した経験値　
-	float AttackPower; // そのレベルの攻撃力
+
+	UPROPERTY(meta = (AllowPrivateAccess = "true")) // TODO: バグあり。
+	float PlayerAttackPower; // そのレベルの攻撃力
 
 	class USoundBase* LevelUpSound;
+
+	// Playerの体力
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float Health;
+
+	// Playerの最大の体力
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float MaxHealth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USoundBase* PlayerDamagedSound;
 
 public:
 	// オーバーヘッドを減らすためにインライン化
@@ -444,4 +459,23 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "WallRunning")
 	FORCEINLINE bool GetIsWallRunning() const { return WallRunComponent->GetIsWallRunning(); }
+
+	FORCEINLINE USoundBase* GetPlayerDamagedSound() const { return PlayerDamagedSound; }
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	float GetPlayerAttackPower() const
+	{
+		return PlayerAttackPower;
+	}
+
+	FORCEINLINE TMap<EAmmoType, int32>& GetAmmoMap() { return AmmoMap; }
+	FORCEINLINE AWeapon* GetEquippedWeapon() { return EquippedWeapon; }
+	void SetEquippedWeapon(AWeapon* NewWeapon);
+
+	void SetTraceHitItem(AItem* NewTraceHitItem);
+	void SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame);
+
+	FORCEINLINE float GetPlayerHealth() { return Health; }
+	FORCEINLINE float GetPlayerMaxHealth() { return MaxHealth; }
+	void SetPlayerHealth(float RecoveryAmount);
 };

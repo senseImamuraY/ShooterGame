@@ -3,8 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../Pickups/Item.h"
-#include "../Pickups/AmmoType.h"
+#include "../Items/Item.h"
+#include "../Items/AmmoType.h"
+#include "../Interfaces/PickupInterface.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -20,7 +21,7 @@ enum class EWeaponType : uint8
  * 
  */
 UCLASS()
-class SHOOTERGAME_API AWeapon : public AItem
+class SHOOTERGAME_API AWeapon : public AItem, public IPickupInterface
 {
 	GENERATED_BODY()
 	
@@ -28,6 +29,9 @@ public:
 	AWeapon();
 
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
+
 protected:
 	void StopFalling();
 private:
@@ -64,6 +68,10 @@ private:
 	// ëäéËÇ…ó^Ç¶ÇÈÉ_ÉÅÅ[ÉW
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	float Damage;
+
+	void DropWeapon(AShooterCharacter* ShooterCharacter);
+
+	void EquipWeapon(AShooterCharacter* ShooterCharacter);
 
 public:
 	void ThrowWeapon();

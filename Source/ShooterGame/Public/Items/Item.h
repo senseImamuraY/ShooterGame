@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "../Interfaces/PickupInterface.h"
 #include "Item.generated.h"
 
 class UBoxComponent;
@@ -42,6 +43,7 @@ enum class EItemType : uint8
 {
 	EIT_Ammo UMETA(DisplayName = "Ammo"),
 	EIT_Weapon UMETA(DisplayName = "Weapon"),
+	EIT_GenericItem UMETA(DisplayName = "GenericItem"),
 
 	EIT_MAX UMETA(DisplayName = "DefaultMAX")
 };
@@ -50,10 +52,12 @@ UCLASS()
 class SHOOTERGAME_API AItem : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AItem();
+
+	//virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
 
 protected:
 	// Called when the game starts or when spawned

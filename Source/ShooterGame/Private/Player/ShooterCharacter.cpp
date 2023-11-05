@@ -10,18 +10,19 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "../Public/Pickups/Item.h"
+#include "../Public/Items/Item.h"
 #include "Components/WidgetComponent.h"
 #include "../Public/Weapon/Weapon.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "../Public/Pickups/Ammo.h"
+#include "../Public/Items/Ammo.h"
 #include "../Public/Interfaces/BulletHitInterface.h"
 #include "../Public/Enemies/Enemy.h"
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "../Public/Core/LevelSystem/PlayerLevelSystem.h"
+#include "../Public/Core/InGameHUD.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() : 
@@ -73,12 +74,15 @@ AShooterCharacter::AShooterCharacter() :
 	bShouldPlayEquipSound(true),
 	PickupSoundResetTime(0.2f),
 	EquipSoundResetTime(0.2f),
-	// プレイヤーレベルシステム
+	// プレイヤーのレベルシステム
 	PlayerLevel(1),
 	MaxPlayerLevel(5),
 	PreExPoints(100),
 	EarnExPoints(0),
-	AttackPower(0)
+	PlayerAttackPower(10),
+	// プレイヤーの体力
+	Health(100.f),
+	MaxHealth(100.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -517,18 +521,6 @@ void AShooterCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 }
 
-void AShooterCharacter::DropWeapon()
-{
-	if (EquippedWeapon)
-	{
-		FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
-		EquippedWeapon->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
-
-		EquippedWeapon->SetItemState(EItemState::EIS_Falling);
-		EquippedWeapon->ThrowWeapon();
-	}
-}
-
 void AShooterCharacter::SelectButtonPressed()
 {
 	if (TraceHitItem)
@@ -540,14 +532,6 @@ void AShooterCharacter::SelectButtonPressed()
 void AShooterCharacter::SelectButtonReleased()
 {
 
-}
-
-void AShooterCharacter::SwapWeapon(AWeapon* WeaponToSwap)
-{
-	DropWeapon();
-	EquipWeapon(WeaponToSwap);
-	TraceHitItem = nullptr;
-	TraceHitItemLastFrame = nullptr;
 }
 
 void AShooterCharacter::InitializeAmmoMap()
@@ -601,7 +585,7 @@ void AShooterCharacter::SendBullet()
 					if (HitEnemy)
 					{
 						float WeaponDamage = EquippedWeapon->GetDamage();
-						float TotalDamage = WeaponDamage + AttackPower;
+						float TotalDamage = WeaponDamage + PlayerAttackPower;
 
 						UGameplayStatics::ApplyDamage(
 							BeamHitResult.GetActor(),
@@ -802,26 +786,6 @@ void AShooterCharacter::StopAiming()
 	}
 }
 
-void AShooterCharacter::PickupAmmo(AAmmo* Ammo)
-{
-	if (AmmoMap.Find(Ammo->GetAmmoType()))
-	{
-		int32 AmmoCount{ AmmoMap[Ammo->GetAmmoType()] };
-		AmmoCount += Ammo->GetItemCount();
-		AmmoMap[Ammo->GetAmmoType()] = AmmoCount;
-	}
-
-	if (EquippedWeapon->GetAmmoType() == Ammo->GetAmmoType())
-	{
-		if (EquippedWeapon->GetAmmo() == 0)
-		{
-			ReloadWeapon();
-		}
-	}
-
-	Ammo->Destroy();
-}
-
 void AShooterCharacter::InitializeInterpLocations()
 {
 	float InitialItemCount = 0;
@@ -894,6 +858,27 @@ void AShooterCharacter::StartEquipSoundTimer()
 		EquipSoundResetTime);
 }
 
+void AShooterCharacter::SetEquippedWeapon(AWeapon* NewWeapon)
+{
+	if (!NewWeapon) return;
+	EquippedWeapon = NewWeapon;
+}
+
+void AShooterCharacter::SetTraceHitItem(AItem* NewTraceHitItem)
+{
+	TraceHitItem = NewTraceHitItem;
+}
+
+void AShooterCharacter::SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame)
+{
+	TraceHitItemLastFrame = NewTraceHitItemLastFrame;
+}
+
+void AShooterCharacter::SetPlayerHealth(float RecoveryAmount)
+{
+	Health = RecoveryAmount;
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -946,6 +931,44 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AShooterCharacter::ReloadButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AShooterCharacter::CrouchButtonPressed);
+}
+
+float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (Health - DamageAmount <= 0.f)
+	{
+		Health = 0.f;
+
+		// PlayerControllerを取得する
+		const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+		// InGameHUDクラスを取得する
+		AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
+
+		// ゲームオーバー画面を表示する
+		HUD->DispGameOver();
+	}
+	else
+	{
+		Health -= DamageAmount;
+
+		// ダメージを受けた方向を計算する
+		FVector DamageDirection;
+		if (DamageCauser)
+		{
+			DamageDirection = GetActorLocation() - DamageCauser->GetActorLocation();
+			DamageDirection.Normalize();
+		}
+		else
+		{
+			DamageDirection = FVector::BackwardVector;
+		}
+
+		// 吹っ飛ばす力を設定する
+		FVector LaunchVelocity = DamageDirection * 1000.f + FVector::UpVector * 500.f;
+		LaunchCharacter(LaunchVelocity, true, true);
+	}
+	return DamageAmount;
 }
 
 void AShooterCharacter::FinishReloading()
@@ -1015,7 +1038,7 @@ void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
 			// 文字列をFNameに変換して、FindRowに渡します。
 			ExPRow = ExPointsDataTableObject->FindRow<FPlayerExP>(*PlayerLevelString, TEXT(""));
 			PreExPoints = ExPRow->PlayerExp;
-			AttackPower = ExPRow->PlayerAttackPower;
+			PlayerAttackPower = ExPRow->PlayerAttackPower;
 		}
 	}
 }
@@ -1036,18 +1059,11 @@ void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)
 
 void AShooterCharacter::GetPickupItem(AItem* Item)
 {
-	Item->PlayEquipSound();
-
-	auto Weapon = Cast<AWeapon>(Item);
-	if (Weapon)
+	// インターフェースを通じて関数を呼び出す
+	IPickupInterface* PickupInterface = Cast<IPickupInterface>(Item);
+	if (PickupInterface)
 	{
-		SwapWeapon(Weapon);
-	}
-
-	auto Ammo = Cast<AAmmo>(Item);
-	if (Ammo)
-	{
-		PickupAmmo(Ammo);
+		PickupInterface->PickupItem(this);
 	}
 }
 

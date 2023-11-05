@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Item.h"
 #include "AmmoType.h"
+#include "../Interfaces/PickupInterface.h"
 #include "Ammo.generated.h"
 
 class USphereComponent;
@@ -13,13 +14,15 @@ class USphereComponent;
  * 
  */
 UCLASS()
-class SHOOTERGAME_API AAmmo : public AItem
+class SHOOTERGAME_API AAmmo : public AItem, public IPickupInterface
 {
 	GENERATED_BODY()
 public:
 	AAmmo();
 
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
 
 protected:
 

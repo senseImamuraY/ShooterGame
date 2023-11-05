@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../Public/Pickups/Item.h"
+#include "../Public/Items/Item.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
@@ -47,6 +47,7 @@ AItem::AItem() :
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	AreaSphere->SetupAttachment(GetRootComponent());
 }
+
 
 // Called when the game starts or when spawned
 void AItem::BeginPlay()
@@ -276,7 +277,11 @@ FVector AItem::GetInterpLocation()
 		break;
 		case EItemType::EIT_Weapon:
 			return Character->GetInterpLocation(0).SceneComponent->GetComponentLocation();
+		break;	
+		case EItemType::EIT_GenericItem:
+			return Character->GetInterpLocation(InterpLocIndex).SceneComponent->GetComponentLocation();
 		break;
+
 	}
 
 	return FVector();

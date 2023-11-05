@@ -2,6 +2,11 @@
 
 
 #include "../Public/Weapon/Weapon.h"
+#include "../Public/Player/ShooterCharacter.h"
+#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
+
 
 AWeapon::AWeapon():
 	ThrowWeaponTime(0.7f),
@@ -26,6 +31,47 @@ void AWeapon::Tick(float DeltaTime)
 	{
 		const FRotator MeshRotation{ 0.f, GetItemMesh()->GetComponentRotation().Yaw, 0.f };
 		GetItemMesh()->SetWorldRotation(MeshRotation, false, nullptr, ETeleportType::TeleportPhysics);
+	}
+}
+
+void AWeapon::PickupItem(AShooterCharacter* ShooterCharacter)
+{
+	PlayEquipSound();
+	DropWeapon(ShooterCharacter);
+	EquipWeapon(ShooterCharacter);
+	ShooterCharacter->SetTraceHitItem(nullptr);
+	ShooterCharacter->SetTraceHitItemLastFrame(nullptr);
+}
+
+void AWeapon::DropWeapon(AShooterCharacter* ShooterCharacter)
+{
+	AWeapon* EquippedWeapon = ShooterCharacter->GetEquippedWeapon();
+
+	if (EquippedWeapon)
+	{
+		FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+		EquippedWeapon->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
+
+		EquippedWeapon->SetItemState(EItemState::EIS_Falling);
+		EquippedWeapon->ThrowWeapon();
+	}
+}
+
+void AWeapon::EquipWeapon(AShooterCharacter* ShooterCharacter)
+{
+
+	// AreaSphere‚ÆCollisonBox‚ÌƒRƒŠƒWƒ‡ƒ“–³Ž‹
+	this->GetAreaSphere()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	this->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+
+	const USkeletalMeshSocket* HandSocket = ShooterCharacter->GetMesh()->GetSocketByName(
+		FName("RightHandSocket"));
+
+	if (HandSocket)
+	{
+		HandSocket->AttachActor(this, ShooterCharacter->GetMesh());
+		ShooterCharacter->SetEquippedWeapon(this);
+		this->SetItemState(EItemState::EIS_Equipped);
 	}
 }
 
@@ -85,3 +131,4 @@ void AWeapon::StopFalling()
 	bFalling = false;
 	SetItemState(EItemState::EIS_Pickup);
 }
+

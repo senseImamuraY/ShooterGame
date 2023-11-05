@@ -1,11 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../Public/Pickups/Ammo.h"
+#include "../Public/Items/Ammo.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "../Public/Player/ShooterCharacter.h"
+#include "../Public/Weapon/Weapon.h"
 
 AAmmo::AAmmo()
 {
@@ -25,6 +26,30 @@ AAmmo::AAmmo()
 void AAmmo::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AAmmo::PickupItem(AShooterCharacter* ShooterCharacter)
+{
+	PlayEquipSound();
+
+	TMap<EAmmoType, int32>& AmmoMap = ShooterCharacter->GetAmmoMap();
+
+	if (AmmoMap.Find(this->GetAmmoType()))
+	{
+		int32 AmmoCount{ AmmoMap[this->GetAmmoType()] };
+		AmmoCount += this->GetItemCount();
+		AmmoMap[this->GetAmmoType()] = AmmoCount;
+	}
+
+	if (ShooterCharacter->GetEquippedWeapon()->GetAmmoType() == this->GetAmmoType())
+	{
+		if (ShooterCharacter->GetEquippedWeapon()->GetAmmo() == 0)
+		{
+			ShooterCharacter->ReloadWeapon();
+		}
+	}
+
+	this->Destroy();
 }
 
 void AAmmo::BeginPlay()
