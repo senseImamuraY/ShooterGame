@@ -10,13 +10,13 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "../Public/Pickups/Item.h"
+#include "../Public/Items/Item.h"
 #include "Components/WidgetComponent.h"
 #include "../Public/Weapon/Weapon.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "../Public/Pickups/Ammo.h"
+#include "../Public/Items/Ammo.h"
 #include "../Public/Interfaces/BulletHitInterface.h"
 #include "../Public/Enemies/Enemy.h"
 #include "CoreMinimal.h"
@@ -786,26 +786,6 @@ void AShooterCharacter::StopAiming()
 	}
 }
 
-void AShooterCharacter::PickupAmmo(AAmmo* Ammo)
-{
-	if (AmmoMap.Find(Ammo->GetAmmoType()))
-	{
-		int32 AmmoCount{ AmmoMap[Ammo->GetAmmoType()] };
-		AmmoCount += Ammo->GetItemCount();
-		AmmoMap[Ammo->GetAmmoType()] = AmmoCount;
-	}
-
-	if (EquippedWeapon->GetAmmoType() == Ammo->GetAmmoType())
-	{
-		if (EquippedWeapon->GetAmmo() == 0)
-		{
-			ReloadWeapon();
-		}
-	}
-
-	Ammo->Destroy();
-}
-
 void AShooterCharacter::InitializeInterpLocations()
 {
 	float InitialItemCount = 0;
@@ -892,6 +872,11 @@ void AShooterCharacter::SetTraceHitItem(AItem* NewTraceHitItem)
 void AShooterCharacter::SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame)
 {
 	TraceHitItemLastFrame = NewTraceHitItemLastFrame;
+}
+
+void AShooterCharacter::SetPlayerHealth(float RecoveryAmount)
+{
+	Health = RecoveryAmount;
 }
 
 // Called every frame

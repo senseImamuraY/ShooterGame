@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "../Pickups/AmmoType.h"
+#include "../Items/AmmoType.h"
 #include "../PlayerActionComponents/WallRunComponent.h"
 #include "../Public/Interfaces/ExPointsInterface.h"
 #include "ShooterCharacter.generated.h"
@@ -166,8 +166,6 @@ protected:
 
 	void Aim();
 	void StopAiming();
-
-	void PickupAmmo(AAmmo* Ammo);
 
 	void InitializeInterpLocations();
 
@@ -474,11 +472,10 @@ public:
 	FORCEINLINE AWeapon* GetEquippedWeapon() { return EquippedWeapon; }
 	void SetEquippedWeapon(AWeapon* NewWeapon);
 
-	//FORCEINLINE AItem* GetTraceHitItemLastFrame() { return TraceHitItemLastFrame; }
-	//FORCEINLINE AItem* GetTraceHitItem() { return TraceHitItem; }
 	void SetTraceHitItem(AItem* NewTraceHitItem);
 	void SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame);
 
-	//FORCEINLINE TSubclassOf<AWeapon> GetDefaultWeaponClass() { return DefaultWeaponClass; }
-
+	FORCEINLINE float GetPlayerHealth() { return Health; }
+	FORCEINLINE float GetPlayerMaxHealth() { return MaxHealth; }
+	void SetPlayerHealth(float RecoveryAmount);
 };
