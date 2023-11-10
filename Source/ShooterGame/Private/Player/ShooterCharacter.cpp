@@ -1065,7 +1065,10 @@ void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
 
 	while (EarnExPoints >= PreExPoints) {
 		// ƒJƒ“ƒXƒgˆ—
-		if (PlayerLevel == MaxPlayerLevel) EarnExPoints = 0;
+		if (PlayerLevel == MaxPlayerLevel) {
+			EarnExPoints = 0;
+			return;
+		}
 		if (!LevelUpSound) return;
 
 		PlayerLevel++;

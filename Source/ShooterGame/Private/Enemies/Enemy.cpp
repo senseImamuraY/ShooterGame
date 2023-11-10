@@ -12,7 +12,9 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "../Public/Player/ShooterPlayerController.h"
+#include "Blueprint/UserWidget.h"
+#include "../Public/Core/ScoreSystem/ScoreCounter.h"
 
 // Sets default values
 AEnemy::AEnemy() :
@@ -76,6 +78,15 @@ void AEnemy::Die()
 	{
 		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, ExPoint);
 	}
+
+
+	APlayerController* MyController = GetWorld()->GetFirstPlayerController();
+	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(MyController);
+
+	UUserWidget* Widget = PlayerController->GetHUDOverlay();
+	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
+	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
+	ScoreWidget->UpdateScore(100);
 
 	OnEnemyDead.Broadcast(this);
 	HideHealthBar();

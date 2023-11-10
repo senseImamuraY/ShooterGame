@@ -17,16 +17,6 @@ void UScoreCounter::NativeOnInitialized()
 	UTextBlock* pTextBlock = Cast<UTextBlock>(GetWidgetFromName("ScoreText"));
 	ensure(pTextBlock != nullptr);
 	ScoreText = pTextBlock;
-	
-	//if (pTextBlock)
-	//{
-	//	ScoreText = pTextBlock;
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("ScoreText TextBlock found."));
-	//}
-	//else
-	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("ScoreText TextBlock not found."));
-	//}
 
 	UpdateScore(0);
 }
