@@ -622,7 +622,7 @@ void AShooterCharacter::SendBullet()
 
 				if (BulletHitInterface)
 				{
-					BulletHitInterface->BulletHit_Implementation(BeamHitResult);
+					BulletHitInterface->BulletHit_Implementation(BeamHitResult, this, GetController());
 
 					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
 
@@ -918,6 +918,7 @@ void AShooterCharacter::SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame
 	TraceHitItemLastFrame = NewTraceHitItemLastFrame;
 }
 
+
 void AShooterCharacter::SetPlayerHealth(float RecoveryAmount)
 {
 	Health = RecoveryAmount;
@@ -1007,10 +1008,6 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		{
 			DamageDirection = FVector::BackwardVector;
 		}
-
-		// êÅÇ¡îÚÇŒÇ∑óÕÇê›íËÇ∑ÇÈ
-		FVector LaunchVelocity = DamageDirection * 1000.f + FVector::UpVector * 500.f;
-		LaunchCharacter(LaunchVelocity, true, true);
 	}
 	return DamageAmount;
 }

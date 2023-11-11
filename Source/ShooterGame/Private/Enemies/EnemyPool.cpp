@@ -57,10 +57,13 @@ void UEnemyPool::ReturnEnemy(AEnemy* enemy)
 {
 	if (enemy)
 	{
-		enemy->SetActorHiddenInGame(true); // 敵を非表示にする
+		// 非表示にする処理を遅らせるためのタイマーを設定
+		FTimerHandle TimerHandle;
+		float DelayTime = 1.0f; // 1秒後に実行する
+
 		enemy->SetActorEnableCollision(false); // コリジョンを無効にする
 		enemy->SetActorTickEnabled(false);
-
+		enemy->SetActorHiddenInGame(true); // 敵を非表示にする
 		AvailableEnemies.Push(enemy);
 	}
 }

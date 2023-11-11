@@ -79,7 +79,6 @@ void AEnemy::Die()
 		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, ExPoint);
 	}
 
-
 	APlayerController* MyController = GetWorld()->GetFirstPlayerController();
 	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(MyController);
 
@@ -87,6 +86,11 @@ void AEnemy::Die()
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
 	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
 	ScoreWidget->UpdateScore(100);
+
+	if (DeadParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DeadParticles, GetActorLocation(), FRotator(0.f), true);
+	}
 
 	OnEnemyDead.Broadcast(this);
 	HideHealthBar();
@@ -96,21 +100,28 @@ void AEnemy::Die()
 void AEnemy::DoDamage(AActor* Victim)
 {
 	if (Victim == nullptr) return;
-	AShooterCharacter* Player = Cast<AShooterCharacter>(Victim);
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Victim);
 
 	// 接触したActorがBallPlayerか判定する
-	if (!Player) return;
+	if (!ShooterCharacter) return;
 
 	UGameplayStatics::ApplyDamage(
-		Player,
+		ShooterCharacter,
 		BaseEnemyAttackPower,
 		nullptr,
 		this,
 		UDamageType::StaticClass()
 	);
 
-	if (!Player->GetPlayerDamagedSound()) return;
-	UGameplayStatics::PlaySoundAtLocation(this, Player->GetPlayerDamagedSound(), GetActorLocation());
+	if (!ShooterCharacter->GetPlayerDamagedSound()) return;
+	UGameplayStatics::PlaySoundAtLocation(this, ShooterCharacter->GetPlayerDamagedSound(), GetActorLocation());
+
+	FVector DamageDirection = ShooterCharacter->GetActorLocation() - GetActorLocation();
+	DamageDirection.Normalize();
+
+	// 吹っ飛ばす力を設定する
+	FVector LaunchVelocity = DamageDirection * 1000.f + FVector::UpVector * 500.f;
+	ShooterCharacter->LaunchCharacter(LaunchVelocity, true, true);
 }
 
 void AEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -124,8 +135,11 @@ void AEnemy::ChasePlayer(float DeltaTime)
 	AActor* Player = GetWorld()->GetFirstPlayerController()->GetPawn();
 	if (!Player) return;
 
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Player);
+	if (!ShooterCharacter) return;
+
 	// プレイヤーの位置を取得
-	FVector PlayerLocation = Player->GetActorLocation();
+	FVector PlayerLocation = ShooterCharacter->GetActorLocation();
 
 	// 敵とプレイヤーの間の方向ベクトルを計算
 	FVector Direction = PlayerLocation - GetActorLocation();
@@ -154,7 +168,7 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void AEnemy::BulletHit_Implementation(FHitResult HitResult)
+void AEnemy::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* ShooterController)
 {
 	if (ImpactSound)
 	{
@@ -165,8 +179,6 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
 	}
-
-	ShowHealthBar();
 }
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -179,6 +191,7 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	else
 	{
 		Health -= DamageAmount;
+		ShowHealthBar();
 	}
 
 	return DamageAmount;
