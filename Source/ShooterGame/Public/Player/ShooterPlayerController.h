@@ -48,4 +48,7 @@ private:
 	TObjectPtr<UInputAction> PauseAction;
 
 	class AInGameHUD* InGameHUDInstance;
+
+public:
+	FORCEINLINE UUserWidget* GetHUDOverlay() { return HUDOverlay; }
 };

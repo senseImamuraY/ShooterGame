@@ -25,5 +25,5 @@ public:
 	// この関数をBlueprintNativeEventとして宣言し、C++でのオーバーライドを許可します。
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Experience Points")
 	void CalculateExPoints(float AddedExPoints);
-	virtual void CalculateExPoints_Implementation(float AddedExPoints) = 0; // C++の実装用
+	//virtual void CalculateExPoints_Implementation(float AddedExPoints) = 0; // C++の実装用
 };

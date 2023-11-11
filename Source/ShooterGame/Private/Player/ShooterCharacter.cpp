@@ -24,6 +24,10 @@
 #include "../Public/Core/LevelSystem/PlayerLevelSystem.h"
 #include "../Public/Core/InGameHUD.h"
 
+
+#include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
+
 // Sets default values
 AShooterCharacter::AShooterCharacter() : 
 	// 基本のrate
@@ -446,6 +450,46 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 		if (OutHitResult.bBlockingHit)
 		{
 			OutHitLocation = OutHitResult.Location;
+
+			if (OutHitResult.bBlockingHit)
+			{
+				OutHitLocation = OutHitResult.Location;
+
+				// ヒットしたアクターの名前を取得
+				AActor* HitActor = OutHitResult.GetActor();
+				if (HitActor)
+				{
+					FString ActorName = HitActor->GetName();
+
+					// GEngineを使用して画面にアクターの名前を出力
+					if (GEngine)
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Hit Actor: %s"), *ActorName));
+					}
+					// Check if the hit was on a CollisionBox
+					if (OutHitResult.Component->IsA<UBoxComponent>())
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit a CollisionBox"));
+					}
+					// ヒットしたコンポーネントがNiagaraパーティクルシステムのものかどうかをチェック
+					else if (OutHitResult.Component->IsA<UNiagaraComponent>())
+					{
+						// Niagaraパーティクルシステムにヒットしたことをログに出力
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Hit a Niagara Particle System"));
+						}
+					}
+					// Check if the hit was on a mesh
+					else if (OutHitResult.Component->IsA<UMeshComponent>())
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Hit a Mesh"));
+					}
+				}
+
+				return true;
+			}
+
 			return true;
 		}
 	}
@@ -578,7 +622,7 @@ void AShooterCharacter::SendBullet()
 
 				if (BulletHitInterface)
 				{
-					BulletHitInterface->BulletHit_Implementation(BeamHitResult);
+					BulletHitInterface->BulletHit_Implementation(BeamHitResult, this, GetController());
 
 					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
 
@@ -874,6 +918,7 @@ void AShooterCharacter::SetTraceHitItemLastFrame(AItem* NewTraceHitItemLastFrame
 	TraceHitItemLastFrame = NewTraceHitItemLastFrame;
 }
 
+
 void AShooterCharacter::SetPlayerHealth(float RecoveryAmount)
 {
 	Health = RecoveryAmount;
@@ -963,10 +1008,6 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		{
 			DamageDirection = FVector::BackwardVector;
 		}
-
-		// 吹っ飛ばす力を設定する
-		FVector LaunchVelocity = DamageDirection * 1000.f + FVector::UpVector * 500.f;
-		LaunchCharacter(LaunchVelocity, true, true);
 	}
 	return DamageAmount;
 }
@@ -1021,7 +1062,10 @@ void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
 
 	while (EarnExPoints >= PreExPoints) {
 		// カンスト処理
-		if (PlayerLevel == MaxPlayerLevel) EarnExPoints = 0;
+		if (PlayerLevel == MaxPlayerLevel) {
+			EarnExPoints = 0;
+			return;
+		}
 		if (!LevelUpSound) return;
 
 		PlayerLevel++;

@@ -11,6 +11,7 @@
 class UStaticMeshComponent;
 class USphereComponent;
 class UNiagaraComponent;
+class USoundCue;
 
 UCLASS()
 class SHOOTERGAME_API AGoal : public AActor
@@ -32,14 +33,18 @@ protected:
 
 private:
 	// GoalópÇÃStaticMesh  
-	UPROPERTY(VisibleAnywhere, Category = Goal, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Goal, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> Goal;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Goal, meta = (AllowPrivateAccess = "true"))
 	UNiagaraComponent* NiagaraComp;
 
 	// ê⁄êGîªíËópÇÃCollision
 	UPROPERTY(VisibleAnywhere, Category = Goal, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> Sphere;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Goal, meta = (AllowPrivateAccess = "true"))
+	USoundCue* ClearSound;
 
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

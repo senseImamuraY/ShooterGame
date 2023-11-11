@@ -40,8 +40,14 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
-	// AGoalクラスのインスタンスを生成
-	Goal = GetWorld()->SpawnActor<AGoal>();
+	for (TActorIterator<AGoal> It(GetWorld()); It; ++It)
+	{
+		Goal = *It;
+		if (Goal)
+		{
+			break; // 最初に見つかったGoalを使用
+		}
+	}
 
 	for (TActorIterator<AEnemy> It(GetWorld()); It; ++It)
 	{

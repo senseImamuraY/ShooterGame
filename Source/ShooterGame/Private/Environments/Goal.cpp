@@ -8,7 +8,8 @@
 #include "../Public/Player/ShooterCharacter.h"
 #include "../Public/Core/InGameHUD.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values
 AGoal::AGoal()
@@ -42,9 +43,6 @@ AGoal::AGoal()
     // スケールを設定する
     FVector GoalScale = FVector(10.0f, 10.0f, 10.0f);
     Goal->SetRelativeScale3D(GoalScale);
-
-    FVector ActorLocation = FVector(0.f, 0.f, 350.0f);
-    SetActorLocation(ActorLocation);
 }
 
 // Called when the game starts or when spawned
@@ -64,7 +62,17 @@ void AGoal::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
         // InGameHUDクラスを取得する
         AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
-        // ゲームオーバー画面を表示する
+        if (ClearSound)
+        {
+            UAudioComponent* AudioComp = UGameplayStatics::SpawnSound2D(GetWorld(), ClearSound);
+            if (AudioComp)
+            {
+                AudioComp->bIsUISound = true; // 一時停止中でも再生されるように設定
+            }
+            UGameplayStatics::PlaySoundAtLocation(this, ClearSound, GetActorLocation());
+        }
+
+        // ゲームクリア画面を表示する
         HUD->DispGameClear();
     }
 }
