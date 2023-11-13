@@ -27,7 +27,7 @@ public:
 	// Sets default values for this character's properties
 	AEnemy();
 
-	virtual void Tick(float DeltaTime) override;
+	//virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -47,17 +47,20 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ShowHealthBar();
-	void ShowHealthBar_Implementation();
+	//void ShowHealthBar_Implementation();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void HideHealthBar();
 
-	void Die();
+	UFUNCTION()
+	virtual void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	virtual void Die();
 	
 	FTimerHandle DamageTimerHandle;
 	TMap<AActor*, float> LastDamageTimes;
 	float DamageInterval;
-	void DoDamage(AActor* Victim);
+	virtual void DoDamage(AActor* Victim);
 
 private:
 
@@ -85,11 +88,6 @@ private:
 	// çUåÇîÕàÕ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	USphereComponent* CombatRangeSphere;
-
-	UFUNCTION()
-	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	void ChasePlayer(float Deltatime);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float BaseEnemyAttackPower;

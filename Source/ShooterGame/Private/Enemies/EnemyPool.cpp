@@ -9,7 +9,7 @@
 // Sets default values
 UEnemyPool::UEnemyPool()
 {
-	static ConstructorHelpers::FObjectFinder<UClass> EnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_Enemy.BP_Enemy_C"));
+	static ConstructorHelpers::FObjectFinder<UClass> EnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_GhostEnemy.BP_GhostEnemy_C"));
 
 	if (EnemyBlueprint.Succeeded())
 	{
