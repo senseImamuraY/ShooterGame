@@ -4,17 +4,29 @@
 
 #include "CoreMinimal.h"
 #include "Enemies/Enemy.h"
-#include "GhostEnemy.generated.h"
+#include "ShooterEnemy.generated.h"
+
+class UInputComponent;
+class AWeapon;
+class AAmmo;
+class USpringArmComponent;
+class UCameraComponent;
+class USoundCue;
+class UParticleSystem;
+class UAnimMontage;
+class AItem;
 
 /**
  * 
  */
+
+
 UCLASS()
-class SHOOTERGAME_API AGhostEnemy : public AEnemy
+class SHOOTERGAME_API AShooterEnemy : public AEnemy
 {
 	GENERATED_BODY()
 public:
-	AGhostEnemy();
+	AShooterEnemy();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -31,8 +43,7 @@ protected:
 private:
 	float GhostEnemyAttackPower;
 
-	void ChasePlayer(float TimeDelta);
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	float GhostEnemyExpPoint;
+	float ShooterEnemyExpPoint;
+
 };

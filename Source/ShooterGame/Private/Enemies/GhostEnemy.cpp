@@ -13,7 +13,7 @@
 #include "GameFramework/PlayerController.h"
 
 AGhostEnemy::AGhostEnemy() :
-	GhostExpPoint(100.f),
+	GhostEnemyExpPoint(100.f),
 	GhostEnemyAttackPower(40.f)
 {
 }
@@ -52,7 +52,7 @@ void AGhostEnemy::Die()
 	//float ExPoint = 100.f;
 	if (ShooterCharacter->GetClass()->ImplementsInterface(UExPointsInterface::StaticClass()))
 	{
-		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, GhostExpPoint);
+		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, GhostEnemyExpPoint);
 	}
 
 	APlayerController* MyController = GetWorld()->GetFirstPlayerController();
@@ -61,7 +61,7 @@ void AGhostEnemy::Die()
 	UUserWidget* Widget = PlayerController->GetHUDOverlay();
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
 	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
-	ScoreWidget->UpdateScore(GhostExpPoint);
+	ScoreWidget->UpdateScore(GhostEnemyExpPoint);
 }
 
 void AGhostEnemy::DoDamage(AActor* Victim)
