@@ -163,6 +163,7 @@ void AShooterCharacter::BeginPlay()
 	PlayerController->SetShowMouseCursor(false);
 	PlayerController->SetInputMode(FInputModeGameOnly());
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -455,37 +456,37 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 			{
 				OutHitLocation = OutHitResult.Location;
 
-				// ヒットしたアクターの名前を取得
-				AActor* HitActor = OutHitResult.GetActor();
-				if (HitActor)
-				{
-					FString ActorName = HitActor->GetName();
+				//// ヒットしたアクターの名前を取得
+				//AActor* HitActor = OutHitResult.GetActor();
+				//if (HitActor)
+				//{
+				//	FString ActorName = HitActor->GetName();
 
-					// GEngineを使用して画面にアクターの名前を出力
-					if (GEngine)
-					{
-						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Hit Actor: %s"), *ActorName));
-					}
-					// Check if the hit was on a CollisionBox
-					if (OutHitResult.Component->IsA<UBoxComponent>())
-					{
-						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit a CollisionBox"));
-					}
-					// ヒットしたコンポーネントがNiagaraパーティクルシステムのものかどうかをチェック
-					else if (OutHitResult.Component->IsA<UNiagaraComponent>())
-					{
-						// Niagaraパーティクルシステムにヒットしたことをログに出力
-						if (GEngine)
-						{
-							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Hit a Niagara Particle System"));
-						}
-					}
-					// Check if the hit was on a mesh
-					else if (OutHitResult.Component->IsA<UMeshComponent>())
-					{
-						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Hit a Mesh"));
-					}
-				}
+				//	// GEngineを使用して画面にアクターの名前を出力
+				//	if (GEngine)
+				//	{
+				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Hit Actor: %s"), *ActorName));
+				//	}
+				//	// Check if the hit was on a CollisionBox
+				//	if (OutHitResult.Component->IsA<UBoxComponent>())
+				//	{
+				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit a CollisionBox"));
+				//	}
+				//	// ヒットしたコンポーネントがNiagaraパーティクルシステムのものかどうかをチェック
+				//	else if (OutHitResult.Component->IsA<UNiagaraComponent>())
+				//	{
+				//		// Niagaraパーティクルシステムにヒットしたことをログに出力
+				//		if (GEngine)
+				//		{
+				//			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Hit a Niagara Particle System"));
+				//		}
+				//	}
+				//	// Check if the hit was on a mesh
+				//	else if (OutHitResult.Component->IsA<UMeshComponent>())
+				//	{
+				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Hit a Mesh"));
+				//	}
+				//}
 
 				return true;
 			}

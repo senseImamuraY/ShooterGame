@@ -36,11 +36,16 @@ void UWallRunComponent::WallRun()
 		FHitResult HitResult;
 		const FVector LineLocationStart = ShooterCharacter->GetActorLocation();
 		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorForwardVector() * 100.f;
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(ShooterCharacter);
+
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
 			LineLocationStart,
 			LineLocationEnd,
-			ECollisionChannel::ECC_Visibility);
+			ECollisionChannel::ECC_Visibility,
+			Params);
 
 
 		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
@@ -87,11 +92,16 @@ void UWallRunComponent::WallRun()
 		const FVector LineLocationStart = ShooterCharacter->GetActorLocation();
 		const float RaycastDistance = 250.f;
 		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorUpVector() * -RaycastDistance;
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(ShooterCharacter);
+
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
 			LineLocationStart,
 			LineLocationEnd,
-			ECollisionChannel::ECC_Visibility);
+			ECollisionChannel::ECC_Visibility,
+			Params);
 
 		MouseXValue = ShooterCharacter->GetInputAxisValue("Turn");
 		MouseYValue = ShooterCharacter->GetInputAxisValue("LookUp");

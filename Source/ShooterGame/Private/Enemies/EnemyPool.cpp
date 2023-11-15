@@ -9,7 +9,7 @@
 // Sets default values
 UEnemyPool::UEnemyPool()
 {
-	static ConstructorHelpers::FObjectFinder<UClass> EnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_Enemy.BP_Enemy_C"));
+	static ConstructorHelpers::FObjectFinder<UClass> EnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_GhostEnemy.BP_GhostEnemy_C"));
 
 	if (EnemyBlueprint.Succeeded())
 	{
@@ -57,10 +57,6 @@ void UEnemyPool::ReturnEnemy(AEnemy* enemy)
 {
 	if (enemy)
 	{
-		// 非表示にする処理を遅らせるためのタイマーを設定
-		FTimerHandle TimerHandle;
-		float DelayTime = 1.0f; // 1秒後に実行する
-
 		enemy->SetActorEnableCollision(false); // コリジョンを無効にする
 		enemy->SetActorTickEnabled(false);
 		enemy->SetActorHiddenInGame(true); // 敵を非表示にする
