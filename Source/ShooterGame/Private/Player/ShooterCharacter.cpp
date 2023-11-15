@@ -163,6 +163,7 @@ void AShooterCharacter::BeginPlay()
 	PlayerController->SetShowMouseCursor(false);
 	PlayerController->SetInputMode(FInputModeGameOnly());
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 }
 
 void AShooterCharacter::MoveForward(float Value)

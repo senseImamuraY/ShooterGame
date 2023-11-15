@@ -9,15 +9,39 @@ void AShooterEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//if (ShooterEnemyAIBehavior)
+	//{
+	//	RunBehaviorTree(ShooterEnemyAIBehavior);
+
+	//	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	//	FTimerHandle UnusedHandle;
+	//	GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &AShooterEnemyAIController::InitializeBlackboard, 1.0f, false);
+	//	GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
+	//}
 	if (ShooterEnemyAIBehavior)
 	{
 		RunBehaviorTree(ShooterEnemyAIBehavior);
 
 		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
-		FTimerHandle UnusedHandle;
-		GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &AShooterEnemyAIController::InitializeBlackboard, 1.0f, false);
-		GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
+		if (PlayerPawn)
+		{
+			GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
+		}
+		//FTimerHandle UnusedHandle;
+		//GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &AShooterEnemyAIController::InitializeBlackboard, 1.0f, false);
+
+		
+		UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+		if (BlackboardComp)
+		{
+			APawn* ControlledPawn = GetPawn();
+			if (ControlledPawn)
+			{
+				BlackboardComp->SetValueAsVector(TEXT("StartLocation"), ControlledPawn->GetActorLocation());
+			}
+		}
 	}
 }
 
@@ -25,25 +49,15 @@ void AShooterEnemyAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	//APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
-	if (LineOfSightTo(PlayerPawn))
-	{
-		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
-		GetBlackboardComponent()->SetValueAsVector(TEXT("LastKnownPlayerLocation"), PlayerPawn->GetActorLocation());
-	}
-	else
-	{
-		GetBlackboardComponent()->ClearValue(TEXT("PlayerLocation"));
-	}
-}
-
-
-void AShooterEnemyAIController::InitializeBlackboard()
-{
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (PlayerPawn)
-	{
-		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
-	}
+	//if (LineOfSightTo(PlayerPawn))
+	//{
+	//	GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
+	//	GetBlackboardComponent()->SetValueAsVector(TEXT("LastKnownPlayerLocation"), PlayerPawn->GetActorLocation());
+	//}
+	//else
+	//{
+	//	GetBlackboardComponent()->ClearValue(TEXT("PlayerLocation"));
+	//}
 }

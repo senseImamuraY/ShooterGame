@@ -24,6 +24,4 @@ protected:
 private:
 	UPROPERTY(EditAnywhere)
 	UBehaviorTree* ShooterEnemyAIBehavior;
-
-	void InitializeBlackboard();
 };
