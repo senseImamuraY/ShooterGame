@@ -34,6 +34,8 @@ void AShooterEnemy::BeginPlay()
 
 	EquipWeapon(SpawnDefaultWeapon());
 
+	EquippedWeapon->SetActorHiddenInGame(true);
+
 	// AI Controllerクラスを指定
 	UClass* EnemyAIControllerClass = AShooterEnemyAIController::StaticClass();
 	
@@ -73,8 +75,6 @@ void AShooterEnemy::Die()
 	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Player);
 	if (!ShooterCharacter) return;
 
-	//// プレイヤーが獲得する経験値
-	//float ExPoint = 100.f;
 	if (ShooterCharacter->GetClass()->ImplementsInterface(UExPointsInterface::StaticClass()))
 	{
 		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, ShooterEnemyExpPoint);
@@ -187,6 +187,7 @@ void AShooterEnemy::EquipWeapon(AWeapon* WeaponToEquip)
 
 void AShooterEnemy::DoDamage(AActor* Victim)
 {
+	if (Health <= 0) return;
 	Shoot(Victim);
 }
 

@@ -26,7 +26,7 @@ void AGhostEnemy::BeginPlay()
 
 	if (MovementComponent)
 	{
-		MovementComponent->MovementMode = MOVE_Flying;
+		//MovementComponent->MovementMode = MOVE_Flying;
 	}
 }
 

@@ -287,12 +287,16 @@ bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 	// Locationがピッタリの場合、接触しない（桁落ちで衝突判定が不安定になる）可能性があるため、1.25倍する
 	const FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd * 1.25 };
 
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	Params.AddIgnoredActor(EquippedWeapon);
 
 	GetWorld()->LineTraceSingleByChannel(
 		OutHitResult,
 		WeaponTraceStart,
 		WeaponTraceEnd,
-		ECollisionChannel::ECC_Visibility);
+		ECollisionChannel::ECC_Visibility,
+		Params);
 
 	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
 	{
@@ -442,11 +446,18 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 		const FVector Start{ CrosshairWorldPosition };
 		const FVector End{ Start + CrosshairWorldDirection * RaycastDistance };
 		OutHitLocation = End;
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		Params.AddIgnoredActor(EquippedWeapon);
+
+
 		GetWorld()->LineTraceSingleByChannel(
 			OutHitResult,
 			Start,
 			End,
-			ECollisionChannel::ECC_Visibility);
+			ECollisionChannel::ECC_Visibility,
+			Params);
 
 		if (OutHitResult.bBlockingHit)
 		{
