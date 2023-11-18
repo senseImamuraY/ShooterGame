@@ -4,16 +4,25 @@
 #include "Enemies/EnemyPool.h"
 #include "./Enemies/Enemy.h"
 #include "Engine/Engine.h"
-
+#include "./Enemies/ShooterEnemy.h"
 
 // Sets default values
-UEnemyPool::UEnemyPool()
+UEnemyPool::UEnemyPool() :
+	SpawnCounter(1)
 {
-	static ConstructorHelpers::FObjectFinder<UClass> EnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_GhostEnemy.BP_GhostEnemy_C"));
-
-	if (EnemyBlueprint.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UClass> GhostEnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_GhostEnemy.BP_GhostEnemy_C"));
+	static ConstructorHelpers::FObjectFinder<UClass> ShooterEnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/ShooterEnemyAI/BP_ShooterEnemy.BP_ShooterEnemy_C"));
+	
+	if (GhostEnemyBlueprint.Succeeded())
 	{
-		EnemyClass = EnemyBlueprint.Object;
+		EnemyClasses.Add(GhostEnemyBlueprint.Object);
+		GhostEnemyClass = GhostEnemyBlueprint.Object;
+	}
+
+	if (ShooterEnemyBlueprint.Succeeded())
+	{
+		EnemyClasses.Add(ShooterEnemyBlueprint.Object);
+		ShooterEnemyClass = ShooterEnemyBlueprint.Object;
 	}
 }
 
@@ -67,10 +76,10 @@ void UEnemyPool::ReturnEnemy(AEnemy* enemy)
 FVector UEnemyPool::GetRandomLocation()
 {
 	// ステージの中心位置
-	FVector StageCenter = FVector(0.0f, 0.0f, 0.0f);
+	FVector StageCenter = FVector(0.0f, 0.0f, 88.0f);
 
 	// ステージを円に見立てたときの、中心からの距離（半径）。やや大きめにとる。
-	float Radius = 6000.0f;
+	float Radius = 4500.0f;
 
 	// ランダムな角度を0から360度の間で生成
 	float RandomAngle = FMath::RandRange(0.0f, 360.0f);
@@ -86,9 +95,23 @@ FVector UEnemyPool::GetRandomLocation()
 
 AEnemy* UEnemyPool::RandomSpawn()
 {
-	if (EnemyClass)
+	// 7回に1回ShooterEnemyを選択
+	UClass* SelectedClass = nullptr;
+
+	if (SpawnCounter % 7 == 0 && ShooterEnemyClass != nullptr)
 	{
-		// Define the spawn parameters
+		SelectedClass = ShooterEnemyClass;
+	}
+	else if (GhostEnemyClass != nullptr)
+	{
+		// それ以外の場合はGhostEnemyを選択
+		SelectedClass = GhostEnemyClass;
+	}
+
+	SpawnCounter++;
+
+	if (SelectedClass)
+	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
@@ -97,7 +120,7 @@ AEnemy* UEnemyPool::RandomSpawn()
 		FRotator SpawnRotation = FRotator(0, 0, 0);
 
 		// 敵を新しいスポーン位置でスポーン
-		return WorldReference->SpawnActor<AEnemy>(EnemyClass, SpawnLocation, SpawnRotation, SpawnParams);
+		return WorldReference->SpawnActor<AEnemy>(SelectedClass, SpawnLocation, SpawnRotation, SpawnParams);
 	}
 	else
 	{

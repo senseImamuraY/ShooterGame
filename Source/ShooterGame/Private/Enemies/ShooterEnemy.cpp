@@ -19,7 +19,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Sound/SoundCue.h"
-
+#include "./Enemies/ShooterEnemyAIController.h"
+#include "AIController.h"
 
 AShooterEnemy::AShooterEnemy() :
 	ShooterEnemyExpPoint(1000.f),
@@ -32,6 +33,18 @@ void AShooterEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	EquipWeapon(SpawnDefaultWeapon());
+
+	// AI ControllerƒNƒ‰ƒX‚ðŽw’è
+	UClass* EnemyAIControllerClass = AShooterEnemyAIController::StaticClass();
+	
+	// AI Controller‚Ì¶¬
+	AAIController* NewAIController = GetWorld()->SpawnActor<AAIController>(EnemyAIControllerClass);
+
+	if (NewAIController != nullptr)
+	{
+		// Enemy‚ÉAI Controller‚ðŠ„‚è“–‚Ä‚é
+		NewAIController->Possess(this);
+	}
 }
 
 void AShooterEnemy::Tick(float DeltaTime)
@@ -69,6 +82,8 @@ void AShooterEnemy::Die()
 
 	APlayerController* MyController = GetWorld()->GetFirstPlayerController();
 	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(MyController);
+
+	EquippedWeapon->SetActorHiddenInGame(true);
 
 	UUserWidget* Widget = PlayerController->GetHUDOverlay();
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
