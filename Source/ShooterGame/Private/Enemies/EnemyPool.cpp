@@ -68,7 +68,7 @@ void UEnemyPool::ReturnEnemy(AEnemy* enemy)
 	{
 		enemy->SetActorEnableCollision(false); // ƒRƒŠƒWƒ‡ƒ“‚ð–³Œø‚É‚·‚é
 		enemy->SetActorTickEnabled(false);
-		enemy->SetActorHiddenInGame(true); // “G‚ð”ñ•\Ž¦‚É‚·‚é
+		enemy->SetActorHiddenInGame(true);
 		AvailableEnemies.Push(enemy);
 	}
 }
