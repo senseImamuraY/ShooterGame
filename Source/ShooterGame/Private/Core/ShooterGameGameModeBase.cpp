@@ -18,6 +18,7 @@ AShooterGameGameModeBase::AShooterGameGameModeBase() :
 {
 	HUDClass = AInGameHUD::StaticClass();
 	PlayerControllerClass = AShooterPlayerController::StaticClass();
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AShooterGameGameModeBase::BeginPlay()

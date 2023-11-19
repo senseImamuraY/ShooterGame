@@ -9,6 +9,7 @@
 class UClass;
 class UEnemyPool;
 class AGoal;
+class ADirectionalLight;
 
 /**
  * 
