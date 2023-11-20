@@ -23,11 +23,6 @@ void AGhostEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(GetComponentByClass(UCharacterMovementComponent::StaticClass()));
-
-	if (MovementComponent)
-	{
-		MovementComponent->MovementMode = MOVE_Flying;
-	}
 }
 
 void AGhostEnemy::Tick(float DeltaTime)
@@ -48,8 +43,6 @@ void AGhostEnemy::Die()
 	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Player);
 	if (!ShooterCharacter) return;
 
-	//// プレイヤーが獲得する経験値
-	//float ExPoint = 100.f;
 	if (ShooterCharacter->GetClass()->ImplementsInterface(UExPointsInterface::StaticClass()))
 	{
 		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, GhostEnemyExpPoint);
@@ -98,23 +91,19 @@ void AGhostEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AAct
 
 void AGhostEnemy::ChasePlayer(float TimeDelta)
 {
-	// プレイヤーのアクターを取得
 	AActor* Player = GetWorld()->GetFirstPlayerController()->GetPawn();
 	if (!Player) return;
 
 	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Player);
 	if (!ShooterCharacter) return;
 
-	// プレイヤーの位置を取得
 	FVector PlayerLocation = ShooterCharacter->GetActorLocation();
 
-	// 敵とプレイヤーの間の方向ベクトルを計算
 	FVector Direction = PlayerLocation - GetActorLocation();
 	Direction.Normalize();
 
-	// 敵を一定の速度でプレイヤーの方向に移動させる
-	float Speed = 400.0f;
-	SetActorLocation(GetActorLocation() + Direction * Speed * TimeDelta);
+	float ChaseSpeed = 400.0f;
+	SetActorLocation(GetActorLocation() + Direction * ChaseSpeed * TimeDelta);
 
 	// 敵がプレイヤーの方向を向くようにする
 	FRotator NewRotation = Direction.Rotation();

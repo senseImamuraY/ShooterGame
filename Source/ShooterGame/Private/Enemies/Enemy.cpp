@@ -15,6 +15,8 @@
 #include "../Public/Player/ShooterPlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "../Public/Core/ScoreSystem/ScoreCounter.h"
+#include "Components/CapsuleComponent.h"
+
 
 // Sets default values
 AEnemy::AEnemy() :
@@ -43,7 +45,7 @@ void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 }
 
 void AEnemy::ShowHealthBar_Implementation()

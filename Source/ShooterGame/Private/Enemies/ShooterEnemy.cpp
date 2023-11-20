@@ -19,7 +19,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Sound/SoundCue.h"
-
+#include "./Enemies/ShooterEnemyAIController.h"
+#include "AIController.h"
 
 AShooterEnemy::AShooterEnemy() :
 	ShooterEnemyExpPoint(1000.f),
@@ -32,6 +33,19 @@ void AShooterEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	EquipWeapon(SpawnDefaultWeapon());
+
+	EquippedWeapon->SetActorHiddenInGame(true);
+
+	// EnemyにAI Controllerを割り当てる
+	//C++側からShooterEnemyをインスタンス化する場合、明示的にこの操作を行う必要がある
+	UClass* EnemyAIControllerClass = AShooterEnemyAIController::StaticClass();
+	
+	AAIController* NewAIController = GetWorld()->SpawnActor<AAIController>(EnemyAIControllerClass);
+
+	if (NewAIController != nullptr)
+	{
+		NewAIController->Possess(this);
+	}
 }
 
 void AShooterEnemy::Tick(float DeltaTime)
@@ -53,15 +67,12 @@ void AShooterEnemy::Die()
 {
 	Super::Die();
 
-	// プレイヤーのアクターを取得
 	AActor* Player = GetWorld()->GetFirstPlayerController()->GetPawn();
 	if (!Player) return;
 
 	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Player);
 	if (!ShooterCharacter) return;
 
-	//// プレイヤーが獲得する経験値
-	//float ExPoint = 100.f;
 	if (ShooterCharacter->GetClass()->ImplementsInterface(UExPointsInterface::StaticClass()))
 	{
 		IExPointsInterface::Execute_CalculateExPoints(ShooterCharacter, ShooterEnemyExpPoint);
@@ -69,6 +80,8 @@ void AShooterEnemy::Die()
 
 	APlayerController* MyController = GetWorld()->GetFirstPlayerController();
 	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(MyController);
+
+	EquippedWeapon->SetActorHiddenInGame(true);
 
 	UUserWidget* Widget = PlayerController->GetHUDOverlay();
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
@@ -172,16 +185,16 @@ void AShooterEnemy::EquipWeapon(AWeapon* WeaponToEquip)
 
 void AShooterEnemy::DoDamage(AActor* Victim)
 {
+	if (Health <= 0) return;
 	Shoot(Victim);
 }
 
 bool AShooterEnemy::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AActor* Victim)
 {
 	FVector OutBeamLocation;
-	// crosshairのtrace hitをチェック
-	FHitResult CrosshairHitResult;
+	FHitResult EnemyGunHitResult;
 
-	bool bCrosshairHit = TraceFromEnemyGuns(CrosshairHitResult, OutBeamLocation, Victim);
+	bool bCrosshairHit = TraceFromEnemyGuns(EnemyGunHitResult, OutBeamLocation, Victim);
 
 	// Barrelからトレースを行う。Barrelからの軌道を優先して当たり判定を行う。
 	const FVector WeaponTraceStart{ MuzzleSocketLocation };
@@ -189,11 +202,9 @@ bool AShooterEnemy::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHit
 	// Locationがピッタリの場合、接触しない（桁落ちで衝突判定が不安定になる）可能性があるため、1.25倍する
 	const FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd * 1.25 };
 
-
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 	Params.AddIgnoredActor(EquippedWeapon);
-
 
 	GetWorld()->LineTraceSingleByChannel(
 		OutHitResult,
@@ -202,20 +213,8 @@ bool AShooterEnemy::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHit
 		ECollisionChannel::ECC_Visibility,
 		Params);
 
-	// レイトレースの可視化
-	FColor LineColor = OutHitResult.bBlockingHit ? FColor::Red : FColor::Green;
-	DrawDebugLine(
-		GetWorld(),
-		WeaponTraceStart,
-		WeaponTraceEnd,
-		LineColor,
-		false, // 永続的なラインではない
-		1.0f, // 表示時間（秒）
-		0, // DepthPriority
-		1.0f // Thickness
-	);
-
-	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
+	// barrelとEndpointの間にオブジェクトがあるか
+	if (!OutHitResult.bBlockingHit) 
 	{
 		OutHitResult.Location = OutBeamLocation;;
 		return false;
@@ -230,37 +229,32 @@ void AShooterEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 
 bool AShooterEnemy::TraceFromEnemyGuns(FHitResult& OutHitResult, FVector& OutHitLocation, AActor* Victim)
 {
-	// 銃の位置と向きを取得
 	FVector GunLocation;
 	FRotator GunRotation;
-	if (EquippedWeapon) // MyGunは銃の参照
-	{
-		GunLocation = EquippedWeapon->GetActorLocation();
-		GunRotation = EquippedWeapon->GetActorRotation();
-		// ログ出力を追加
-		UE_LOG(LogTemp, Warning, TEXT("Gun Location: %s"), *GunLocation.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("Gun Rotation: %s"), *GunRotation.ToString());
 
+	if (EquippedWeapon)
+	{
+		// プレイヤーのメッシュをデフォルトで回転させているため、それに合わせる
+		GunLocation = EquippedWeapon->GetActorLocation();
+		GunRotation = GetActorRotation();
 	}
 	else
 	{
-		return false; // 銃がない場合は処理を中断
+		return false; 
 	}
 
-	GunRotation = GetActorRotation();
-
 	AShooterCharacter* Player = Cast<AShooterCharacter>(Victim);
-	FVector AimToCrouchingPlayer = FVector(0.f, 0.f, 0.f);
+	FVector AimToCrouchingOrWallRuunningPlayer = FVector(0.f, 0.f, 0.f);
 
 	FVector Start{ GunLocation };
-	FVector End{ Start + GunRotation.Vector() * 50000.f }; // ここでレイトレースの距離を設定
+	float TraceDistance = 50000.f;
+	FVector End{ Start + GunRotation.Vector() * TraceDistance };
 
 	if (Player && (Player->GetCrouching() || Player->GetIsWallRunning()))
 	{
 		// プレイヤーの足元の位置を計算
 		FVector PlayerFeetLocation = Player->GetActorLocation();
-		//FVector PlayerFeetLocation = Player->GetActorLocation() - FVector(0.f, 0.f, Player->GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
-		AimToCrouchingPlayer = PlayerFeetLocation - GunLocation;
+		AimToCrouchingOrWallRuunningPlayer = PlayerFeetLocation - GunLocation;
 
 		// 60%の確率で精度を落とす
 		if (FMath::RandRange(1, 100) <= 60)
@@ -269,20 +263,18 @@ bool AShooterEnemy::TraceFromEnemyGuns(FHitResult& OutHitResult, FVector& OutHit
 			float RandomX = FMath::RandRange(-500.f, 500.f);
 			float RandomY = FMath::RandRange(-500.f, 500.f);
 			FVector RandomOffset(RandomX, RandomY, 0.f);
-			End = AimToCrouchingPlayer + Start + RandomOffset;
+			End = AimToCrouchingOrWallRuunningPlayer + Start + RandomOffset;
 		}
 		else
 		{
-			End = AimToCrouchingPlayer + Start;
+			End = AimToCrouchingOrWallRuunningPlayer + Start;
 		}
 	}
-
 
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 	Params.AddIgnoredActor(EquippedWeapon);
 
-	// レイトレースの実行
 	GetWorld()->LineTraceSingleByChannel(
 		OutHitResult,
 		Start,
@@ -290,20 +282,6 @@ bool AShooterEnemy::TraceFromEnemyGuns(FHitResult& OutHitResult, FVector& OutHit
 		ECollisionChannel::ECC_Visibility,
 		Params);
 
-	// レイトレースの可視化
-	FColor LineColor = OutHitResult.bBlockingHit ? FColor::Red : FColor::Green;
-	DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		LineColor,
-		false, // 永続的なラインではない
-		1.0f, // 表示時間（秒）
-		0, // DepthPriority
-		1.0f // Thickness
-	);
-
-	// ヒットした場合の処理
 	if (OutHitResult.bBlockingHit)
 	{
 		OutHitLocation = OutHitResult.Location;
@@ -313,28 +291,7 @@ bool AShooterEnemy::TraceFromEnemyGuns(FHitResult& OutHitResult, FVector& OutHit
 		{
 			FString ActorName = HitActor->GetName();
 			FString ActorClass = HitActor->GetClass()->GetName();
-
-			// ログにヒットしたアクターの情報を出力
-			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s, Class: %s"), *ActorName, *ActorClass);
 		}
-
-		// ヒットしたコンポーネントの情報を取得
-		UPrimitiveComponent* HitComponent = OutHitResult.GetComponent();
-		if (HitComponent)
-		{
-			FString ComponentName = HitComponent->GetName();
-			FString ComponentClass = HitComponent->GetClass()->GetName();
-
-			// ログにヒットしたコンポーネントの情報を出力
-			UE_LOG(LogTemp, Warning, TEXT("Hit Component: %s, Class: %s"), *ComponentName, *ComponentClass);
-		}
-
-		// ヒット位置と法線の情報をログに出力
-		FVector HitLocation = OutHitResult.Location;
-		FVector HitNormal = OutHitResult.Normal;
-		UE_LOG(LogTemp, Warning, TEXT("Hit Location: %s, Normal: %s"), *HitLocation.ToString(), *HitNormal.ToString());
-
-
 		return true;
 	}
 

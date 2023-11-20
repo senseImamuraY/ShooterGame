@@ -4,21 +4,23 @@
 #include "Enemies/ShooterEnemyAIController.h"
 #include "kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
+
+
+AShooterEnemyAIController::AShooterEnemyAIController()
+{
+	// BehaviorTreeアセットをロードして割り当てる
+	static ConstructorHelpers::FObjectFinder<UBehaviorTree> AIBehavior(TEXT("/Game/ShooterGame/Blueprints/Enemies/ShooterEnemyAI/BT_ShooterEnemyAI.BT_ShooterEnemyAI"));
+	if (AIBehavior.Succeeded())
+	{
+		ShooterEnemyAIBehavior = AIBehavior.Object;
+	}
+}
 
 void AShooterEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//if (ShooterEnemyAIBehavior)
-	//{
-	//	RunBehaviorTree(ShooterEnemyAIBehavior);
-
-	//	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
-	//	FTimerHandle UnusedHandle;
-	//	GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &AShooterEnemyAIController::InitializeBlackboard, 1.0f, false);
-	//	GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
-	//}
 	if (ShooterEnemyAIBehavior)
 	{
 		RunBehaviorTree(ShooterEnemyAIBehavior);
@@ -29,10 +31,7 @@ void AShooterEnemyAIController::BeginPlay()
 		{
 			GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
 		}
-		//FTimerHandle UnusedHandle;
-		//GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &AShooterEnemyAIController::InitializeBlackboard, 1.0f, false);
 
-		
 		UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
 		if (BlackboardComp)
 		{
@@ -45,19 +44,9 @@ void AShooterEnemyAIController::BeginPlay()
 	}
 }
 
+
+
 void AShooterEnemyAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	//APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
-	//if (LineOfSightTo(PlayerPawn))
-	//{
-	//	GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
-	//	GetBlackboardComponent()->SetValueAsVector(TEXT("LastKnownPlayerLocation"), PlayerPawn->GetActorLocation());
-	//}
-	//else
-	//{
-	//	GetBlackboardComponent()->ClearValue(TEXT("PlayerLocation"));
-	//}
 }

@@ -42,9 +42,18 @@ public:
 	FVector GetRandomLocation();
 
 private:
+	// GhostEnemyのBlueprintクラス
+	TSubclassOf<AActor> GhostEnemyClass;
+
+	// ShooterEnemyのBlueprintクラス
+	TSubclassOf<AActor> ShooterEnemyClass;
+
 	AEnemy* RandomSpawn();
 
-	UClass* EnemyClass;
+	TArray<UClass*> EnemyClasses;
 
 	UWorld* WorldReference;
+
+	// 10回に1回ShooterEnemyをスポーンさせる
+	int32 SpawnCounter;
 };

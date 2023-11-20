@@ -16,6 +16,8 @@ class SHOOTERGAME_API AShooterEnemyAIController : public AAIController
 {
 	GENERATED_BODY()
 public:
+	AShooterEnemyAIController();
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:

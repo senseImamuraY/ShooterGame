@@ -18,6 +18,7 @@ AShooterGameGameModeBase::AShooterGameGameModeBase() :
 {
 	HUDClass = AInGameHUD::StaticClass();
 	PlayerControllerClass = AShooterPlayerController::StaticClass();
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AShooterGameGameModeBase::BeginPlay()
@@ -45,7 +46,7 @@ void AShooterGameGameModeBase::BeginPlay()
 		Goal = *It;
 		if (Goal)
 		{
-			break; // ç≈èâÇ…å©Ç¬Ç©Ç¡ÇΩGoalÇégóp
+			break;
 		}
 	}
 
