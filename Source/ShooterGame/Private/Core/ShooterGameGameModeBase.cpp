@@ -46,7 +46,7 @@ void AShooterGameGameModeBase::BeginPlay()
 		Goal = *It;
 		if (Goal)
 		{
-			break; // Å‰‚ÉŒ©‚Â‚©‚Á‚½Goal‚ğg—p
+			break;
 		}
 	}
 
