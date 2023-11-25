@@ -64,7 +64,7 @@ AShooterCharacter::AShooterCharacter() :
 	CameraInterpElevation(65.f),
 	// Starting ammo amounts
 	Starting9mmAmmo(85),
-	StartingARAmmo(120),
+	StartingShellsAmmo(120),
 	CombatState(ECombatState::ECS_Unoccupied),
 	bCrouching(false),
 	BaseMovementSpeed(650.f),
@@ -264,7 +264,8 @@ void AShooterCharacter::FireWeapon()
 	if (WeaponHasAmmo())
 	{
 		PlayFireSound();
-		SendBullet();
+		EquippedWeapon->Fire(this);
+		//SendBullet();
 		PlayGunfireMontage();
 		EquippedWeapon->DecrementAmmo();
 
@@ -466,39 +467,6 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 			if (OutHitResult.bBlockingHit)
 			{
 				OutHitLocation = OutHitResult.Location;
-
-				//// ヒットしたアクターの名前を取得
-				//AActor* HitActor = OutHitResult.GetActor();
-				//if (HitActor)
-				//{
-				//	FString ActorName = HitActor->GetName();
-
-				//	// GEngineを使用して画面にアクターの名前を出力
-				//	if (GEngine)
-				//	{
-				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Hit Actor: %s"), *ActorName));
-				//	}
-				//	// Check if the hit was on a CollisionBox
-				//	if (OutHitResult.Component->IsA<UBoxComponent>())
-				//	{
-				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit a CollisionBox"));
-				//	}
-				//	// ヒットしたコンポーネントがNiagaraパーティクルシステムのものかどうかをチェック
-				//	else if (OutHitResult.Component->IsA<UNiagaraComponent>())
-				//	{
-				//		// Niagaraパーティクルシステムにヒットしたことをログに出力
-				//		if (GEngine)
-				//		{
-				//			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Hit a Niagara Particle System"));
-				//		}
-				//	}
-				//	// Check if the hit was on a mesh
-				//	else if (OutHitResult.Component->IsA<UMeshComponent>())
-				//	{
-				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Hit a Mesh"));
-				//	}
-				//}
-
 				return true;
 			}
 
@@ -593,7 +561,7 @@ void AShooterCharacter::SelectButtonReleased()
 void AShooterCharacter::InitializeAmmoMap()
 {
 	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
-	AmmoMap.Add(EAmmoType::EAT_AR, StartingARAmmo);
+	AmmoMap.Add(EAmmoType::EAT_AR, StartingShellsAmmo);
 }
 
 bool AShooterCharacter::WeaponHasAmmo()

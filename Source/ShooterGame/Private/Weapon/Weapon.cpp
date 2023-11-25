@@ -132,3 +132,27 @@ void AWeapon::StopFalling()
 	SetItemState(EItemState::EIS_Pickup);
 }
 
+void AWeapon::Fire(AShooterCharacter* ShooterCharacter)
+{
+}
+
+bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AShooterCharacter* ShooterCharacter)
+{
+	return false;
+}
+
+bool AWeapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter)
+{
+	return false;
+}
+
+bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FHitResult>& OutHitResults, AShooterCharacter* ShooterCharacter)
+{
+	return false;
+}
+
+bool AWeapon::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter)
+{
+	return false;
+}
+

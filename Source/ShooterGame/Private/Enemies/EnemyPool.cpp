@@ -5,6 +5,7 @@
 #include "./Enemies/Enemy.h"
 #include "Engine/Engine.h"
 #include "./Enemies/ShooterEnemy.h"
+#include "../Public/Weapon/Weapon.h"
 
 // Sets default values
 UEnemyPool::UEnemyPool() :
@@ -54,6 +55,13 @@ AEnemy* UEnemyPool::GetEnemy()
 		EnemyToReturn->SetActorEnableCollision(true); // ƒRƒŠƒWƒ‡ƒ“‚ð—LŒø‚É‚·‚é
 		EnemyToReturn->SetActorTickEnabled(true);
 		EnemyToReturn->InitEnemyHealth();
+
+		AShooterEnemy* ShooterEnemy = Cast<AShooterEnemy>(EnemyToReturn);
+
+		if (ShooterEnemy) 
+		{
+			ShooterEnemy->GetEquippedWeapon()->SetActorHiddenInGame(false);
+		}
 
 		return EnemyToReturn;
 	}

@@ -12,7 +12,7 @@ UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
 	EWT_SubmachineGun UMETA(DisplayName = "SubmachineGun"),
-	EWT_AssaultRifle UMETA(DisplayName = "AssaultRifle"),
+	EWT_AssaultRifle UMETA(DisplayName = "ShotGun"),
 
 	EWT_MAX UMETA(DisplayName = "DefaultMax")
 };
@@ -32,8 +32,31 @@ public:
 
 	virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
 
+	virtual void Fire(AShooterCharacter* ShooterCharacter);
+
 protected:
 	void StopFalling();
+
+	// 銃を撃ったときにランダムに音声を流す
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USoundCue* FireSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* MuzzleFlash;
+
+	// 銃弾のヒットエフェクト
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* BeamParticles;
+
+	virtual bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AShooterCharacter* ShooterCharacter);
+	virtual bool TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter);
+
+	virtual bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FHitResult>& OutHitResults, AShooterCharacter* ShooterCharacter);
+	virtual bool TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter);
+
 private:
 	FTimerHandle ThrowWeaponTimer;
 	float ThrowWeaponTime;
