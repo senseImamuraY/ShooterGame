@@ -478,4 +478,6 @@ public:
 	FORCEINLINE float GetPlayerHealth() { return Health; }
 	FORCEINLINE float GetPlayerMaxHealth() { return MaxHealth; }
 	void SetPlayerHealth(float RecoveryAmount);
+
+	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 };

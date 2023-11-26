@@ -23,4 +23,6 @@ private:
 	virtual bool TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter) override;
 
 	void PerformTrace(const FVector& StartPosition, const FVector& Direction, float Distance, const FCollisionQueryParams& Params, TArray<FHitResult>& OutHitResults);
+
+	virtual void BeginPlay() override;
 };

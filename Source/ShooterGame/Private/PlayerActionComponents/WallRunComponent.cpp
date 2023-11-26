@@ -8,6 +8,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/Engine.h"
+#include "../Public/Weapon/Weapon.h"
 
 // Sets default values for this component's properties
 UWallRunComponent::UWallRunComponent() :
@@ -39,6 +40,7 @@ void UWallRunComponent::WallRun()
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
+		Params.AddIgnoredActor(ShooterCharacter->GetEquippedWeapon());
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
@@ -95,6 +97,7 @@ void UWallRunComponent::WallRun()
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
+		Params.AddIgnoredActor(ShooterCharacter->GetEquippedWeapon());
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,

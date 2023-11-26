@@ -17,6 +17,9 @@ class SHOOTERGAME_API ASubmachineGun : public AWeapon
 public:
 	virtual void Fire(AShooterCharacter* ShooterCharacter) override;
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 	virtual bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AShooterCharacter* ShooterCharacter) override;
 

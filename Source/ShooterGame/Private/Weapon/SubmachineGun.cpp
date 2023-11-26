@@ -9,6 +9,14 @@
 #include "Particles/ParticleSystemComponent.h"
 
 
+void ASubmachineGun::BeginPlay()
+{
+	Super::BeginPlay();
+
+	WeaponType = EWeaponType::EWT_SubmachineGun;
+}
+
+
 void ASubmachineGun::Fire(AShooterCharacter* ShooterCharacter)
 {
 	const USkeletalMeshSocket* BarrelSocket = this->GetItemMesh()->GetSocketByName("BarrelSocket");
@@ -73,6 +81,7 @@ void ASubmachineGun::Fire(AShooterCharacter* ShooterCharacter)
 		}
 	}
 }
+
 
 bool ASubmachineGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AShooterCharacter* ShooterCharacter)
 {

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "../Weapon/WeaponType.h"
 #include "ShooterAnimInstance.generated.h"
 
 class AShooterCharacter;
@@ -114,4 +115,7 @@ private:
 	// turn in placeŽž‚Étrue
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
 	bool bTurningInPlace;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	EWeaponType EquippedWeaponType;
 };

@@ -9,6 +9,14 @@
 #include "Particles/ParticleSystemComponent.h"
 
 
+void AShotGun::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	WeaponType = EWeaponType::EWT_ShotGun;
+}
+
+
 void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 {
 	const USkeletalMeshSocket* BarrelSocket = this->GetItemMesh()->GetSocketByName("BarrelSocket");
@@ -226,3 +234,4 @@ void AShotGun::PerformTrace(const FVector& StartPosition, const FVector& Directi
 		OutHitResults.Add(HitResult);
 	}
 }
+
