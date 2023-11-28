@@ -59,7 +59,6 @@ void AWeapon::DropWeapon(AShooterCharacter* ShooterCharacter)
 
 void AWeapon::EquipWeapon(AShooterCharacter* ShooterCharacter)
 {
-
 	// AreaSphere‚ÆCollisonBox‚ÌƒRƒŠƒWƒ‡ƒ“–³Ž‹
 	this->GetAreaSphere()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	this->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
@@ -151,7 +150,7 @@ bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FHi
 	return false;
 }
 
-bool AWeapon::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter)
+bool AWeapon::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FVector>& OutHitLocations, AShooterCharacter* ShooterCharacter)
 {
 	return false;
 }

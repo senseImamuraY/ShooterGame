@@ -13,7 +13,8 @@
 AExplosive::AExplosive() :
 	Damage(100.f),
     ExplosionLaunchMagnitude(1.f),
-    ExplosionDelay(0.1f)
+    ExplosionDelay(0.1f),
+    bAlreadyExploded(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -42,6 +43,14 @@ void AExplosive::Tick(float DeltaTime)
 
 void AExplosive::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* ShooterController)
 {
+    // ディレイを掛けると、短時間で複数レイキャストがヒットする場合があるため、boolを使用
+    if (bAlreadyExploded)
+    {
+        return;
+    }
+
+    bAlreadyExploded = true;
+
 	if (ImpactSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());

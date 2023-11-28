@@ -41,6 +41,7 @@ void UWallRunComponent::WallRun()
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
 		Params.AddIgnoredActor(ShooterCharacter->GetEquippedWeapon());
+		
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,

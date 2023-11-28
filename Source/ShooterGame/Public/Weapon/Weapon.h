@@ -27,6 +27,10 @@ public:
 
 	virtual void Fire(AShooterCharacter* ShooterCharacter);
 
+	virtual void ThrowWeapon();
+
+	virtual void DropWeapon(AShooterCharacter* ShooterCharacter);
+
 protected:
 	void StopFalling();
 
@@ -48,7 +52,7 @@ protected:
 	virtual bool TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter);
 
 	virtual bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FHitResult>& OutHitResults, AShooterCharacter* ShooterCharacter);
-	virtual bool TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter);
+	virtual bool TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FVector>& OutHitLocations, AShooterCharacter* ShooterCharacter);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	EWeaponType WeaponType;
@@ -86,13 +90,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	float Damage;
 
-	void DropWeapon(AShooterCharacter* ShooterCharacter);
-
 	void EquipWeapon(AShooterCharacter* ShooterCharacter);
 
 public:
-	void ThrowWeapon();
-
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 	FORCEINLINE int32 GetMagazineCapacity() const { return MagazineCapacity; }
 

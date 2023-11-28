@@ -17,12 +17,19 @@ void AShotGun::BeginPlay()
 }
 
 
+AShotGun::AShotGun()
+{
+	ShotGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShotGunMesh"));
+	ShotGunMesh->SetupAttachment(Super::GetItemMesh());
+}
+
 void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 {
-	const USkeletalMeshSocket* BarrelSocket = this->GetItemMesh()->GetSocketByName("BarrelSocket");
+	const USkeletalMeshSocket* BarrelSocket = ShotGunMesh->GetSocketByName("BarrelSocket");
 	if (BarrelSocket)
 	{
-		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(this->GetItemMesh());
+		SocketTransform = BarrelSocket->GetSocketTransform(ShotGunMesh);
+		//const FTransform SocketTransform = BarrelSocket->GetSocketTransform(ShotGunMesh);
 
 		if (MuzzleFlash)
 		{
@@ -30,6 +37,8 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 		}
 
 		TArray<FHitResult> BeamHitResults;
+		BeamHitResults.Init(FHitResult(), 5); // サイズ 5 で初期化し、各要素を FHitResult() で初期化する
+
 		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResults, ShooterCharacter);
 
 		if (bBeamEnd)
@@ -85,26 +94,45 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 	}
 }
 
+
 bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FHitResult>& OutHitResults, AShooterCharacter* ShooterCharacter)
 {
-	FVector OutBeamLocation;
+	TArray<FVector> OutBeamLocations;
+	OutBeamLocations.Init(FVector(0.f, 0.f, 0.f), 5);
 	// crosshairのtrace hitをチェック
 	TArray<FHitResult> CrosshairBeamHitResults;
-	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults, OutBeamLocation, ShooterCharacter);
+	CrosshairBeamHitResults.Init(FHitResult(), 5);
+
+	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults, OutBeamLocations, ShooterCharacter);
+	
+	//for (int i = 0; i < 5; i++) 
+	//{
+	//	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults[i], OutBeamLocation[i], ShooterCharacter);
+	//}
+	//bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults, OutBeamLocation[i], ShooterCharacter);
 
 	const float RaycastDistance = 25'000.f;
+	//const float RaycastDistance = 25'000.f;
 
-	if (CrosshairBeamHitResults.Num() == 0) return false;
+	//if (CrosshairBeamHitResults.Num() == 0) return false;
 
 	// 散弾のレイトレースを実行
 	for (int i = 0; i < 5; i++)
 	{
-		FVector AdjustedDirection = CrosshairBeamHitResults[i].ImpactPoint - MuzzleSocketLocation;
-		AdjustedDirection.Normalize();
+		//FVector AdjustedDirection = OutHitResults[i].ImpactPoint - MuzzleSocketLocation;
+		//AdjustedDirection.Normalize();
+		FVector BaseDirection = SocketTransform.GetRotation().GetForwardVector(); // 銃身の向きを基準にする
+		FVector AdjustedDirection; // 銃身の向きを使用
+		//FVector AdjustedDirection = BaseDirection; // 銃身の向きを使用
 
 		// 傾斜の追加
 		FVector RotationAxis;
 		float RotationAngle;
+
+		const FVector WeaponTraceStart{ MuzzleSocketLocation };
+		const FVector StartToEnd{ OutBeamLocations[i] - MuzzleSocketLocation };
+
+		FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd };
 
 		if (i == 0) // 中央
 		{
@@ -112,57 +140,65 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 		}
 		else
 		{
-			if (i % 2 == 0)
-			{
-				RotationAxis = ShooterCharacter->GetActorUpVector();
-			}
-			else
-			{
-				RotationAxis = ShooterCharacter->GetActorRightVector();
-			}
-			RotationAngle = FMath::DegreesToRadians(10.0f * (i / 2));
-			AdjustedDirection = AdjustedDirection.RotateAngleAxis(RotationAngle, RotationAxis);
+			//if (i % 2 == 0)
+			//{
+			//	RotationAxis = ShooterCharacter->GetActorUpVector();
+			//}
+			//else
+			//{
+			//	RotationAxis = ShooterCharacter->GetActorRightVector();
+			//}
+			//RotationAngle = FMath::DegreesToRadians(90.0f * i);
+			////RotationAngle = FMath::DegreesToRadians(50.0f * (i / 2));
+			//AdjustedDirection = StartToEnd.RotateAngleAxis(RotationAngle, RotationAxis);
+			//AdjustedDirection.Normalize();
+			RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorRightVector() : ShooterCharacter->GetActorUpVector();
+
+			// 2回ごとに角度の符号を切り替える
+			RotationAngle = FMath::DegreesToRadians((i % 4 < 2) ? 90.0f : -90.0f);
+			AdjustedDirection = StartToEnd.RotateAngleAxis(RotationAngle, RotationAxis);
+
+			//AdjustedDirection = AdjustedDirection.RotateAngleAxis(RotationAngle, RotationAxis);
+			AdjustedDirection.Normalize();
+
+			//WeaponTraceEnd = MuzzleSocketLocation + AdjustedDirection * RaycastDistance;
 		}
 
-		const FVector Start{ MuzzleSocketLocation };
-		const FVector End{ Start + AdjustedDirection * RaycastDistance };
+		//FVector WeaponTraceEnd{ MuzzleSocketLocation + AdjustedDirection * RaycastDistance };
+		//const FVector Start{ MuzzleSocketLocation };
+		//const FVector End{ OutBeamLocations[i] - MuzzleSocketLocation + AdjustedDirection * RaycastDistance};
+		//const FVector End{ Start + AdjustedDirection * RaycastDistance };
 
-		FHitResult BeamHitResult;
+		//FHitResult BeamHitResult;
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
 		Params.AddIgnoredActor(this);
 
 		GetWorld()->LineTraceSingleByChannel(
-			BeamHitResult,
-			Start,
-			End,
+			//BeamHitResult
+			OutHitResults[i],
+			WeaponTraceStart,
+			WeaponTraceEnd,
 			ECollisionChannel::ECC_Visibility,
 			Params);
 
 		// デバッグラインの描画
-		FColor LineColor;
-		switch (i)
-		{
-		case 0: LineColor = FColor::Red; break;
-		case 1: LineColor = FColor::Green; break;
-		case 2: LineColor = FColor::Blue; break;
-		case 3: LineColor = FColor::Yellow; break;
-		case 4: LineColor = FColor::Cyan; break;
-		default: LineColor = FColor::White; break;
-		}
-		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 1.0f, 0, 1.0f);
+		FColor LineColor = FColor::Red;
+
+		DrawDebugLine(GetWorld(), WeaponTraceStart, WeaponTraceEnd, LineColor, false, 30.0f, 0, 1.0f);
 
 
-		if (BeamHitResult.bBlockingHit)
+		if (OutHitResults[i].bBlockingHit)
 		{
-			OutHitResults.Add(BeamHitResult);
+			OutHitResults[i].Location = OutBeamLocations[i];
+			//OutHitResults.Add(BeamHitResult);
 		}
 	}
 
 	return OutHitResults.Num() > 0;
 }
 
-bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter)
+bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FVector>& OutHitLocations, AShooterCharacter* ShooterCharacter)
 {
 	FVector2D ViewportSize;
 
@@ -187,51 +223,117 @@ bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, FVector& 
 
 	if (bScreenToWorld)
 	{
-		const float RaycastDistance = 50'000.f;
+		const float RaycastDistance = 25'000.f;
+		//const float RaycastDistance = 50'000.f;
 
 		const FVector Start{ CrosshairWorldPosition };
 		const FVector End{ Start + CrosshairWorldDirection * RaycastDistance };
-		OutHitLocation = End;
+		//OutHitLocations[i] = End;
+
+		for (int i = 0; i < 5; i++) OutHitLocations[i] = End;
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
 		Params.AddIgnoredActor(this);
 
-
 		// 中心のレイトレース
-		PerformTrace(CrosshairWorldPosition, CrosshairWorldDirection, RaycastDistance, Params, OutHitResults);
+		PerformTrace(CrosshairWorldPosition, CrosshairWorldDirection, RaycastDistance, Params, OutHitResults[0], 0, OutHitLocations[0]);
+		FColor LineColor = FColor::Green;
+		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 30.0f, 0, 1.0f);
 
 		// 傾斜を加えた追加のレイトレース
-		for (int i = 0; i < 4; i++)
+		for (int i = 1; i < 5; i++)
 		{
-			FVector RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorUpVector() : ShooterCharacter->GetActorRightVector();
-			float RotationAngle = FMath::DegreesToRadians(10.0f * (i / 2));
+			////FVector RotationAxis = ShooterCharacter->GetActorUpVector();
+			//FVector RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorUpVector() : ShooterCharacter->GetActorRightVector();
+			//float RotationAngle = FMath::DegreesToRadians(90.0f * i);
+			////float RotationAngle = FMath::DegreesToRadians(50.0f * (i / 2));
+					// 2回ごとに軸を切り替える
+			FVector RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorRightVector() : ShooterCharacter->GetActorUpVector();
+
+			// 2回ごとに角度の符号を切り替える
+			float RotationAngle = FMath::DegreesToRadians((i % 4 < 2) ? 120.0f : -120.0f);
+
 			FVector AdjustedDirection = CrosshairWorldDirection.RotateAngleAxis(RotationAngle, RotationAxis);
 
-			PerformTrace(CrosshairWorldPosition, AdjustedDirection, RaycastDistance, Params, OutHitResults);
+			AdjustedDirection = AdjustedDirection.RotateAngleAxis(RotationAngle, RotationAxis);
+			AdjustedDirection.Normalize();
+
+
+			PerformTrace(CrosshairWorldPosition, AdjustedDirection, RaycastDistance, Params, OutHitResults[i], i, OutHitLocations[i]);
+
+			// デバッグラインの描画
+			//FColor LineColor = FColor::Green;
+
+			FVector EndPosition = Start + AdjustedDirection * RaycastDistance;
+
+			DrawDebugLine(GetWorld(), Start, EndPosition, LineColor, false, 30.0f, 0, 1.0f);
+
 		}
 
-		return OutHitResults.Num() > 0;
+		//return OutHitResults.Num() > 0;
+		return true;
 	}
 
 	return false;
 }
 
-void AShotGun::PerformTrace(const FVector& StartPosition, const FVector& Direction, float Distance, const FCollisionQueryParams& Params, TArray<FHitResult>& OutHitResults)
+void AShotGun::PerformTrace(const FVector& StartPosition, const FVector& Direction, float Distance, const FCollisionQueryParams& Params, FHitResult& OutHitResult, int index, FVector& OutHitLocation)
 {
 	FVector EndPosition = StartPosition + Direction * Distance;
-	FHitResult HitResult;
+	//FHitResult HitResult;
 
 	GetWorld()->LineTraceSingleByChannel(
-		HitResult,
+		OutHitResult,
 		StartPosition,
 		EndPosition,
 		ECollisionChannel::ECC_Visibility,
 		Params);
 
-	if (HitResult.bBlockingHit)
+	if (OutHitResult.bBlockingHit)
 	{
-		OutHitResults.Add(HitResult);
+		//OutHitResults.Add(HitResult);
+		OutHitLocation = OutHitResult.Location;
+	}
+}
+
+void AShotGun::SetItemProperties(EItemState State)
+{
+	Super::SetItemProperties(State);
+
+	switch (State)
+	{
+	case EItemState::EIS_Pickup:
+		// Mesh AreaSphere CollisionBoxのプロパティを設定
+		ShotGunMesh->SetSimulatePhysics(false);
+		ShotGunMesh->SetEnableGravity(false);
+		ShotGunMesh->SetVisibility(true);
+		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EItemState::EIS_Equipped:
+		ShotGunMesh->SetSimulatePhysics(false);
+		ShotGunMesh->SetEnableGravity(false);
+		ShotGunMesh->SetVisibility(true);
+		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EItemState::EIS_Falling:
+		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		ShotGunMesh->SetSimulatePhysics(true);
+		ShotGunMesh->SetEnableGravity(true);
+		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ShotGunMesh->SetCollisionResponseToChannel(
+			ECollisionChannel::ECC_WorldStatic,
+			ECollisionResponse::ECR_Block);
+		break;
+	case EItemState::EIS_EquipInterping:
+		ShotGunMesh->SetSimulatePhysics(false);
+		ShotGunMesh->SetEnableGravity(false);
+		ShotGunMesh->SetVisibility(true);
+		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
 	}
 }
 
