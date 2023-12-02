@@ -35,6 +35,14 @@ private:
 
 	FVector HitWallNormal;
 
+	void BeginPlay() override;
+
+	float InitialCameraDistance;
+
+	// 初回のレイトレースのみ接触判定されるバグを回避するために使用
+	// 原因が分かっていないので可能ならば調査してリファクタリングを推奨
+	bool bFirstRayCast;
+
 public:	
 	FORCEINLINE bool GetIsWallRunning() const { return bWallRunning; }
 	FORCEINLINE void SetCanWallRun(bool value) { bCanWallRun = value; }
