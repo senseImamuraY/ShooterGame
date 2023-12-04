@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "../Public/Weapon/Weapon.h"
+#include "Camera/CameraComponent.h"
 
 
 UShooterAnimInstance::UShooterAnimInstance() :
@@ -22,6 +23,7 @@ UShooterAnimInstance::UShooterAnimInstance() :
 	YawDelta(0.f),
 	RootYawOffset(0.f),
 	Pitch(0.f),
+	Roll(0.f),
 	bReloading(false),
 	OffsetState(EOffsetState::EOS_Hip),
 	RecoilWeight(1.0),
@@ -91,7 +93,8 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		}
 	}
 
-	if (ShooterCharacter && ShooterCharacter->GetIsWallRunning()) return;
+	//if (ShooterCharacter) return;
+	//if (ShooterCharacter && ShooterCharacter->GetIsWallRunning()) return;
 
 	TurnInPlace();
 	Lean(DeltaTime);
@@ -106,9 +109,136 @@ void UShooterAnimInstance::TurnInPlace()
 {
 	if (ShooterCharacter == nullptr) return;
 
-	Pitch = ShooterCharacter->GetBaseAimRotation().Pitch;
+	if (ShooterCharacter->GetIsWallRunning())
+	{
+		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
 
-	if (Speed > 0 || bIsInAir)
+		// キャラクターの視線ベクトルを取得
+		FVector NormalizedCharacterToCamera = (Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation()).GetSafeNormal();
+
+
+		//float DotProduct = FVector::DotProduct(
+		//					ShooterCharacter->GetWallRunComponent()->GetHitWallNormal(),
+		//					NormalizedCameraToCharacter);
+		//GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Cyan, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
+
+		//float AngleRadians = acosf(DotProduct);
+		//GEngine->AddOnScreenDebugMessage(8, 5.f, FColor::Cyan, FString::Printf(TEXT("AngleRadians: %f"), AngleRadians));	
+		//float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
+	
+		//GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Cyan, FString::Printf(TEXT("AngleDegrees: %f"), AngleDegrees));
+		
+		FVector ForwardVector = ShooterCharacter->GetActorForwardVector();
+		
+		FVector BackwardVector = -ForwardVector;
+
+		//BackwardVector.X = FMath::Abs(BackwardVector.X);
+		////BackwardVector.Y = FMath::Abs(BackwardVector.Y);
+		//BackwardVector.Z = FMath::Abs(BackwardVector.Z);
+		//
+		//NormalizedCharacterToCamera.X = FMath::Abs(NormalizedCharacterToCamera.X);
+		////NormalizedCharacterToCamera.Y = FMath::Abs(NormalizedCharacterToCamera.Y);
+		//NormalizedCharacterToCamera.Z = FMath::Abs(NormalizedCharacterToCamera.Z);
+
+		FVector CrossProduct = FVector::CrossProduct(BackwardVector, NormalizedCharacterToCamera);
+
+		GEngine->AddOnScreenDebugMessage(11, 5.f, FColor::Black, FString::Printf(TEXT("NormalizedCharacterToCamera: %s"), *NormalizedCharacterToCamera.ToString()));
+		GEngine->AddOnScreenDebugMessage(12, 5.f, FColor::Black, FString::Printf(TEXT("BackwardVector: %s"), *BackwardVector.ToString()));
+		GEngine->AddOnScreenDebugMessage(13, 5.f, FColor::Black, FString::Printf(TEXT("CrossProduct: %s"), *CrossProduct.ToString()));
+
+		float DotProduct;
+
+		//if (CrossProduct.Z > 0)
+		//{
+		//	DotProduct = FVector::DotProduct(NormalizedCharacterToCamera, BackwardVector);
+		//}
+		//else
+		{
+			//DotProduct = FVector::DotProduct(BackwardVector, NormalizedCharacterToCamera);
+			DotProduct = FVector::DotProduct(NormalizedCharacterToCamera, BackwardVector);
+		}
+
+		//float DotProduct = FVector::DotProduct(BackwardVector, NormalizedCharacterToCamera);
+		GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Black, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
+
+
+		//float AngleRadians = acosf(DotProduct);
+		float AngleRadians = acosf(FMath::Clamp(DotProduct, -1.0f, 1.0f));
+		GEngine->AddOnScreenDebugMessage(8, 5.f, FColor::Black, FString::Printf(TEXT("AngleRadians: %f"), AngleRadians));
+		//float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
+		
+		//GEngine->AddOnScreenDebugMessage(9, 5.f, FColor::Black, FString::Printf(TEXT("AngleDegrees: %f"), AngleDegrees));
+		
+		float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
+		
+		FVector UpVector = ShooterCharacter->GetActorUpVector() + ShooterCharacter->GetActorLocation();
+		FVector DownVector = ShooterCharacter->GetActorUpVector() * -1.f + ShooterCharacter->GetActorLocation();
+
+		FVector CameraToUp = UpVector - Camera->GetComponentLocation();
+		FVector CameraToDown = DownVector - Camera->GetComponentLocation();
+
+		bool IsDownLonger = CameraToUp.Size() < CameraToDown.Size();
+
+		GEngine->AddOnScreenDebugMessage(21, 5.f, FColor::Red, FString::Printf(TEXT("UpVector: %s"), *UpVector.ToString()));
+		GEngine->AddOnScreenDebugMessage(22, 5.f, FColor::Green, FString::Printf(TEXT("DownVector: %s"), *DownVector.ToString()));
+		GEngine->AddOnScreenDebugMessage(23, 5.f, FColor::Blue, FString::Printf(TEXT("CameraToUp: %s, Size: %f"), *CameraToUp.ToString(), CameraToUp.Size()));
+		GEngine->AddOnScreenDebugMessage(24, 5.f, FColor::Yellow, FString::Printf(TEXT("CameraToDown: %s, Size: %f"), *CameraToDown.ToString(), CameraToDown.Size()));
+		GEngine->AddOnScreenDebugMessage(25, 5.f, FColor::Cyan, FString::Printf(TEXT("UpOrDown: %s"), IsDownLonger ? TEXT("True") : TEXT("False")));
+
+		if (IsDownLonger)
+		{
+			// CameraToUp の方が長い
+			GEngine->AddOnScreenDebugMessage(26, 5.f, FColor::Magenta, TEXT("CameraToUp is longer"));
+		}
+		else
+		{
+			// CameraToDown の方が長い、または両方同じ長さ
+			GEngine->AddOnScreenDebugMessage(26, 5.f, FColor::Magenta, TEXT("CameraToDown is longer or same length"));
+		}
+
+		if (IsDownLonger)
+		{
+			AngleDegrees = AngleDegrees * -1;
+		}
+		else
+		{
+			// CameraToDown の方が長い、または両方同じ長さ
+		}
+
+
+		//if (CrossProduct.Z < 0)
+		//{
+		//	AngleDegrees = -AngleDegrees;
+		//}
+
+		GEngine->AddOnScreenDebugMessage(9, 5.f, FColor::Black, FString::Printf(TEXT("AngleDegrees: %f"), AngleDegrees));
+
+		//// 前方ベクトルを水平面に投影（Z成分を0にする）
+		//FVector ForwardVectorHorizontal = FVector(ForwardVector.X, ForwardVector.Y, 0.f).GetSafeNormal();
+
+		//// 元のベクトルと投影されたベクトルとの間の角度を計算
+		//float PitchAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(ForwardVector.GetSafeNormal(), ForwardVectorHorizontal)));
+
+		//// 上向きか下向きかを判定して角度に符号を付ける
+		//if (ForwardVector.Z < 0)
+		//{
+		//	PitchAngle *= -1;
+		//}
+
+		//// 結果をログに出力
+		//GEngine->AddOnScreenDebugMessage(4, 50.f, FColor::Cyan, FString::Printf(TEXT("PitchAngle: %f"), PitchAngle));
+		Pitch = AngleDegrees;
+		//Pitch = ShooterCharacter->GetBaseAimRotation().Pitch;
+		//Roll = ShooterCharacter->GetBaseAimRotation().Roll;
+	}
+	else
+	{
+		Pitch = ShooterCharacter->GetBaseAimRotation().Pitch;
+		//Roll = ShooterCharacter->GetBaseAimRotation().Roll;
+	}
+
+	//if (Speed > 0 || bIsInAir)
+	if (Speed > 0 || (bIsInAir || ShooterCharacter->GetIsWallRunning()))
 	{
 		// キャラクターが移動しているときは、Offsetを0にする
 		RootYawOffset = 0.f;
@@ -153,6 +283,16 @@ void UShooterAnimInstance::TurnInPlace()
 			bTurningInPlace = false;
 		}
 	}
+
+	// RootYawOffsetの値を画面に表示
+	GEngine->AddOnScreenDebugMessage(1, 50.f, FColor::Green, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
+
+	// bIsInAirの値を画面に表示（true/false）
+	FString InAirText = bIsInAir ? TEXT("True") : TEXT("False");
+	GEngine->AddOnScreenDebugMessage(2, 50.f, FColor::Red, FString::Printf(TEXT("Is In Air: %s"), *InAirText));
+
+	GEngine->AddOnScreenDebugMessage(3, 50.f, FColor::Cyan, FString::Printf(TEXT("Pitch: %f"), Pitch));
+
 
 	// アニメーションの見栄えを良くするために、反動を調整
 	const float FullRecoil = 1.f;

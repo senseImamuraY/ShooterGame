@@ -34,23 +34,9 @@ void UShooterEnemyAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	}
 	if (ShooterEnemy)
 	{
-		//bCrouching = ShooterEnemy->GetCrouching();
-		//bReloading = ShooterEnemy->GetCombatState() == ECombatState::ECS_Reloading;
-
 		FVector Velocity{ ShooterEnemy->GetVelocity() };
 		Velocity.Z = 0;
 		Speed = Velocity.Size();
-
-		//bIsInAir = ShooterEnemy->GetCharacterMovement()->IsFalling();
-
-		//if (ShooterEnemy->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f)
-		//{
-		//	bIsAccelerating = true;
-		//}
-		//else
-		//{
-		//	bIsAccelerating = false;
-		//}
 
 		FRotator AimRotation = ShooterEnemy->GetBaseAimRotation();
 		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ShooterEnemy->GetVelocity());
@@ -64,8 +50,6 @@ void UShooterEnemyAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		}
 
 		bAiming = true;
-		//bAiming = ShooterEnemy->GetAiming();
-
 
 		if (bReloading)
 		{
@@ -86,7 +70,6 @@ void UShooterEnemyAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	}
 
 	if (ShooterEnemy) return;
-	//if (ShooterEnemy && ShooterEnemy->GetIsWallRunning()) return;
 
 	TurnInPlace();
 	Lean(DeltaTime);

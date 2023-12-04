@@ -170,6 +170,7 @@ protected:
 	void InitializeInterpLocations();
 
 	virtual void CalculateExPoints_Implementation(float AddedExPoints) override; 
+
 private:
 	// キャラクターの後ろにカメラを置く
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -459,6 +460,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "WallRunning")
 	FORCEINLINE bool GetIsWallRunning() const { return WallRunComponent->GetIsWallRunning(); }
+
+	FORCEINLINE UWallRunComponent* GetWallRunComponent() const { return WallRunComponent; }
 
 	FORCEINLINE USoundBase* GetPlayerDamagedSound() const { return PlayerDamagedSound; }
 
