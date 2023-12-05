@@ -33,7 +33,6 @@ void UWallRunComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
 	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner());
 
 	if (!ShooterCharacter) return;

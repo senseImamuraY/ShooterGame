@@ -23,7 +23,9 @@ UShooterAnimInstance::UShooterAnimInstance() :
 	YawDelta(0.f),
 	RootYawOffset(0.f),
 	Pitch(0.f),
-	Roll(0.f),
+	CharacterRollLastFrameWhenTurningInPlace(0.f),
+	CharacterRollWhenTurningInPlace(0.f),
+	RootRollOffset(0.f),
 	bReloading(false),
 	OffsetState(EOffsetState::EOS_Hip),
 	RecoilWeight(1.0),
@@ -93,9 +95,6 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		}
 	}
 
-	//if (ShooterCharacter) return;
-	//if (ShooterCharacter && ShooterCharacter->GetIsWallRunning()) return;
-
 	TurnInPlace();
 	Lean(DeltaTime);
 }
@@ -111,188 +110,140 @@ void UShooterAnimInstance::TurnInPlace()
 
 	if (ShooterCharacter->GetIsWallRunning())
 	{
+		// 壁走りしている時のPitchの値を求める
+
 		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
 
-		// キャラクターの視線ベクトルを取得
 		FVector NormalizedCharacterToCamera = (Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation()).GetSafeNormal();
-
-
-		//float DotProduct = FVector::DotProduct(
-		//					ShooterCharacter->GetWallRunComponent()->GetHitWallNormal(),
-		//					NormalizedCameraToCharacter);
-		//GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Cyan, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
-
-		//float AngleRadians = acosf(DotProduct);
-		//GEngine->AddOnScreenDebugMessage(8, 5.f, FColor::Cyan, FString::Printf(TEXT("AngleRadians: %f"), AngleRadians));	
-		//float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
-	
-		//GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Cyan, FString::Printf(TEXT("AngleDegrees: %f"), AngleDegrees));
-		
 		FVector ForwardVector = ShooterCharacter->GetActorForwardVector();
-		
 		FVector BackwardVector = -ForwardVector;
 
-		//BackwardVector.X = FMath::Abs(BackwardVector.X);
-		////BackwardVector.Y = FMath::Abs(BackwardVector.Y);
-		//BackwardVector.Z = FMath::Abs(BackwardVector.Z);
-		//
-		//NormalizedCharacterToCamera.X = FMath::Abs(NormalizedCharacterToCamera.X);
-		////NormalizedCharacterToCamera.Y = FMath::Abs(NormalizedCharacterToCamera.Y);
-		//NormalizedCharacterToCamera.Z = FMath::Abs(NormalizedCharacterToCamera.Z);
-
-		FVector CrossProduct = FVector::CrossProduct(BackwardVector, NormalizedCharacterToCamera);
-
-		GEngine->AddOnScreenDebugMessage(11, 5.f, FColor::Black, FString::Printf(TEXT("NormalizedCharacterToCamera: %s"), *NormalizedCharacterToCamera.ToString()));
-		GEngine->AddOnScreenDebugMessage(12, 5.f, FColor::Black, FString::Printf(TEXT("BackwardVector: %s"), *BackwardVector.ToString()));
-		GEngine->AddOnScreenDebugMessage(13, 5.f, FColor::Black, FString::Printf(TEXT("CrossProduct: %s"), *CrossProduct.ToString()));
-
-		float DotProduct;
-
-		//if (CrossProduct.Z > 0)
-		//{
-		//	DotProduct = FVector::DotProduct(NormalizedCharacterToCamera, BackwardVector);
-		//}
-		//else
-		{
-			//DotProduct = FVector::DotProduct(BackwardVector, NormalizedCharacterToCamera);
-			DotProduct = FVector::DotProduct(NormalizedCharacterToCamera, BackwardVector);
-		}
-
-		//float DotProduct = FVector::DotProduct(BackwardVector, NormalizedCharacterToCamera);
-		GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Black, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
-
-
-		//float AngleRadians = acosf(DotProduct);
-		float AngleRadians = acosf(FMath::Clamp(DotProduct, -1.0f, 1.0f));
-		GEngine->AddOnScreenDebugMessage(8, 5.f, FColor::Black, FString::Printf(TEXT("AngleRadians: %f"), AngleRadians));
-		//float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
+		float PitchDotProduct;
+		PitchDotProduct = FVector::DotProduct(NormalizedCharacterToCamera, BackwardVector);
 		
-		//GEngine->AddOnScreenDebugMessage(9, 5.f, FColor::Black, FString::Printf(TEXT("AngleDegrees: %f"), AngleDegrees));
-		
+		float AngleRadians = acosf(FMath::Clamp(PitchDotProduct, -1.0f, 1.0f));
 		float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
 		
 		FVector UpVector = ShooterCharacter->GetActorUpVector() + ShooterCharacter->GetActorLocation();
-		FVector DownVector = ShooterCharacter->GetActorUpVector() * -1.f + ShooterCharacter->GetActorLocation();
-
+		FVector DownVector = ShooterCharacter->GetActorUpVector() * -1.0f + ShooterCharacter->GetActorLocation();
 		FVector CameraToUp = UpVector - Camera->GetComponentLocation();
 		FVector CameraToDown = DownVector - Camera->GetComponentLocation();
 
-		bool IsDownLonger = CameraToUp.Size() < CameraToDown.Size();
+		// この長さによって正負を判定し、処理をする
+		bool bIsDownLonger = CameraToUp.Size() < CameraToDown.Size();
 
-		GEngine->AddOnScreenDebugMessage(21, 5.f, FColor::Red, FString::Printf(TEXT("UpVector: %s"), *UpVector.ToString()));
-		GEngine->AddOnScreenDebugMessage(22, 5.f, FColor::Green, FString::Printf(TEXT("DownVector: %s"), *DownVector.ToString()));
-		GEngine->AddOnScreenDebugMessage(23, 5.f, FColor::Blue, FString::Printf(TEXT("CameraToUp: %s, Size: %f"), *CameraToUp.ToString(), CameraToUp.Size()));
-		GEngine->AddOnScreenDebugMessage(24, 5.f, FColor::Yellow, FString::Printf(TEXT("CameraToDown: %s, Size: %f"), *CameraToDown.ToString(), CameraToDown.Size()));
-		GEngine->AddOnScreenDebugMessage(25, 5.f, FColor::Cyan, FString::Printf(TEXT("UpOrDown: %s"), IsDownLonger ? TEXT("True") : TEXT("False")));
-
-		if (IsDownLonger)
+		if (bIsDownLonger)
 		{
-			// CameraToUp の方が長い
-			GEngine->AddOnScreenDebugMessage(26, 5.f, FColor::Magenta, TEXT("CameraToUp is longer"));
+			float AngleOffset = 20.f; // 見栄えを良くするために数値を調整
+			AngleDegrees = AngleDegrees * -1 + AngleOffset;
 		}
 		else
 		{
-			// CameraToDown の方が長い、または両方同じ長さ
-			GEngine->AddOnScreenDebugMessage(26, 5.f, FColor::Magenta, TEXT("CameraToDown is longer or same length"));
+			float LerpFactor = 0.8f; // 見栄えを良くするために数値を調整
+			AngleDegrees = FMath::Lerp(AngleDegrees, AngleDegrees * 2.0f, LerpFactor);
 		}
 
-		if (IsDownLonger)
-		{
-			AngleDegrees = AngleDegrees * -1;
-		}
-		else
-		{
-			// CameraToDown の方が長い、または両方同じ長さ
-		}
-
-
-		//if (CrossProduct.Z < 0)
-		//{
-		//	AngleDegrees = -AngleDegrees;
-		//}
-
-		GEngine->AddOnScreenDebugMessage(9, 5.f, FColor::Black, FString::Printf(TEXT("AngleDegrees: %f"), AngleDegrees));
-
-		//// 前方ベクトルを水平面に投影（Z成分を0にする）
-		//FVector ForwardVectorHorizontal = FVector(ForwardVector.X, ForwardVector.Y, 0.f).GetSafeNormal();
-
-		//// 元のベクトルと投影されたベクトルとの間の角度を計算
-		//float PitchAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(ForwardVector.GetSafeNormal(), ForwardVectorHorizontal)));
-
-		//// 上向きか下向きかを判定して角度に符号を付ける
-		//if (ForwardVector.Z < 0)
-		//{
-		//	PitchAngle *= -1;
-		//}
-
-		//// 結果をログに出力
-		//GEngine->AddOnScreenDebugMessage(4, 50.f, FColor::Cyan, FString::Printf(TEXT("PitchAngle: %f"), PitchAngle));
 		Pitch = AngleDegrees;
-		//Pitch = ShooterCharacter->GetBaseAimRotation().Pitch;
-		//Roll = ShooterCharacter->GetBaseAimRotation().Roll;
+
+		// 壁走りしている時のRollの値を求める
+
+		if (Speed > 0)
+		{
+			// キャラクターが移動しているときは、Offsetを0にする
+			RootRollOffset = 0.f;
+			CharacterRollWhenTurningInPlace = ShooterCharacter->GetBaseAimRotation().Roll;
+			CharacterRollLastFrameWhenTurningInPlace = CharacterRollWhenTurningInPlace;
+			RotationCurveLastFrame = 0.f;
+			RotationCurve = 0.f;
+		}
+		else
+		{
+			CharacterRollLastFrameWhenTurningInPlace = CharacterRollWhenTurningInPlace;
+			CharacterRollWhenTurningInPlace = ShooterCharacter->GetBaseAimRotation().Roll;
+			const float TurnInPlaceRollDelta{ CharacterRollWhenTurningInPlace - CharacterRollLastFrameWhenTurningInPlace };
+
+			// (-180, 180)の間にclampされる
+			RootRollOffset = UKismetMathLibrary::NormalizeAxis(RootRollOffset - TurnInPlaceRollDelta);
+
+			// 回転中は1.0、そうでないなら0.0
+			// 回転の処理自体はBlueprint側で実装
+			// RootRollOffsetが90以上or-90以下ならturningがtrueになる
+			const float Turning{ GetCurveValue(TEXT("Turning")) };
+			if (Turning > 0)
+			{
+				bTurningInPlace = true;
+				RotationCurveLastFrame = RotationCurve;
+				RotationCurve = GetCurveValue(TEXT("Rotation"));
+				const float DeltaRotation{ RotationCurve - RotationCurveLastFrame };
+
+				// RootRollOffset > 0なら左回転、 RootYawOffset < 0 なら右回転
+				RootRollOffset > 0 ? RootRollOffset -= DeltaRotation : RootRollOffset += DeltaRotation;
+
+				// 値が急激に変化した場合の調整（例: 180から-160になった場合）
+				const float ABSRootRollOffset{ FMath::Abs(RootRollOffset) };
+				if (ABSRootRollOffset > 90.f)
+				{
+					const float RollExcess{ ABSRootRollOffset - 90.f };
+					RootRollOffset > 0 ? RootRollOffset -= RollExcess : RootRollOffset += RollExcess;
+				}
+			}
+			else
+			{
+				bTurningInPlace = false;
+			}
+		}
 	}
 	else
 	{
 		Pitch = ShooterCharacter->GetBaseAimRotation().Pitch;
-		//Roll = ShooterCharacter->GetBaseAimRotation().Roll;
-	}
 
-	//if (Speed > 0 || bIsInAir)
-	if (Speed > 0 || (bIsInAir || ShooterCharacter->GetIsWallRunning()))
-	{
-		// キャラクターが移動しているときは、Offsetを0にする
-		RootYawOffset = 0.f;
-		CharacterYawWhenTurningInPlace = ShooterCharacter->GetActorRotation().Yaw;
-		CharacterYawLastFrameWhenTurningInPlace = CharacterYawWhenTurningInPlace;
-		RotationCurveLastFrame = 0.f;
-		RotationCurve = 0.f;
-	}
-	else
-	{
-		CharacterYawLastFrameWhenTurningInPlace = CharacterYawWhenTurningInPlace;
-		CharacterYawWhenTurningInPlace = ShooterCharacter->GetActorRotation().Yaw;
-		const float TurnInPlaceYawDelta{ CharacterYawWhenTurningInPlace - CharacterYawLastFrameWhenTurningInPlace };
-
-		// (-180, 180)の間にclampされる
-		RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - TurnInPlaceYawDelta);
-		
-		// 回転中は1.0、そうでないなら0.0
-		// 回転の処理自体はBlueprint側で実装
-		// RootYawOffsetが90以上or-90以下ならturningがtrueになる
-		const float Turning{ GetCurveValue(TEXT("Turning")) };
-		if (Turning > 0)
+		if (Speed > 0 || bIsInAir)
 		{
-			bTurningInPlace = true;
-			RotationCurveLastFrame = RotationCurve;
-			RotationCurve = GetCurveValue(TEXT("Rotation"));
-			const float DeltaRotation{ RotationCurve - RotationCurveLastFrame };
-
-			// RootYawOffset > 0なら左回転、 RootYawOffset < 0 なら右回転
-			RootYawOffset > 0 ? RootYawOffset -= DeltaRotation : RootYawOffset += DeltaRotation;
-
-			// 値が急激に変化した場合の調整（例: 180から-160になった場合）
-			const float ABSRootYawOffset{ FMath::Abs(RootYawOffset) };
-			if (ABSRootYawOffset > 90.f)
-			{
-				const float YawExcess{ ABSRootYawOffset - 90.f };
-				RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess;
-			}
+			// キャラクターが移動しているときは、Offsetを0にする
+			RootYawOffset = 0.f;
+			CharacterYawWhenTurningInPlace = ShooterCharacter->GetActorRotation().Yaw;
+			CharacterYawLastFrameWhenTurningInPlace = CharacterYawWhenTurningInPlace;
+			RotationCurveLastFrame = 0.f;
+			RotationCurve = 0.f;
 		}
 		else
 		{
-			bTurningInPlace = false;
+			CharacterYawLastFrameWhenTurningInPlace = CharacterYawWhenTurningInPlace;
+			CharacterYawWhenTurningInPlace = ShooterCharacter->GetActorRotation().Yaw;
+			const float TurnInPlaceYawDelta{ CharacterYawWhenTurningInPlace - CharacterYawLastFrameWhenTurningInPlace };
+
+
+			// (-180, 180)の間にclampされる
+			RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - TurnInPlaceYawDelta);
+
+			// 回転中は1.0、そうでないなら0.0
+			// 回転の処理自体はBlueprint側で実装
+			// RootYawOffsetが90以上or-90以下ならturningがtrueになる
+			const float Turning{ GetCurveValue(TEXT("Turning")) };
+			if (Turning > 0)
+			{
+				bTurningInPlace = true;
+				RotationCurveLastFrame = RotationCurve;
+				RotationCurve = GetCurveValue(TEXT("Rotation"));
+				const float DeltaRotation{ RotationCurve - RotationCurveLastFrame };
+
+				// RootYawOffset > 0なら左回転、 RootYawOffset < 0 なら右回転
+				RootYawOffset > 0 ? RootYawOffset -= DeltaRotation : RootYawOffset += DeltaRotation;
+
+				// 値が急激に変化した場合の調整（例: 180から-160になった場合）
+				const float ABSRootYawOffset{ FMath::Abs(RootYawOffset) };
+				if (ABSRootYawOffset > 90.f)
+				{
+					const float YawExcess{ ABSRootYawOffset - 90.f };
+					RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess;
+				}
+			}
+			else
+			{
+				bTurningInPlace = false;
+			}
 		}
 	}
-
-	// RootYawOffsetの値を画面に表示
-	GEngine->AddOnScreenDebugMessage(1, 50.f, FColor::Green, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
-
-	// bIsInAirの値を画面に表示（true/false）
-	FString InAirText = bIsInAir ? TEXT("True") : TEXT("False");
-	GEngine->AddOnScreenDebugMessage(2, 50.f, FColor::Red, FString::Printf(TEXT("Is In Air: %s"), *InAirText));
-
-	GEngine->AddOnScreenDebugMessage(3, 50.f, FColor::Cyan, FString::Printf(TEXT("Pitch: %f"), Pitch));
-
 
 	// アニメーションの見栄えを良くするために、反動を調整
 	const float FullRecoil = 1.f;
