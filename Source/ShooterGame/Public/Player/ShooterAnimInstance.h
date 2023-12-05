@@ -60,9 +60,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	float MovementOffsetYaw;
 
+	// StartMotionで使用するためのOffset
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
+	float MovementOffsetRoll;
+
 	// StopMotionを作動させるためのOffset
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	float LastMovementOffsetYaw;
+	
+	// StopMotionを作動させるためのOffset
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
+	float LastMovementOffsetRoll;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	bool bAiming;
@@ -112,7 +120,11 @@ private:
 
 	// runnig blendspaceで使用するキャラクターのYaw delta
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Lean, meta = (AllowPrivateAccess = "true"));
-	float YawDelta;
+	float YawDelta;	
+	
+	// runnig blendspaceで使用するキャラクターのRoll delta
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Lean, meta = (AllowPrivateAccess = "true"));
+	float RollDelta;
 
 	// しゃがんでいるならtrue
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Crouching, meta = (AllowPrivateAccess = "true"));

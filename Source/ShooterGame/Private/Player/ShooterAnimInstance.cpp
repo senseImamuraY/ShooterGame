@@ -15,12 +15,14 @@ UShooterAnimInstance::UShooterAnimInstance() :
 	bIsAccelerating(false),
 	MovementOffsetYaw(0.f),
 	LastMovementOffsetYaw(0.f),
+	LastMovementOffsetRoll(0.f),
 	bAiming(false),
 	CharacterRotation(FRotator(0.f)),
 	CharacterRotationLastFrame(FRotator(0.f)),
 	CharacterYawWhenTurningInPlace(0.f),
 	CharacterYawLastFrameWhenTurningInPlace(0.f),
 	YawDelta(0.f),
+	RollDelta(0.f),
 	RootYawOffset(0.f),
 	Pitch(0.f),
 	CharacterRollLastFrameWhenTurningInPlace(0.f),
@@ -62,12 +64,32 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		FRotator AimRotation = ShooterCharacter->GetBaseAimRotation();
 		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ShooterCharacter->GetVelocity());
 		
-		// ˆÚ“®•ûŒü‚ÆŒü‚¢‚Ä‚¢‚é•ûŒü‚ÌŠp“x‚Ì·
-		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
-
-		if (ShooterCharacter->GetVelocity().Size() > 0.f)
+		if (ShooterCharacter->GetIsWallRunning())
 		{
-			LastMovementOffsetYaw = MovementOffsetYaw;
+			MovementRotation = UKismetMathLibrary::MakeRotFromZ(ShooterCharacter->GetVelocity());
+			MovementOffsetRoll = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Roll;
+		}
+		else
+		{
+			// ˆÚ“®•ûŒü‚ÆŒü‚¢‚Ä‚¢‚é•ûŒü‚ÌŠp“x‚Ì·
+			MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
+		}
+
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Cyan, FString::Printf(TEXT("Angle: %f MovementOffsetYaw"), MovementOffsetRoll));
+
+		if (ShooterCharacter->GetIsWallRunning())
+		{
+			if (ShooterCharacter->GetVelocity().Size() > 0.f)
+			{
+				LastMovementOffsetRoll = MovementOffsetRoll;
+			}
+		}
+		else
+		{
+			if (ShooterCharacter->GetVelocity().Size() > 0.f)
+			{
+				LastMovementOffsetYaw = MovementOffsetYaw;
+			}
 		}
 
 		bAiming = ShooterCharacter->GetAiming();
@@ -277,11 +299,30 @@ void UShooterAnimInstance::Lean(float DeltaTime)
 	// Yaw‚Ì’l‚ª‹}Œƒ‚É•Ï‚í‚é(-180‚©‚ç180‚ÉØ‚è‘Ö‚í‚é)‚±‚Æ‚É‘Îˆ‚·‚é‚½‚ß‚É³‹K‰»‚ð—˜—p
 	const FRotator Delta{ UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame) };
 
-	const float Target = Delta.Yaw / DeltaTime;
-	const float InterpSpeed = 1.f;
-	const float InterpMin = -85.f;
-	const float InterpMax = 85.f;
-	const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, InterpSpeed) };
+	//const float Target = Delta.Yaw / DeltaTime;
+	//const float InterpSpeed = 1.f;
+	//const float InterpMin = -85.f;
+	//const float InterpMax = 85.f;
+	//const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, InterpSpeed) };
 
-	YawDelta = FMath::Clamp(Interp, InterpMin, InterpMax);
+	if (ShooterCharacter->GetIsWallRunning())
+	{
+		const float Target = Delta.Roll / DeltaTime;
+		const float InterpSpeed = 1.f;
+		const float InterpMin = -85.f;
+		const float InterpMax = 85.f;
+		const float Interp{ FMath::FInterpTo(RollDelta, Target, DeltaTime, InterpSpeed) };
+
+		RollDelta = FMath::Clamp(Interp, InterpMin, InterpMax);
+	}
+	else
+	{
+		const float Target = Delta.Yaw / DeltaTime;
+		const float InterpSpeed = 1.f;
+		const float InterpMin = -85.f;
+		const float InterpMax = 85.f;
+		const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, InterpSpeed) };
+
+		YawDelta = FMath::Clamp(Interp, InterpMin, InterpMax);
+	}
 }
