@@ -75,8 +75,6 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 			MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
 		}
 
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Cyan, FString::Printf(TEXT("Angle: %f MovementOffsetYaw"), MovementOffsetRoll));
-
 		if (ShooterCharacter->GetIsWallRunning())
 		{
 			if (ShooterCharacter->GetVelocity().Size() > 0.f)
@@ -296,14 +294,8 @@ void UShooterAnimInstance::Lean(float DeltaTime)
 	CharacterRotationLastFrame = CharacterRotation;
 	CharacterRotation = ShooterCharacter->GetActorRotation();
 
-	// Yaw‚Ì’l‚ª‹}Œƒ‚É•Ï‚í‚é(-180‚©‚ç180‚ÉØ‚è‘Ö‚í‚é)‚±‚Æ‚É‘Îˆ‚·‚é‚½‚ß‚É³‹K‰»‚ð—˜—p
+	// YawE•Ç‘–‚è’†‚ÌRoll‚Ì’l‚ª‹}Œƒ‚É•Ï‚í‚é(-180‚©‚ç180‚ÉØ‚è‘Ö‚í‚é)‚±‚Æ‚É‘Îˆ‚·‚é‚½‚ß‚É³‹K‰»‚ð—˜—p
 	const FRotator Delta{ UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame) };
-
-	//const float Target = Delta.Yaw / DeltaTime;
-	//const float InterpSpeed = 1.f;
-	//const float InterpMin = -85.f;
-	//const float InterpMax = 85.f;
-	//const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, InterpSpeed) };
 
 	if (ShooterCharacter->GetIsWallRunning())
 	{
