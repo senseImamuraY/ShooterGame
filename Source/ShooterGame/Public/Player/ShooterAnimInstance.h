@@ -140,4 +140,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
 	EWeaponType EquippedWeaponType;
+
+	// reloadingŽž‚Ífalse‚É‚È‚é
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	bool bShouldUseFABRIK;
 };

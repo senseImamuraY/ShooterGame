@@ -31,7 +31,9 @@ UShooterAnimInstance::UShooterAnimInstance() :
 	bReloading(false),
 	OffsetState(EOffsetState::EOS_Hip),
 	RecoilWeight(1.0),
-	bTurningInPlace(false)
+	bTurningInPlace(false),
+	EquippedWeaponType(EWeaponType::EWT_MAX),
+	bShouldUseFABRIK(false)
 {
 }
 
@@ -45,6 +47,7 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	{
 		bCrouching = ShooterCharacter->GetCrouching();
 		bReloading = ShooterCharacter->GetCombatState() == ECombatState::ECS_Reloading;
+		bShouldUseFABRIK = ShooterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied || ShooterCharacter->GetCombatState() == ECombatState::ECS_FireTimerInProgress;
 
 		FVector Velocity{ ShooterCharacter->GetVelocity() };
 		Velocity.Z = 0;
