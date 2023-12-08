@@ -102,6 +102,15 @@ public:
 	// AShooterCharacter::GetPickupItemで使用
 	void PlayEquipSound();
 
+protected:
+	// Pickup Widgetに表示されるアイテムの名前
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FString ItemName;
+
+	// Itemの数（ammoなど）
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 ItemCount;
+
 private:
 	// Itemのスケルタルメッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
@@ -118,14 +127,6 @@ private:
 	// 接触しているアイテムのみをトレースできるようにする
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USphereComponent* AreaSphere;
-
-	// Pickup Widgetに表示されるアイテムの名前
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	FString ItemName;
-
-	// Itemの数（ammoなど）
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	int32 ItemCount;
 
 	// Itemのrarity
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))

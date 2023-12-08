@@ -32,6 +32,8 @@ void AWeapon::Tick(float DeltaTime)
 		const FRotator MeshRotation{ 0.f, GetItemMesh()->GetComponentRotation().Yaw, 0.f };
 		GetItemMesh()->SetWorldRotation(MeshRotation, false, nullptr, ETeleportType::TeleportPhysics);
 	}
+
+	ItemCount = Ammo;
 }
 
 void AWeapon::PickupItem(AShooterCharacter* ShooterCharacter)

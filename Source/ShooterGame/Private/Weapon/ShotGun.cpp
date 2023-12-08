@@ -14,6 +14,8 @@ void AShotGun::BeginPlay()
 	Super::BeginPlay();
 	
 	WeaponType = EWeaponType::EWT_ShotGun;
+	AmmoType = EAmmoType::EAT_Shells;
+	ItemName = TEXT("ShotGun");
 }
 
 

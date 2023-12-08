@@ -23,10 +23,9 @@
 #include "Engine/DataTable.h"
 #include "../Public/Core/LevelSystem/PlayerLevelSystem.h"
 #include "../Public/Core/InGameHUD.h"
-
-
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
+
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() : 
@@ -561,7 +560,7 @@ void AShooterCharacter::SelectButtonReleased()
 void AShooterCharacter::InitializeAmmoMap()
 {
 	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
-	AmmoMap.Add(EAmmoType::EAT_AR, StartingShellsAmmo);
+	AmmoMap.Add(EAmmoType::EAT_Shells, StartingShellsAmmo);
 }
 
 bool AShooterCharacter::WeaponHasAmmo()
@@ -924,6 +923,29 @@ void AShooterCharacter::Tick(float DeltaTime)
 	if (WallRunComponent)
 	{
 		WallRunComponent->WallRun();
+	}
+
+	if (GEngine)
+	{
+		int32 MessageIndex = 0;
+		for (const auto& Pair : AmmoMap)
+		{
+			EAmmoType AmmoType = Pair.Key;
+			int32 AmmoCount = Pair.Value;
+
+			// AmmoType は enum なので、その名前を取得する
+			const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EAmmoType"), true);
+			FString AmmoTypeName = (EnumPtr != nullptr) ? EnumPtr->GetNameStringByIndex(static_cast<int32>(AmmoType)) : TEXT("Unknown");
+
+			// ログメッセージを作成
+			FString LogMessage = FString::Printf(TEXT("AmmoType: %s, Count: %d"), *AmmoTypeName, AmmoCount);
+
+			// 画面にログを表示
+			GEngine->AddOnScreenDebugMessage(MessageIndex, 5.f, FColor::White, LogMessage);
+
+			// メッセージインデックスをインクリメント
+			MessageIndex++;
+		}
 	}
 
 }

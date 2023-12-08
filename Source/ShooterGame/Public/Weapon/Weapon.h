@@ -57,6 +57,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	EWeaponType WeaponType;
 
+	// ‚±‚Ìweapon‚Ìammo‚Ìí—Ş
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
+	EAmmoType AmmoType;
+
 private:
 	FTimerHandle ThrowWeaponTimer;
 	float ThrowWeaponTime;
@@ -69,11 +73,6 @@ private:
 	// Å‘åŠ‰Â”\—Ê
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	int32 MagazineCapacity;
-	
-
-	// ‚±‚Ìweapon‚Ìammo‚Ìí—Ş
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
-	EAmmoType AmmoType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	FName ReloadMontageSection;
