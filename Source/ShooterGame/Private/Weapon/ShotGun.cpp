@@ -21,16 +21,15 @@ void AShotGun::BeginPlay()
 
 AShotGun::AShotGun()
 {
-	ShotGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShotGunMesh"));
-	ShotGunMesh->SetupAttachment(Super::GetItemMesh());
+
 }
 
 void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 {
-	const USkeletalMeshSocket* BarrelSocket = ShotGunMesh->GetSocketByName("BarrelSocket");
+	const USkeletalMeshSocket* BarrelSocket = GetItemMesh()->GetSocketByName("BarrelSocket");
 	if (BarrelSocket)
 	{
-		SocketTransform = BarrelSocket->GetSocketTransform(ShotGunMesh);
+		SocketTransform = BarrelSocket->GetSocketTransform(GetItemMesh());
 		//const FTransform SocketTransform = BarrelSocket->GetSocketTransform(ShotGunMesh);
 
 		if (MuzzleFlash)
@@ -299,43 +298,4 @@ void AShotGun::PerformTrace(const FVector& StartPosition, const FVector& Directi
 	}
 }
 
-void AShotGun::SetItemProperties(EItemState State)
-{
-	Super::SetItemProperties(State);
-
-	switch (State)
-	{
-	case EItemState::EIS_Pickup:
-		// Mesh AreaSphere CollisionBoxのプロパティを設定
-		ShotGunMesh->SetSimulatePhysics(false);
-		ShotGunMesh->SetEnableGravity(false);
-		ShotGunMesh->SetVisibility(true);
-		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
-	case EItemState::EIS_Equipped:
-		ShotGunMesh->SetSimulatePhysics(false);
-		ShotGunMesh->SetEnableGravity(false);
-		ShotGunMesh->SetVisibility(true);
-		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
-	case EItemState::EIS_Falling:
-		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		ShotGunMesh->SetSimulatePhysics(true);
-		ShotGunMesh->SetEnableGravity(true);
-		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ShotGunMesh->SetCollisionResponseToChannel(
-			ECollisionChannel::ECC_WorldStatic,
-			ECollisionResponse::ECR_Block);
-		break;
-	case EItemState::EIS_EquipInterping:
-		ShotGunMesh->SetSimulatePhysics(false);
-		ShotGunMesh->SetEnableGravity(false);
-		ShotGunMesh->SetVisibility(true);
-		ShotGunMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ShotGunMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
-	}
-}
 

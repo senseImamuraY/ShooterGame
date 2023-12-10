@@ -29,10 +29,4 @@ private:
 	void PerformTrace(const FVector& StartPosition, const FVector& Direction, float Distance, const FCollisionQueryParams& Params, FHitResult& OutHitResult, int index, FVector& OutHitLocation);
 
 	FTransform SocketTransform;
-
-	// Itemのスケルタルメッシュ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* ShotGunMesh;
-
-	void SetItemProperties(EItemState State) override;
 };
