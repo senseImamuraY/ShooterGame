@@ -78,23 +78,23 @@ void AWeapon::EquipWeapon(AShooterCharacter* ShooterCharacter)
 
 void AWeapon::ThrowWeapon()
 {
-	FRotator MeshRotation{ 0.f, GetItemMesh()->GetComponentRotation().Yaw, 0.f };
-	GetItemMesh()->SetWorldRotation(
-		MeshRotation,
-		false,
-		nullptr,
-		ETeleportType::TeleportPhysics);
+	//FRotator MeshRotation{ 0.f, GetItemMesh()->GetComponentRotation().Yaw, 0.f };
+	//GetItemMesh()->SetWorldRotation(
+	//	MeshRotation,
+	//	false,
+	//	nullptr,
+	//	ETeleportType::TeleportPhysics);
 
-	const FVector MeshForward{ GetItemMesh()->GetForwardVector() };
-	const FVector MeshRight{ GetItemMesh()->GetRightVector() };
+	//const FVector MeshForward{ GetItemMesh()->GetForwardVector() };
+	//const FVector MeshRight{ GetItemMesh()->GetRightVector() };
 
-	// Weapon‚ð“Š‚°‚é•ûŒü
-	FVector ImpulseDirection = MeshRight.RotateAngleAxis(-20.f, MeshForward);
+	//// Weapon‚ð“Š‚°‚é•ûŒü
+	//FVector ImpulseDirection = MeshRight.RotateAngleAxis(-20.f, MeshForward);
 
-	float RandomRotation{ FMath::FRandRange(-40.f, 40.f)};
-	ImpulseDirection = ImpulseDirection.RotateAngleAxis(RandomRotation,FVector(0.f, 0.f, 1.f));
-	ImpulseDirection *= 20'000.f;
-	GetItemMesh()->AddImpulse(ImpulseDirection);
+	//float RandomRotation{ FMath::FRandRange(-40.f, 40.f)};
+	//ImpulseDirection = ImpulseDirection.RotateAngleAxis(RandomRotation,FVector(0.f, 0.f, 1.f));
+	//ImpulseDirection *= 20.f;
+	//GetItemMesh()->AddImpulse(ImpulseDirection);
 
 	bFalling = true;
 	GetWorldTimerManager().SetTimer(
