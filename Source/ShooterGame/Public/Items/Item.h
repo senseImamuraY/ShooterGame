@@ -185,16 +185,25 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	int32 InterpLocIndex;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* AmmoIcon;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }
 	FORCEINLINE EItemState GetItemState() const { return ItemState; }
 	void SetItemState(EItemState State);
-	virtual FORCEINLINE USkeletalMeshComponent* GetItemMesh() const { return ItemMesh; }
-	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
-	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
 	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
+	virtual FORCEINLINE USkeletalMeshComponent* GetItemMesh() const { return ItemMesh; }
+
+	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
+	FORCEINLINE void SetPickupSound(USoundCue* Sound) { PickupSound = Sound; }
+	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
+	FORCEINLINE void SetEquipSound(USoundCue* Sound) { EquipSound = Sound; }
+
+	FORCEINLINE void SetItemName(FString Name) { ItemName = Name; }
+	FORCEINLINE void SetAmmoIcon(UTexture2D* Icon) { AmmoIcon = Icon; }
 
 	void StartItemCurve(AShooterCharacter* Char);
 };

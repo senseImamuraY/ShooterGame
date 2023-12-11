@@ -7,8 +7,41 @@
 #include "../Items/AmmoType.h"
 #include "../Interfaces/PickupInterface.h"
 #include "WeaponType.h"
+#include "Engine/DataTable.h"
 #include "Weapon.generated.h"
 
+class USoundCue;
+class UWidgetComponent;
+
+USTRUCT(BlueprintType)
+struct FWeaponDataTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EAmmoType AmmoType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 WeaponAmmo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MagazingCapacity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* PickupSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* EquipSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USkeletalMesh* ItemMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString ItemName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* AmmoIcon;
+};
 
 /**
  * 
@@ -33,6 +66,8 @@ public:
 
 protected:
 	void StopFalling();
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	// èeÇåÇÇ¡ÇΩÇ∆Ç´Ç…ÉâÉìÉ_ÉÄÇ…âπê∫Çó¨Ç∑
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -90,6 +125,9 @@ private:
 	float Damage;
 
 	void EquipWeapon(AShooterCharacter* ShooterCharacter);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"));
+	UDataTable* WeaponDataTable;
 
 public:
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }

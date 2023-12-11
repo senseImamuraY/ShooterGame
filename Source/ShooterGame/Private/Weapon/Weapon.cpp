@@ -133,6 +133,38 @@ void AWeapon::StopFalling()
 	SetItemState(EItemState::EIS_Pickup);
 }
 
+void AWeapon::OnConstruction(const FTransform& Transform)
+{
+	const FString WeaponTablePath = TEXT("/Script/Engine.DataTable'/Game/ShooterGame/Blueprints/Weapons/DT_Weapon.DT_Weapon'");
+	UDataTable* WeaponTableObject = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *WeaponTablePath));
+
+	if (!WeaponTableObject) return;
+
+	FWeaponDataTable* WeaponDataRow = nullptr;
+
+	switch (WeaponType)
+	{
+		case EWeaponType::EWT_SubmachineGun:
+			WeaponDataRow = WeaponTableObject->FindRow<FWeaponDataTable>(FName("SubmachineGun"), TEXT(""));
+			break;
+		case EWeaponType::EWT_ShotGun:
+			WeaponDataRow = WeaponTableObject->FindRow<FWeaponDataTable>(FName("ShotGun"), TEXT(""));
+			break;
+	}
+
+	if (WeaponDataRow)
+	{
+		AmmoType = WeaponDataRow->AmmoType;
+		Ammo = WeaponDataRow->WeaponAmmo;
+		MagazineCapacity = WeaponDataRow->MagazingCapacity;
+		SetPickupSound(WeaponDataRow->PickupSound);
+		SetEquipSound(WeaponDataRow->EquipSound);
+		GetItemMesh()->SetSkeletalMesh(WeaponDataRow->ItemMesh);
+		SetItemName(WeaponDataRow->ItemName);
+		SetAmmoIcon(WeaponDataRow->AmmoIcon);
+	}
+}
+
 void AWeapon::Fire(AShooterCharacter* ShooterCharacter)
 {
 }
