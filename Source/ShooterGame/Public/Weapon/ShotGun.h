@@ -15,8 +15,6 @@ class SHOOTERGAME_API AShotGun : public AWeapon
 	GENERATED_BODY()
 
 public:
-	AShotGun();
-
 	virtual void Fire(AShooterCharacter* ShooterCharacter) override;
 
 private:

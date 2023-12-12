@@ -140,7 +140,6 @@ protected:
 
 	// FireWeaponで使用する関数
 	void PlayFireSound();
-	void SendBullet();
 	void PlayGunfireMontage();
 
 	// 入力を確認

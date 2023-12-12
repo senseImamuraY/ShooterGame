@@ -13,9 +13,6 @@ void ASubmachineGun::BeginPlay()
 {
 	Super::BeginPlay();
 
-	WeaponType = EWeaponType::EWT_SubmachineGun;
-	AmmoType = EAmmoType::EAT_9mm;
-	ItemName = TEXT("SubmachineGun");
 }
 
 

@@ -12,17 +12,9 @@
 void AShotGun::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	WeaponType = EWeaponType::EWT_ShotGun;
-	AmmoType = EAmmoType::EAT_Shells;
-	ItemName = TEXT("ShotGun");
-}
-
-
-AShotGun::AShotGun()
-{
 
 }
+
 
 void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 {
@@ -30,7 +22,6 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 	if (BarrelSocket)
 	{
 		SocketTransform = BarrelSocket->GetSocketTransform(GetItemMesh());
-		//const FTransform SocketTransform = BarrelSocket->GetSocketTransform(ShotGunMesh);
 
 		if (MuzzleFlash)
 		{
@@ -106,25 +97,13 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 
 	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults, OutBeamLocations, ShooterCharacter);
 	
-	//for (int i = 0; i < 5; i++) 
-	//{
-	//	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults[i], OutBeamLocation[i], ShooterCharacter);
-	//}
-	//bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults, OutBeamLocation[i], ShooterCharacter);
-
 	const float RaycastDistance = 25'000.f;
-	//const float RaycastDistance = 25'000.f;
-
-	//if (CrosshairBeamHitResults.Num() == 0) return false;
 
 	// 散弾のレイトレースを実行
 	for (int i = 0; i < 5; i++)
 	{
-		//FVector AdjustedDirection = OutHitResults[i].ImpactPoint - MuzzleSocketLocation;
-		//AdjustedDirection.Normalize();
 		FVector BaseDirection = SocketTransform.GetRotation().GetForwardVector(); // 銃身の向きを基準にする
 		FVector AdjustedDirection; // 銃身の向きを使用
-		//FVector AdjustedDirection = BaseDirection; // 銃身の向きを使用
 
 		// 傾斜の追加
 		FVector RotationAxis;
@@ -141,36 +120,15 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 		}
 		else
 		{
-			//if (i % 2 == 0)
-			//{
-			//	RotationAxis = ShooterCharacter->GetActorUpVector();
-			//}
-			//else
-			//{
-			//	RotationAxis = ShooterCharacter->GetActorRightVector();
-			//}
-			//RotationAngle = FMath::DegreesToRadians(90.0f * i);
-			////RotationAngle = FMath::DegreesToRadians(50.0f * (i / 2));
-			//AdjustedDirection = StartToEnd.RotateAngleAxis(RotationAngle, RotationAxis);
-			//AdjustedDirection.Normalize();
 			RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorRightVector() : ShooterCharacter->GetActorUpVector();
 
 			// 2回ごとに角度の符号を切り替える
 			RotationAngle = FMath::DegreesToRadians((i % 4 < 2) ? 90.0f : -90.0f);
 			AdjustedDirection = StartToEnd.RotateAngleAxis(RotationAngle, RotationAxis);
 
-			//AdjustedDirection = AdjustedDirection.RotateAngleAxis(RotationAngle, RotationAxis);
 			AdjustedDirection.Normalize();
-
-			//WeaponTraceEnd = MuzzleSocketLocation + AdjustedDirection * RaycastDistance;
 		}
 
-		//FVector WeaponTraceEnd{ MuzzleSocketLocation + AdjustedDirection * RaycastDistance };
-		//const FVector Start{ MuzzleSocketLocation };
-		//const FVector End{ OutBeamLocations[i] - MuzzleSocketLocation + AdjustedDirection * RaycastDistance};
-		//const FVector End{ Start + AdjustedDirection * RaycastDistance };
-
-		//FHitResult BeamHitResult;
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
 		Params.AddIgnoredActor(this);
@@ -245,11 +203,7 @@ bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FV
 		// 傾斜を加えた追加のレイトレース
 		for (int i = 1; i < 5; i++)
 		{
-			////FVector RotationAxis = ShooterCharacter->GetActorUpVector();
-			//FVector RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorUpVector() : ShooterCharacter->GetActorRightVector();
-			//float RotationAngle = FMath::DegreesToRadians(90.0f * i);
-			////float RotationAngle = FMath::DegreesToRadians(50.0f * (i / 2));
-					// 2回ごとに軸を切り替える
+			// 2回ごとに軸を切り替える
 			FVector RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorRightVector() : ShooterCharacter->GetActorUpVector();
 
 			// 2回ごとに角度の符号を切り替える
@@ -263,16 +217,12 @@ bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FV
 
 			PerformTrace(CrosshairWorldPosition, AdjustedDirection, RaycastDistance, Params, OutHitResults[i], i, OutHitLocations[i]);
 
-			// デバッグラインの描画
-			//FColor LineColor = FColor::Green;
-
 			FVector EndPosition = Start + AdjustedDirection * RaycastDistance;
 
 			DrawDebugLine(GetWorld(), Start, EndPosition, LineColor, false, 30.0f, 0, 1.0f);
 
 		}
 
-		//return OutHitResults.Num() > 0;
 		return true;
 	}
 
@@ -282,7 +232,6 @@ bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FV
 void AShotGun::PerformTrace(const FVector& StartPosition, const FVector& Direction, float Distance, const FCollisionQueryParams& Params, FHitResult& OutHitResult, int index, FVector& OutHitLocation)
 {
 	FVector EndPosition = StartPosition + Direction * Distance;
-	//FHitResult HitResult;
 
 	GetWorld()->LineTraceSingleByChannel(
 		OutHitResult,

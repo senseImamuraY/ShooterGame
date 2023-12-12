@@ -264,12 +264,10 @@ void AShooterCharacter::FireWeapon()
 	{
 		PlayFireSound();
 		EquippedWeapon->Fire(this);
-		//SendBullet();
 		PlayGunfireMontage();
 		EquippedWeapon->DecrementAmmo();
 
 		StartCrosshairBulletFire();
-
 		StartFireTimer();
 	}
 }
@@ -575,71 +573,6 @@ void AShooterCharacter::PlayFireSound()
 	if (FireSound)
 	{
 		UGameplayStatics::PlaySound2D(this, FireSound);
-	}
-}
-
-void AShooterCharacter::SendBullet()
-{
-	const USkeletalMeshSocket* BarrelSocket = EquippedWeapon->GetItemMesh()->GetSocketByName("BarrelSocket");
-	if (BarrelSocket)
-	{
-		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
-
-		if (MuzzleFlash)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
-		}
-
-		FHitResult BeamHitResult;
-		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResult);
-
-		if (bBeamEnd)
-		{
-			if (BeamHitResult.GetActor())
-			{
-				IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
-
-				if (BulletHitInterface)
-				{
-					BulletHitInterface->BulletHit_Implementation(BeamHitResult, this, GetController());
-
-					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
-
-					if (HitEnemy)
-					{
-						float WeaponDamage = EquippedWeapon->GetDamage();
-						float TotalDamage = WeaponDamage + PlayerAttackPower;
-
-						UGameplayStatics::ApplyDamage(
-							BeamHitResult.GetActor(),
-							TotalDamage,
-							GetController(),
-							this,
-							UDamageType::StaticClass());
-					}
-				}
-				else
-				{
-					if (ImpactParticles)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(
-							GetWorld(),
-							ImpactParticles,
-							BeamHitResult.Location);
-					}
-				}
-			}
-
-			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
-				BeamParticles,
-				SocketTransform);
-
-			if (Beam)
-			{
-				Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
-			}
-		}
 	}
 }
 

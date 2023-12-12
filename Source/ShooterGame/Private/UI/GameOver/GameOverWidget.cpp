@@ -23,10 +23,7 @@ void UGameOverWidget::NativeConstruct()
 
 void UGameOverWidget::OnButtonContinueClicked()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// Gameを再開する
@@ -35,10 +32,7 @@ void UGameOverWidget::OnButtonContinueClicked()
 
 void UGameOverWidget::OnButtonTitleClicked()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// Pauseを解除する
@@ -47,10 +41,7 @@ void UGameOverWidget::OnButtonTitleClicked()
 
 void UGameOverWidget::OnButtonQuitClicked()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// ゲームを終了する
