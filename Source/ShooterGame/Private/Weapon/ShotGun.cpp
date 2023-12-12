@@ -16,73 +16,60 @@ void AShotGun::BeginPlay()
 }
 
 
+AShotGun::AShotGun()
+{
+	BeamLineLocations.Init(FVector(0.f, 0.f, 0.f), 5);
+}
+
 void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 {
 	const USkeletalMeshSocket* BarrelSocket = GetItemMesh()->GetSocketByName("BarrelSocket");
-	if (BarrelSocket)
+	if (!BarrelSocket) return;
+
+	SocketTransform = BarrelSocket->GetSocketTransform(GetItemMesh());
+
+	if (MuzzleFlash)
 	{
-		SocketTransform = BarrelSocket->GetSocketTransform(GetItemMesh());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+	}
 
-		if (MuzzleFlash)
+	TArray<FHitResult> BeamHitResults;
+	BeamHitResults.Init(FHitResult(), 5); // サイズ 5 で初期化し、各要素を FHitResult() で初期化する
+
+	bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResults, ShooterCharacter);
+	if (!bBeamEnd) return;
+
+	for (const FHitResult& BeamHitResult : BeamHitResults) 
+	{
+		if (!BeamHitResult.GetActor()) return;
+		IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
+
+		if (BulletHitInterface)
 		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+			BulletHitInterface->BulletHit_Implementation(BeamHitResult, ShooterCharacter, ShooterCharacter->GetController());
+
+			AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
+			if (!HitEnemy) return;
+
+			float WeaponDamage = this->GetDamage();
+			float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
+
+			UGameplayStatics::ApplyDamage(
+				BeamHitResult.GetActor(),
+				TotalDamage,
+				ShooterCharacter->GetController(),
+				ShooterCharacter,
+				UDamageType::StaticClass());	
 		}
-
-		TArray<FHitResult> BeamHitResults;
-		BeamHitResults.Init(FHitResult(), 5); // サイズ 5 で初期化し、各要素を FHitResult() で初期化する
-
-		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResults, ShooterCharacter);
-
-		if (bBeamEnd)
+		else
 		{
-			for (const FHitResult& BeamHitResult : BeamHitResults) 
-			{
-				if (BeamHitResult.GetActor())
-				{
-					IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
+			if (!ImpactParticles) return;
 
-					if (BulletHitInterface)
-					{
-						BulletHitInterface->BulletHit_Implementation(BeamHitResult, ShooterCharacter, ShooterCharacter->GetController());
-
-						AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
-
-						if (HitEnemy)
-						{
-							float WeaponDamage = this->GetDamage();
-							float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
-
-							UGameplayStatics::ApplyDamage(
-								BeamHitResult.GetActor(),
-								TotalDamage,
-								ShooterCharacter->GetController(),
-								ShooterCharacter,
-								UDamageType::StaticClass());
-						}
-					}
-					else
-					{
-						if (ImpactParticles)
-						{
-							UGameplayStatics::SpawnEmitterAtLocation(
-								GetWorld(),
-								ImpactParticles,
-								BeamHitResult.Location);
-						}
-					}
-				}
-
-				UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					BeamParticles,
-					SocketTransform);
-
-				if (Beam)
-				{
-					Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
-				}
-			}
-		} 
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(),
+				ImpactParticles,
+				BeamHitResult.Location);
+		}
 	}
 }
 
@@ -91,6 +78,9 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 {
 	TArray<FVector> OutBeamLocations;
 	OutBeamLocations.Init(FVector(0.f, 0.f, 0.f), 5);
+
+	BeamLineLocations.Init(FVector(0.f, 0.f, 0.f), 5);
+
 	// crosshairのtrace hitをチェック
 	TArray<FHitResult> CrosshairBeamHitResults;
 	CrosshairBeamHitResults.Init(FHitResult(), 5);
@@ -102,32 +92,10 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 	// 散弾のレイトレースを実行
 	for (int i = 0; i < 5; i++)
 	{
-		FVector BaseDirection = SocketTransform.GetRotation().GetForwardVector(); // 銃身の向きを基準にする
-		FVector AdjustedDirection; // 銃身の向きを使用
-
-		// 傾斜の追加
-		FVector RotationAxis;
-		float RotationAngle;
-
 		const FVector WeaponTraceStart{ MuzzleSocketLocation };
 		const FVector StartToEnd{ OutBeamLocations[i] - MuzzleSocketLocation };
 
 		FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd };
-
-		if (i == 0) // 中央
-		{
-			// 傾斜なし
-		}
-		else
-		{
-			RotationAxis = (i % 2 == 0) ? ShooterCharacter->GetActorRightVector() : ShooterCharacter->GetActorUpVector();
-
-			// 2回ごとに角度の符号を切り替える
-			RotationAngle = FMath::DegreesToRadians((i % 4 < 2) ? 90.0f : -90.0f);
-			AdjustedDirection = StartToEnd.RotateAngleAxis(RotationAngle, RotationAxis);
-
-			AdjustedDirection.Normalize();
-		}
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
@@ -141,16 +109,19 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 			ECollisionChannel::ECC_Visibility,
 			Params);
 
-		// デバッグラインの描画
-		FColor LineColor = FColor::Red;
-
-		DrawDebugLine(GetWorld(), WeaponTraceStart, WeaponTraceEnd, LineColor, false, 30.0f, 0, 1.0f);
-
-
 		if (OutHitResults[i].bBlockingHit)
 		{
 			OutHitResults[i].Location = OutBeamLocations[i];
-			//OutHitResults.Add(BeamHitResult);
+		}
+
+		UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			BeamParticles,
+			SocketTransform);
+
+		if (Beam)
+		{
+			Beam->SetVectorParameter(FName("Target"), BeamLineLocations[i]);
 		}
 	}
 
@@ -183,13 +154,9 @@ bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FV
 	if (bScreenToWorld)
 	{
 		const float RaycastDistance = 25'000.f;
-		//const float RaycastDistance = 50'000.f;
 
 		const FVector Start{ CrosshairWorldPosition };
-		const FVector End{ Start + CrosshairWorldDirection * RaycastDistance };
-		//OutHitLocations[i] = End;
-
-		for (int i = 0; i < 5; i++) OutHitLocations[i] = End;
+		FVector End{ Start + CrosshairWorldDirection * RaycastDistance };
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
@@ -197,8 +164,6 @@ bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FV
 
 		// 中心のレイトレース
 		PerformTrace(CrosshairWorldPosition, CrosshairWorldDirection, RaycastDistance, Params, OutHitResults[0], 0, OutHitLocations[0]);
-		FColor LineColor = FColor::Green;
-		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 30.0f, 0, 1.0f);
 
 		// 傾斜を加えた追加のレイトレース
 		for (int i = 1; i < 5; i++)
@@ -210,17 +175,10 @@ bool AShotGun::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FV
 			float RotationAngle = FMath::DegreesToRadians((i % 4 < 2) ? 120.0f : -120.0f);
 
 			FVector AdjustedDirection = CrosshairWorldDirection.RotateAngleAxis(RotationAngle, RotationAxis);
-
 			AdjustedDirection = AdjustedDirection.RotateAngleAxis(RotationAngle, RotationAxis);
 			AdjustedDirection.Normalize();
 
-
 			PerformTrace(CrosshairWorldPosition, AdjustedDirection, RaycastDistance, Params, OutHitResults[i], i, OutHitLocations[i]);
-
-			FVector EndPosition = Start + AdjustedDirection * RaycastDistance;
-
-			DrawDebugLine(GetWorld(), Start, EndPosition, LineColor, false, 30.0f, 0, 1.0f);
-
 		}
 
 		return true;
@@ -242,8 +200,12 @@ void AShotGun::PerformTrace(const FVector& StartPosition, const FVector& Directi
 
 	if (OutHitResult.bBlockingHit)
 	{
-		//OutHitResults.Add(HitResult);
 		OutHitLocation = OutHitResult.Location;
+		BeamLineLocations[index] = OutHitResult.Location;
+	}
+	else
+	{
+		BeamLineLocations[index] = EndPosition;
 	}
 }
 

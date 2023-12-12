@@ -58,6 +58,11 @@ public:
 	AItem();
 
 	//virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
+		// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// AShooterCharacter::GetPickupItemで使用
+	void PlayEquipSound();
 
 protected:
 	// Called when the game starts or when spawned
@@ -94,13 +99,6 @@ protected:
 	FVector GetInterpLocation();
 
 	void PlayPickupSound();
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// AShooterCharacter::GetPickupItemで使用
-	void PlayEquipSound();
 
 protected:
 	// Pickup Widgetに表示されるアイテムの名前

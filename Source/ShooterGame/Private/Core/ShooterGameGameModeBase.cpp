@@ -64,8 +64,8 @@ void AShooterGameGameModeBase::BeginPlay()
 	float TimeUntilGoalAppears = 60.f;
 
 	// Set a timer to spawn an enemy every 5 seconds
-	//GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
-	//GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
+	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
+	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
 }
 
 void AShooterGameGameModeBase::KillPlayer()
@@ -75,10 +75,7 @@ void AShooterGameGameModeBase::KillPlayer()
 
 void AShooterGameGameModeBase::RestartGame()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// ゲームオーバー画面を表示する

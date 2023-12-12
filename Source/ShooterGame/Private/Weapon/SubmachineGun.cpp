@@ -19,63 +19,59 @@ void ASubmachineGun::BeginPlay()
 void ASubmachineGun::Fire(AShooterCharacter* ShooterCharacter)
 {
 	const USkeletalMeshSocket* BarrelSocket = this->GetItemMesh()->GetSocketByName("BarrelSocket");
-	if (BarrelSocket)
+	if (!BarrelSocket) return;
+
+	const FTransform SocketTransform = BarrelSocket->GetSocketTransform(this->GetItemMesh());
+
+	if (MuzzleFlash)
 	{
-		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(this->GetItemMesh());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+	}
 
-		if (MuzzleFlash)
+	FHitResult BeamHitResult;
+	bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResult, ShooterCharacter);
+
+	UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
+		GetWorld(),
+		BeamParticles,
+		SocketTransform);
+
+	if (Beam)
+	{
+		Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
+	}
+
+	if (!bBeamEnd) return;
+
+	if (BeamHitResult.GetActor())
+	{
+		IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
+
+		if (BulletHitInterface)
 		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+			BulletHitInterface->BulletHit_Implementation(BeamHitResult, ShooterCharacter, ShooterCharacter->GetController());
+
+			AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
+			if (!HitEnemy) return;
+
+			float WeaponDamage = this->GetDamage();
+			float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
+
+			UGameplayStatics::ApplyDamage(
+				BeamHitResult.GetActor(),
+				TotalDamage,
+				ShooterCharacter->GetController(),
+				ShooterCharacter,
+				UDamageType::StaticClass());
 		}
-
-		FHitResult BeamHitResult;
-		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResult, ShooterCharacter);
-
-		if (bBeamEnd)
+		else
 		{
-			if (BeamHitResult.GetActor())
+			if (ImpactParticles)
 			{
-				IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
-
-				if (BulletHitInterface)
-				{
-					BulletHitInterface->BulletHit_Implementation(BeamHitResult, ShooterCharacter, ShooterCharacter->GetController());
-
-					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
-
-					if (HitEnemy)
-					{
-						float WeaponDamage = this->GetDamage();
-						float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
-
-						UGameplayStatics::ApplyDamage(
-							BeamHitResult.GetActor(),
-							TotalDamage,
-							ShooterCharacter->GetController(),
-							ShooterCharacter,
-							UDamageType::StaticClass());
-					}
-				}
-				else
-				{
-					if (ImpactParticles)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(
-							GetWorld(),
-							ImpactParticles,
-							BeamHitResult.Location);
-					}
-				}
-			}
-
-			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
-				BeamParticles,
-				SocketTransform);
-
-			if (Beam)
-			{
-				Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					ImpactParticles,
+					BeamHitResult.Location);
 			}
 		}
 	}
@@ -107,7 +103,7 @@ bool ASubmachineGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHi
 		Params);
 
 	FColor LineColor = FColor::Red;
-	DrawDebugLine(GetWorld(), WeaponTraceStart, WeaponTraceEnd, LineColor, false, 30.0f, 0, 1.0f);
+	//DrawDebugLine(GetWorld(), WeaponTraceStart, WeaponTraceEnd, LineColor, false, 30.0f, 0, 1.0f);
 
 
 	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
@@ -142,43 +138,28 @@ bool ASubmachineGun::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& Out
 		CrosshairWorldPosition,
 		CrosshairWorldDirection);
 
-	if (bScreenToWorld)
-	{
-		const float RaycastDistance = 50'000.f;
+	if (!bScreenToWorld) return false;
 
-		const FVector Start{ CrosshairWorldPosition };
-		const FVector End{ Start + CrosshairWorldDirection * RaycastDistance };
-		OutHitLocation = End;
+	const float RaycastDistance = 50'000.f;
+	const FVector Start{ CrosshairWorldPosition };
+	const FVector End{ Start + CrosshairWorldDirection * RaycastDistance };
+	OutHitLocation = End;
 
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(ShooterCharacter);
-		Params.AddIgnoredActor(this);
-
-
-		GetWorld()->LineTraceSingleByChannel(
-			OutHitResult,
-			Start,
-			End,
-			ECollisionChannel::ECC_Visibility,
-			Params);
-
-		FColor LineColor = FColor::Green;
-		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 30.0f, 0, 1.0f);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(ShooterCharacter);
+	Params.AddIgnoredActor(this);
 
 
-		if (OutHitResult.bBlockingHit)
-		{
-			OutHitLocation = OutHitResult.Location;
+	GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Visibility,
+		Params);
 
-			if (OutHitResult.bBlockingHit)
-			{
-				OutHitLocation = OutHitResult.Location;
-				return true;
-			}
+	if (!OutHitResult.bBlockingHit) return false;
 
-			return true;
-		}
-	}
+	OutHitLocation = OutHitResult.Location;
 
-	return false;
+	return true;
 }

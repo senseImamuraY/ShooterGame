@@ -15,6 +15,8 @@ class SHOOTERGAME_API AShotGun : public AWeapon
 	GENERATED_BODY()
 
 public:
+	AShotGun();
+
 	virtual void Fire(AShooterCharacter* ShooterCharacter) override;
 
 private:
@@ -27,4 +29,6 @@ private:
 	void PerformTrace(const FVector& StartPosition, const FVector& Direction, float Distance, const FCollisionQueryParams& Params, FHitResult& OutHitResult, int index, FVector& OutHitLocation);
 
 	FTransform SocketTransform;
+
+	TArray<FVector> BeamLineLocations;
 };
