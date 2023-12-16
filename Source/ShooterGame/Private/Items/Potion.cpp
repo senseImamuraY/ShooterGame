@@ -64,11 +64,17 @@ void APotion::SetItemProperties(EItemState State)
 	{
 	case EItemState::EIS_Pickup:
 		// Mesh AreaSphere CollisionBoxのプロパティを設定
-		PotionNiagara->SetSimulatePhysics(false);
-		PotionNiagara->SetEnableGravity(false);
+		PotionNiagara->SetSimulatePhysics(true);
+		PotionNiagara->SetEnableGravity(true);
+		//PotionNiagara->SetSimulatePhysics(false);
+		//PotionNiagara->SetEnableGravity(false);
 		PotionNiagara->SetVisibility(true);
-		PotionNiagara->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		PotionNiagara->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//PotionNiagara->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		//PotionNiagara->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PotionNiagara->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		PotionNiagara->SetCollisionResponseToChannel(
+			ECollisionChannel::ECC_WorldStatic,
+			ECollisionResponse::ECR_Block);
 		break;
 	case EItemState::EIS_Equipped:
 		PotionNiagara->SetSimulatePhysics(false);

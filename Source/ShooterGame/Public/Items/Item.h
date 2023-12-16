@@ -34,6 +34,7 @@ enum class EItemState : uint8
 	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
 	EIS_Equipped UMETA(DisplayName = "Equipped"),
 	EIS_Falling UMETA(DisplayName = "Falling"),
+	EIS_InPool UMETA(DisplayName = "InPool"),
 
 	EIS_MAX UMETA(DisplayName = "DefaultMAX")
 };
@@ -48,6 +49,9 @@ enum class EItemType : uint8
 	EIT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemReturnRequested, AItem*, Item);
+
 UCLASS()
 class SHOOTERGAME_API AItem : public AActor
 {
@@ -56,13 +60,14 @@ class SHOOTERGAME_API AItem : public AActor
 public:
 	// Sets default values for this actor's properties
 	AItem();
-
-	//virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
-		// Called every frame
+	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// AShooterCharacter::GetPickupItemで使用
 	void PlayEquipSound();
+
+	// デリゲートの公開インスタンス
+	FOnItemReturnRequested OnItemReturnRequested;
 
 protected:
 	// Called when the game starts or when spawned

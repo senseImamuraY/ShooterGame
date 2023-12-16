@@ -70,14 +70,14 @@ AEnemy* UEnemyPool::GetEnemy()
 }
 
 
-void UEnemyPool::ReturnEnemy(AEnemy* enemy)
+void UEnemyPool::ReturnEnemy(AEnemy* Enemy)
 {
-	if (enemy)
+	if (Enemy)
 	{
-		enemy->SetActorEnableCollision(false); // コリジョンを無効にする
-		enemy->SetActorTickEnabled(false);
-		enemy->SetActorHiddenInGame(true);
-		AvailableEnemies.Push(enemy);
+		Enemy->SetActorEnableCollision(false); // コリジョンを無効にする
+		Enemy->SetActorTickEnabled(false);
+		Enemy->SetActorHiddenInGame(true);
+		AvailableEnemies.Add(Enemy);
 	}
 }
 

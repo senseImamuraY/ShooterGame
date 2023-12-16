@@ -11,6 +11,8 @@
 #include "../Public/Enemies/EnemyPool.h"
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
+#include "../Public/Items/ItemPool.h"
+#include "../Public/Items/Item.h"
 
 
 AShooterGameGameModeBase::AShooterGameGameModeBase() :
@@ -27,10 +29,11 @@ void AShooterGameGameModeBase::BeginPlay()
 
 	HandleGameStart();
 
-	// EnemyPoolのインスタンスを生成
+	// Poolのインスタンスを生成
 	EnemyPoolInstance = NewObject<UEnemyPool>();
+	ItemPoolInstance = NewObject<UItemPool>();
 
-	// EnemyPoolを初期化
+	// Poolを初期化
 	if (EnemyPoolInstance)
 	{
 		UWorld* World = GetWorld();
@@ -41,9 +44,20 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
+	if (ItemPoolInstance)
+	{
+		UWorld* World = GetWorld();
+
+		if (World)
+		{
+			ItemPoolInstance->Initialize(World);
+		}
+	}
+
 	for (TActorIterator<AGoal> It(GetWorld()); It; ++It)
 	{
 		Goal = *It;
+
 		if (Goal)
 		{
 			break;
@@ -59,6 +73,17 @@ void AShooterGameGameModeBase::BeginPlay()
 			Enemy->OnEnemyDead.AddDynamic(this, &AShooterGameGameModeBase::HandleEnemyDeath);
 		}
 	}
+
+	//for (TActorIterator<AItem> It(GetWorld()); It; ++It)
+	//{
+	//	AItem* Item = *It;
+
+	//	if (Item)
+	//	{
+	//		Item->OnItemReturnRequested.AddDynamic(this, &AShooterGameGameModeBase::HandleEnemyDeath);
+	//	}
+	//}
+
 
 	float EnemySpawnInterval = 5.f;
 	float TimeUntilGoalAppears = 60.f;
@@ -135,6 +160,35 @@ void AShooterGameGameModeBase::HandleEnemyDeath(AEnemy* DeadEnemy)
 {
 	// ここでEnemyPoolのReturnEnemy関数を呼び出して、DeadEnemyを返却するなどの処理を行う
 	EnemyPoolInstance->ReturnEnemy(DeadEnemy);
+
+	//ItemPoolInstance->GetItem(ItemPoolInstance->GetPotionClass());
+	 // アイテムを取得
+	AItem* SpawnedItem = ItemPoolInstance->GetItem(ItemPoolInstance->GetPotionClass());
+	//AItem* SpawnedItem = ItemPoolInstance->GetItem(ItemPoolInstance->GetRandomItemClass());
+	if (SpawnedItem)
+	{
+		// 敵の位置にアイテムをスポーン
+		FVector EnemyLocation = DeadEnemy->GetActorLocation();
+		SpawnedItem->SetActorLocation(EnemyLocation);
+
+		//// 必要に応じて他のプロパティを設定
+		//SpawnedItem->SetActorHiddenInGame(false);
+		//SpawnedItem->SetActorEnableCollision(true);
+		//SpawnedItem->SetActorTickEnabled(true);
+			   // ログ出力
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawned Item: %s at Location: %s"), *SpawnedItem->GetName(), *EnemyLocation.ToString()));
+		}
+	}
+	else
+	{
+		// アイテムが取得できなかった場合のログ出力
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Failed to spawn item from ItemPool"));
+		}
+	}
 }
 
 

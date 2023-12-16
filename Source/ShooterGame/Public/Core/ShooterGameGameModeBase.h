@@ -10,6 +10,7 @@ class UClass;
 class UEnemyPool;
 class AGoal;
 class ADirectionalLight;
+class UItemPool;
 
 /**
  * 
@@ -39,6 +40,9 @@ private:
 
 	UPROPERTY()
 	UEnemyPool* EnemyPoolInstance; 
+
+	UPROPERTY()
+	UItemPool* ItemPoolInstance; 
 
 	UFUNCTION()
 	void HandleEnemyDeath(class AEnemy* DeadEnemy);
