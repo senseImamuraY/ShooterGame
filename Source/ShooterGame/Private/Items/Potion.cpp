@@ -14,8 +14,8 @@ APotion::APotion() :
 	RecoveryAmount(50.f)
 {
     // AmmoはNiagaraComponentとして利用したいのでコード側で定義
-	PotionNiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PotionNiagara"));
-    SetRootComponent(PotionNiagara);
+	PotionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PotionMesh"));
+    SetRootComponent(PotionMesh);
 
     GetCollisionBox()->SetupAttachment(GetRootComponent());
     GetPickupWidget()->SetupAttachment(GetRootComponent());
@@ -46,7 +46,7 @@ void APotion::PickupItem(AShooterCharacter* ShooterCharacter)
 
 	PlayEquipSound();
     
-    this->Destroy();
+    //this->Destroy();
 }
 
 void APotion::BeginPlay()
@@ -64,40 +64,50 @@ void APotion::SetItemProperties(EItemState State)
 	{
 	case EItemState::EIS_Pickup:
 		// Mesh AreaSphere CollisionBoxのプロパティを設定
-		PotionNiagara->SetSimulatePhysics(true);
-		PotionNiagara->SetEnableGravity(true);
-		//PotionNiagara->SetSimulatePhysics(false);
-		//PotionNiagara->SetEnableGravity(false);
-		PotionNiagara->SetVisibility(true);
-		//PotionNiagara->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		//PotionNiagara->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		PotionNiagara->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-		PotionNiagara->SetCollisionResponseToChannel(
+		//PotionMesh->SetSimulatePhysics(true);
+		//PotionMesh->SetEnableGravity(true);
+		//PotionMesh->SetSimulatePhysics(false);
+		//PotionMesh->SetEnableGravity(false);
+		PotionMesh->SetVisibility(true);
+		//PotionMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		//PotionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PotionMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		PotionMesh->SetCollisionResponseToChannel(
 			ECollisionChannel::ECC_WorldStatic,
 			ECollisionResponse::ECR_Block);
+		PotionCollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EItemState::EIS_Equipped:
-		PotionNiagara->SetSimulatePhysics(false);
-		PotionNiagara->SetEnableGravity(false);
-		PotionNiagara->SetVisibility(true);
-		PotionNiagara->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		PotionNiagara->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PotionMesh->SetSimulatePhysics(false);
+		PotionMesh->SetEnableGravity(false);
+		PotionMesh->SetVisibility(true);
+		PotionMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		PotionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	case EItemState::EIS_Falling:
-		PotionNiagara->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		PotionNiagara->SetSimulatePhysics(true);
-		PotionNiagara->SetEnableGravity(true);
-		PotionNiagara->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		PotionNiagara->SetCollisionResponseToChannel(
+		PotionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		PotionMesh->SetSimulatePhysics(true);
+		PotionMesh->SetEnableGravity(true);
+		PotionMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		PotionMesh->SetCollisionResponseToChannel(
 			ECollisionChannel::ECC_WorldStatic,
 			ECollisionResponse::ECR_Block);
 		break;
 	case EItemState::EIS_EquipInterping:
-		PotionNiagara->SetSimulatePhysics(false);
-		PotionNiagara->SetEnableGravity(false);
-		PotionNiagara->SetVisibility(true);
-		PotionNiagara->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		PotionNiagara->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PotionMesh->SetSimulatePhysics(false);
+		PotionMesh->SetEnableGravity(false);
+		PotionMesh->SetVisibility(true);
+		PotionMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		PotionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EItemState::EIS_InPool:
+		//StateString = TEXT("InPool");
+		PotionMesh->SetSimulatePhysics(false);
+		PotionMesh->SetEnableGravity(false);
+		PotionMesh->SetVisibility(false);
+		PotionMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		PotionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PotionCollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	}
 }

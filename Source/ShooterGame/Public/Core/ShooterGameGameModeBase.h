@@ -11,6 +11,8 @@ class UEnemyPool;
 class AGoal;
 class ADirectionalLight;
 class UItemPool;
+class AEnemy;
+class AItem;
 
 /**
  * 
@@ -45,7 +47,7 @@ private:
 	UItemPool* ItemPoolInstance; 
 
 	UFUNCTION()
-	void HandleEnemyDeath(class AEnemy* DeadEnemy);
+	void HandleEnemyDeath(AEnemy* DeadEnemy);
 
 	FTimerHandle GoalTimerHandle;
 	void SpawnGoal();
@@ -54,4 +56,7 @@ private:
 	float StartDelaty;
 	void HandleGameStart();
 	void EnablePlayer();
+
+	UFUNCTION()
+	void HandleItemReturn(AItem* Item);
 };

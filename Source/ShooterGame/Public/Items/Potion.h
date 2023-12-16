@@ -39,7 +39,7 @@ protected:
 		const FHitResult& SweepResult);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Potion, meta = (AllowPrivateAccess = "true"))
-	UNiagaraComponent* PotionNiagara;
+	UStaticMeshComponent* PotionMesh;
 
 	// ê⁄êGÇµÇΩç€Ç…ÅAAmmoÇèEÇ§ÇΩÇﬂÇÃsphere
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Potion, meta = (AllowPrivateAccess = "true"))

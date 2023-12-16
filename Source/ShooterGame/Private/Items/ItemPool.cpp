@@ -52,7 +52,7 @@ void UItemPool::InitializeItemPool(UClass* ItemClass, int32 ItemNum)
 		AItem* NewItem = WorldReference->SpawnActor<AItem>(ItemClass, FVector(0.f, 0.f, 100.f), FRotator::ZeroRotator);
 		if (NewItem)
 		{
-			NewItem->OnItemReturnRequested.AddDynamic(this, &UItemPool::ReturnItem);
+			//NewItem->OnItemReturnRequested.AddDynamic(this, &UItemPool::ReturnItem);
 			NewItem->SetActorHiddenInGame(true);
 			NewItem->SetActorEnableCollision(false);
 			NewItem->SetActorTickEnabled(false);

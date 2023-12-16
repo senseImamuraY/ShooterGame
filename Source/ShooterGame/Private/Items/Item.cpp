@@ -138,10 +138,10 @@ void AItem::SetItemProperties(EItemState State)
 	{
 	case EItemState::EIS_Pickup:
 		// Mesh AreaSphere CollisionBoxのプロパティを設定
-		ItemMesh->SetSimulatePhysics(true);
-		ItemMesh->SetEnableGravity(true);	
-		//ItemMesh->SetSimulatePhysics(false);
-		//ItemMesh->SetEnableGravity(false);
+		//ItemMesh->SetSimulatePhysics(true);
+		//ItemMesh->SetEnableGravity(true);	
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetEnableGravity(false);
 		ItemMesh->SetVisibility(true);
 		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);

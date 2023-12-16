@@ -74,15 +74,15 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
-	//for (TActorIterator<AItem> It(GetWorld()); It; ++It)
-	//{
-	//	AItem* Item = *It;
+	for (TActorIterator<AItem> It(GetWorld()); It; ++It)
+	{
+		AItem* Item = *It;
 
-	//	if (Item)
-	//	{
-	//		Item->OnItemReturnRequested.AddDynamic(this, &AShooterGameGameModeBase::HandleEnemyDeath);
-	//	}
-	//}
+		if (Item)
+		{
+			Item->OnItemReturnRequested.AddDynamic(this, &AShooterGameGameModeBase::HandleItemReturn);
+		}
+	}
 
 
 	float EnemySpawnInterval = 5.f;
@@ -156,6 +156,11 @@ void AShooterGameGameModeBase::EnablePlayer()
 	}
 }
 
+void AShooterGameGameModeBase::HandleItemReturn(AItem* Item)
+{
+	ItemPoolInstance->ReturnItem(Item);
+}
+
 void AShooterGameGameModeBase::HandleEnemyDeath(AEnemy* DeadEnemy)
 {
 	// ここでEnemyPoolのReturnEnemy関数を呼び出して、DeadEnemyを返却するなどの処理を行う
@@ -163,8 +168,8 @@ void AShooterGameGameModeBase::HandleEnemyDeath(AEnemy* DeadEnemy)
 
 	//ItemPoolInstance->GetItem(ItemPoolInstance->GetPotionClass());
 	 // アイテムを取得
-	AItem* SpawnedItem = ItemPoolInstance->GetItem(ItemPoolInstance->GetPotionClass());
-	//AItem* SpawnedItem = ItemPoolInstance->GetItem(ItemPoolInstance->GetRandomItemClass());
+	//AItem* SpawnedItem = ItemPoolInstance->GetItem(ItemPoolInstance->GetPotionClass());
+	AItem* SpawnedItem = ItemPoolInstance->GetItem(ItemPoolInstance->GetRandomItemClass());
 	if (SpawnedItem)
 	{
 		// 敵の位置にアイテムをスポーン
