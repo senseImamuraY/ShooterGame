@@ -11,6 +11,8 @@
 #include "../Public/Enemies/EnemyPool.h"
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
+#include "../Public/Items/ItemPool.h"
+#include "../Public/Items/Item.h"
 
 
 AShooterGameGameModeBase::AShooterGameGameModeBase() :
@@ -27,10 +29,11 @@ void AShooterGameGameModeBase::BeginPlay()
 
 	HandleGameStart();
 
-	// EnemyPoolのインスタンスを生成
+	// Poolのインスタンスを生成
 	EnemyPoolInstance = NewObject<UEnemyPool>();
+	ItemPoolInstance = NewObject<UItemPool>();
 
-	// EnemyPoolを初期化
+	// Poolを初期化
 	if (EnemyPoolInstance)
 	{
 		UWorld* World = GetWorld();
@@ -41,15 +44,27 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
+	if (ItemPoolInstance)
+	{
+		UWorld* World = GetWorld();
+
+		if (World)
+		{
+			ItemPoolInstance->Initialize(World);
+		}
+	}
+
 	for (TActorIterator<AGoal> It(GetWorld()); It; ++It)
 	{
 		Goal = *It;
+
 		if (Goal)
 		{
 			break;
 		}
 	}
 
+	// マップを全探索して、それぞれのHandleを適切なActorにバインド
 	for (TActorIterator<AEnemy> It(GetWorld()); It; ++It)
 	{
 		AEnemy* Enemy = *It;
@@ -60,10 +75,19 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
+	for (TActorIterator<AItem> It(GetWorld()); It; ++It)
+	{
+		AItem* Item = *It;
+
+		if (Item)
+		{
+			Item->OnItemReturnRequested.AddDynamic(this, &AShooterGameGameModeBase::HandleItemReturn);
+		}
+	}
+
 	float EnemySpawnInterval = 5.f;
 	float TimeUntilGoalAppears = 60.f;
 
-	// Set a timer to spawn an enemy every 5 seconds
 	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
 	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
 }
@@ -75,10 +99,7 @@ void AShooterGameGameModeBase::KillPlayer()
 
 void AShooterGameGameModeBase::RestartGame()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// ゲームオーバー画面を表示する
@@ -94,10 +115,9 @@ void AShooterGameGameModeBase::SpawnEnemy()
 
 		if (SpawnedEnemy)
 		{
-			// ... スポーン位置や回転の計算 ...
+			// スポーン位置や回転の計算
 			FVector SpawnLocation = EnemyPoolInstance->GetRandomLocation();
 			FRotator SpawnRotation = FRotator(0, 0, 0);
-			// 敵の位置と回転を設定
 			SpawnedEnemy->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 		}
 	}
@@ -134,10 +154,23 @@ void AShooterGameGameModeBase::EnablePlayer()
 	}
 }
 
+void AShooterGameGameModeBase::HandleItemReturn(AItem* Item)
+{
+	ItemPoolInstance->ReturnItem(Item);
+}
+
 void AShooterGameGameModeBase::HandleEnemyDeath(AEnemy* DeadEnemy)
 {
 	// ここでEnemyPoolのReturnEnemy関数を呼び出して、DeadEnemyを返却するなどの処理を行う
+	// また、同時にDeadEnemyがいた場所にアイテムをスポーンする
 	EnemyPoolInstance->ReturnEnemy(DeadEnemy);
+
+	AItem* SpawnedItem = ItemPoolInstance->GetItem(ItemPoolInstance->GetRandomItemClass());
+	if (SpawnedItem)
+	{
+		FVector EnemyLocation = DeadEnemy->GetActorLocation();
+		SpawnedItem->SetActorLocation(EnemyLocation);
+	}
 }
 
 

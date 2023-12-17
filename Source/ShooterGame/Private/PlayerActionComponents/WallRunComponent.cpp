@@ -8,11 +8,15 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/Engine.h"
+#include "../Public/Weapon/Weapon.h"
+#include "Components/SphereComponent.h"
+
 
 // Sets default values for this component's properties
 UWallRunComponent::UWallRunComponent() :
 	bWallRunning(false),
 	bCanWallRun(true),
+	bFirstRayCast(true),
 	PreviousYaw(0.f),
 	MouseXValue(0.f),
 	MouseYValue(0.f),
@@ -25,6 +29,21 @@ UWallRunComponent::UWallRunComponent() :
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+void UWallRunComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner());
+
+	if (!ShooterCharacter) return;
+
+	UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
+
+	// プレイヤーとカメラの間のベクトルの大きさを保存
+	InitialCameraDistance = FVector::Dist(Camera->GetComponentLocation(), ShooterCharacter->GetActorLocation());
+}
+
+
 void UWallRunComponent::WallRun()
 {
 	if (!bWallRunning)
@@ -33,22 +52,22 @@ void UWallRunComponent::WallRun()
 
 		if (!ShooterCharacter) return;
 
+		// 前方に壁があるか確認して、十分に近ければ壁走りの判定・処理をする
 		FHitResult HitResult;
 		const FVector LineLocationStart = ShooterCharacter->GetActorLocation();
-		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorForwardVector() * 100.f;
+		float RaycastDistance = 100.f;
+		const FVector LineLocationEnd = LineLocationStart + ShooterCharacter->GetActorForwardVector() * RaycastDistance;
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
-
+		Params.AddIgnoredActor(ShooterCharacter->GetEquippedWeapon());
+		
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
 			LineLocationStart,
 			LineLocationEnd,
 			ECollisionChannel::ECC_Visibility,
 			Params);
-
-
-		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
 
 		if (bHit)
 		{
@@ -66,17 +85,17 @@ void UWallRunComponent::WallRun()
 				HitWallNormal = HitResult.Normal;
 				CharMovement->SetMovementMode(MOVE_Flying);
 				CharMovement->bOrientRotationToMovement = false;
-				CharMovement->BrakingDecelerationFlying = 10000.0f;
-	
+				CharMovement->BrakingDecelerationFlying = 10000.0f; // 壁走り中に滑らないようにする
 				bWallRunning = true; 
 
-				FRotator NewRotation = FRotationMatrix::MakeFromXZ(ShooterCharacter->GetActorUpVector(), HitResult.Normal).Rotator();
+				// 壁走り中はプレイヤーを壁に垂直になるように立たせる
+				FRotator NewCharacterRotation = FRotationMatrix::MakeFromXZ(ShooterCharacter->GetActorUpVector(), HitResult.Normal).Rotator();
 
-				// Yawを-90度回転させる。
-				NewRotation.Roll = 0.1f;
-				NewRotation.Pitch = 89.9f;		
+				// Rollが0,Pitchが90だとジンバルロック(また、それを回避するためにUE内部?で数値が調整されて安定しない)になるため、値を調整
+				NewCharacterRotation.Roll = 0.1f;
+				NewCharacterRotation.Pitch = 89.9f;
 
-				ShooterCharacter->SetActorRotation(NewRotation);	
+				ShooterCharacter->SetActorRotation(NewCharacterRotation);
 			}
 		}
 	}
@@ -88,6 +107,9 @@ void UWallRunComponent::WallRun()
 		UCharacterMovementComponent* CharMovement = Cast<UCharacterMovementComponent>(ShooterCharacter->GetMovementComponent());
 		if (!CharMovement) return;
 
+		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
+
+		// 壁走り中に現在のプレイヤーの足が壁についているか確認
 		FHitResult HitResult;
 		const FVector LineLocationStart = ShooterCharacter->GetActorLocation();
 		const float RaycastDistance = 250.f;
@@ -95,6 +117,7 @@ void UWallRunComponent::WallRun()
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
+		Params.AddIgnoredActor(ShooterCharacter->GetEquippedWeapon());
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
@@ -112,23 +135,49 @@ void UWallRunComponent::WallRun()
 		FQuat CharacterYawRotation(FVector::UpVector, FMath::DegreesToRadians(MouseXValue));
 		ShooterCharacter->AddActorLocalRotation(CharacterYawRotation);
 
-		UCameraComponent* Camera = ShooterCharacter->FindComponentByClass<UCameraComponent>();
-		
+
 		if (Camera) {
-			FRotator CurrentCharacterRotation = ShooterCharacter->GetActorRotation();
-			FVector CameraToCharacter = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation();
 			FQuat CameraYawRotation(ShooterCharacter->GetActorUpVector(), FMath::DegreesToRadians(MouseXValue));
 			FQuat CameraPitchRotation(ShooterCharacter->GetActorRightVector(), FMath::DegreesToRadians(MouseYValue));
 			FQuat CombinedRotation = CameraYawRotation * CameraPitchRotation;
 
-			// ピッチの値を-89から89の範囲に制限
-			FRotator CombinedRotator = CombinedRotation.Rotator();
-			CombinedRotation = CombinedRotator.Quaternion();
+			FVector CharacterToCamera = Camera->GetComponentLocation() - ShooterCharacter->GetActorLocation();
+			FVector RotatedCharacterToCamera = CombinedRotation.RotateVector(CharacterToCamera);
+			FVector NewCameraLocation = ShooterCharacter->GetActorLocation() + RotatedCharacterToCamera;
+			FVector NormalizedRotatedCharacterToCamera = RotatedCharacterToCamera.GetSafeNormal();
 
-			FVector RotatedVector = CombinedRotation.RotateVector(CameraToCharacter);
-			FVector NewCameraLocation = ShooterCharacter->GetActorLocation() + RotatedVector;
-			Camera->SetWorldLocation(NewCameraLocation);
+			// プレイヤーからカメラへのレイキャストを行い、間にオブジェクトが無いか確認。
+			FHitResult CharacterToCameraHitResult = FHitResult();
+			FCollisionQueryParams CollisionParams;
+			CollisionParams.AddIgnoredActor(ShooterCharacter);
+			CollisionParams.AddIgnoredActor(ShooterCharacter->GetEquippedWeapon());
+
 			Camera->AddWorldRotation(CombinedRotation);
+
+			bool bHitBlock = GetWorld()->LineTraceSingleByChannel(
+				CharacterToCameraHitResult,
+				ShooterCharacter->GetActorLocation(),
+				ShooterCharacter->GetActorLocation() + NormalizedRotatedCharacterToCamera * InitialCameraDistance,
+				ECC_Visibility, CollisionParams);
+
+			if (bHitBlock && !bFirstRayCast)
+			{
+				if (CharacterToCameraHitResult.GetActor() != ShooterCharacter)
+				{
+					// ヒットした位置にカメラを移動
+					FVector AdjustedCameraLocation = CharacterToCameraHitResult.ImpactPoint;
+					Camera->SetWorldLocation(AdjustedCameraLocation);
+				}
+			}
+			else if (bFirstRayCast) 
+			{
+				Camera->SetWorldLocation(NewCameraLocation);
+				bFirstRayCast = false;
+			}
+			else
+			{
+				Camera->SetWorldLocation(NewCameraLocation);
+			}
 		}
 
 		if (!bHit)
@@ -153,11 +202,11 @@ void UWallRunComponent::WallRun()
 				Camera->SetRelativeLocation(InitialCameraLocation);
 			}
 
-			// 上方向に力を与えるベクトルを定義
+			// 壁走りを終えた時に、プレイヤーの移動をスムーズにするために打ち上げる
 			FVector LaunchVelocity(50, 0, 600);
-
-			// キャラクターを打ち上げる
 			ShooterCharacter->LaunchCharacter(LaunchVelocity, true, true);
+
+			bFirstRayCast = true;
 		}
 	}
 }
@@ -166,4 +215,3 @@ void UWallRunComponent::EnableWallRun()
 {
 	bCanWallRun = true;
 }
-

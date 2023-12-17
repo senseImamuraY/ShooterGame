@@ -5,6 +5,7 @@
 #include "./Enemies/Enemy.h"
 #include "Engine/Engine.h"
 #include "./Enemies/ShooterEnemy.h"
+#include "../Public/Weapon/Weapon.h"
 
 // Sets default values
 UEnemyPool::UEnemyPool() :
@@ -55,6 +56,13 @@ AEnemy* UEnemyPool::GetEnemy()
 		EnemyToReturn->SetActorTickEnabled(true);
 		EnemyToReturn->InitEnemyHealth();
 
+		AShooterEnemy* ShooterEnemy = Cast<AShooterEnemy>(EnemyToReturn);
+
+		if (ShooterEnemy) 
+		{
+			ShooterEnemy->GetEquippedWeapon()->SetActorHiddenInGame(false);
+		}
+
 		return EnemyToReturn;
 	}
 
@@ -62,14 +70,14 @@ AEnemy* UEnemyPool::GetEnemy()
 }
 
 
-void UEnemyPool::ReturnEnemy(AEnemy* enemy)
+void UEnemyPool::ReturnEnemy(AEnemy* Enemy)
 {
-	if (enemy)
+	if (Enemy)
 	{
-		enemy->SetActorEnableCollision(false); // コリジョンを無効にする
-		enemy->SetActorTickEnabled(false);
-		enemy->SetActorHiddenInGame(true);
-		AvailableEnemies.Push(enemy);
+		Enemy->SetActorEnableCollision(false); // コリジョンを無効にする
+		Enemy->SetActorTickEnabled(false);
+		Enemy->SetActorHiddenInGame(true);
+		AvailableEnemies.Add(Enemy);
 	}
 }
 

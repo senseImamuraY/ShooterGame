@@ -48,8 +48,6 @@ void AAmmo::PickupItem(AShooterCharacter* ShooterCharacter)
 			ShooterCharacter->ReloadWeapon();
 		}
 	}
-
-	this->Destroy();
 }
 
 void AAmmo::BeginPlay()
@@ -66,12 +64,12 @@ void AAmmo::SetItemProperties(EItemState State)
 	switch (State)
 	{
 		case EItemState::EIS_Pickup:
-			// Mesh AreaSphere CollisionBoxのプロパティを設定
-			AmmoMesh->SetSimulatePhysics(false);
-			AmmoMesh->SetEnableGravity(false);
 			AmmoMesh->SetVisibility(true);
-			AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			AmmoMesh->SetCollisionResponseToChannel(
+				ECollisionChannel::ECC_WorldStatic,
+				ECollisionResponse::ECR_Block);
+			AmmoCollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			break;
 		case EItemState::EIS_Equipped:
 			AmmoMesh->SetSimulatePhysics(false);
@@ -95,6 +93,14 @@ void AAmmo::SetItemProperties(EItemState State)
 			AmmoMesh->SetVisibility(true);
 			AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
+		case EItemState::EIS_InPool:
+			AmmoMesh->SetSimulatePhysics(false);
+			AmmoMesh->SetEnableGravity(false);
+			AmmoMesh->SetVisibility(false);
+			AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			AmmoCollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			break;
 	}
 }

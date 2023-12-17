@@ -154,7 +154,7 @@ void AItem::SetItemProperties(EItemState State)
 		CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EItemState::EIS_Equipped:
-		//PickupWidget->SetVisibility(false);
+		PickupWidget->SetVisibility(false);
 
 		ItemMesh->SetSimulatePhysics(false);
 		ItemMesh->SetEnableGravity(false);
@@ -198,6 +198,20 @@ void AItem::SetItemProperties(EItemState State)
 		CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
+	case EItemState::EIS_InPool:
+		PickupWidget->SetVisibility(false);
+
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetEnableGravity(false);
+		ItemMesh->SetVisibility(false);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -209,6 +223,9 @@ void AItem::FinishInterping()
 	{
 		Character->IncrementInterpLocItemCount(InterpLocIndex, -1);
 		Character->GetPickupItem(this);
+
+		// デリゲートを使用して、登録された関数を呼び出す
+		OnItemReturnRequested.Broadcast(this);
 	}
 
 	const FVector ActorScale = FVector(1.f);
@@ -289,35 +306,27 @@ FVector AItem::GetInterpLocation()
 
 void AItem::PlayPickupSound()
 {
-	if (Character)
+	if (!Character) return;
+	if (!Character->ShouldPlayPickupSound())
+
+	Character->StartPickupSoundTimer();
+	if (PickupSound)
 	{
-		if (Character->ShouldPlayPickupSound())
-		{
-			Character->StartPickupSoundTimer();
-			if (PickupSound)
-			{
-				UGameplayStatics::PlaySound2D(this, PickupSound);
-			}
-		}
+		UGameplayStatics::PlaySound2D(this, PickupSound);
 	}
 }
 
 void AItem::PlayEquipSound()
 {
-	if (Character)
+	if (!Character) return;
+	if (!Character->ShouldPlayEquipSound()) return;
+
+	Character->StartEquipSoundTimer();
+	if (EquipSound)
 	{
-		if (Character->ShouldPlayEquipSound())
-		{
-			Character->StartEquipSoundTimer();
-			if (EquipSound)
-			{
-				UGameplayStatics::PlaySound2D(this, EquipSound);
-			}
-		}
+		UGameplayStatics::PlaySound2D(this, EquipSound);
 	}
 }
-
-// Called every frame
 
 
 // Called every frame

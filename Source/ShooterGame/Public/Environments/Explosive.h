@@ -52,6 +52,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float ExplosionDelay;
 
+	bool bAlreadyExploded;
+
 public:	
 
 };

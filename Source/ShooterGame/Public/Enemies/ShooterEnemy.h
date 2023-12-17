@@ -83,4 +83,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	USoundCue* HitPlayerImpactSound;
 
+public:
+	FORCEINLINE AWeapon* GetEquippedWeapon() { return EquippedWeapon; }
 };

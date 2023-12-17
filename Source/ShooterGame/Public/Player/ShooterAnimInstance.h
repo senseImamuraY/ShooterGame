@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "../Weapon/WeaponType.h"
 #include "ShooterAnimInstance.generated.h"
 
 class AShooterCharacter;
@@ -59,9 +60,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	float MovementOffsetYaw;
 
+	// StartMotionで使用するためのOffset
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
+	float MovementOffsetRoll;
+
 	// StopMotionを作動させるためのOffset
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	float LastMovementOffsetYaw;
+	
+	// StopMotionを作動させるためのOffset
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"));
+	float LastMovementOffsetRoll;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"));
 	bool bAiming;
@@ -85,6 +94,16 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn In Place", meta = (AllowPrivateAccess = "true"));
 	float Pitch;
 	
+
+	// Aimのアニメーションで仕様するroll
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn In Place", meta = (AllowPrivateAccess = "true"));
+	float RootRollOffset;
+
+	float CharacterRollWhenTurningInPlace;
+	
+	float CharacterRollLastFrameWhenTurningInPlace;
+
+
 	// reload中にtrue
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn In Place", meta = (AllowPrivateAccess = "true"));
 	bool bReloading;
@@ -101,7 +120,11 @@ private:
 
 	// runnig blendspaceで使用するキャラクターのYaw delta
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Lean, meta = (AllowPrivateAccess = "true"));
-	float YawDelta;
+	float YawDelta;	
+	
+	// runnig blendspaceで使用するキャラクターのRoll delta
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Lean, meta = (AllowPrivateAccess = "true"));
+	float RollDelta;
 
 	// しゃがんでいるならtrue
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Crouching, meta = (AllowPrivateAccess = "true"));
@@ -114,4 +137,11 @@ private:
 	// turn in place時にtrue
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
 	bool bTurningInPlace;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	EWeaponType EquippedWeaponType;
+
+	// reloading時はfalseになる
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	bool bShouldUseFABRIK;
 };

@@ -140,7 +140,6 @@ protected:
 
 	// FireWeaponで使用する関数
 	void PlayFireSound();
-	void SendBullet();
 	void PlayGunfireMontage();
 
 	// 入力を確認
@@ -170,6 +169,7 @@ protected:
 	void InitializeInterpLocations();
 
 	virtual void CalculateExPoints_Implementation(float AddedExPoints) override; 
+
 private:
 	// キャラクターの後ろにカメラを置く
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -283,7 +283,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	AWeapon* EquippedWeapon;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AWeapon> DefaultWeaponClass;
 
 	// 現在トレースにヒットしているアイテム(nullの可能性あり)
@@ -308,7 +308,7 @@ private:
 
 	// ARAmmoの初期値
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-	int32 StartingARAmmo;
+	int32 StartingShellsAmmo;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
@@ -460,6 +460,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "WallRunning")
 	FORCEINLINE bool GetIsWallRunning() const { return WallRunComponent->GetIsWallRunning(); }
 
+	FORCEINLINE UWallRunComponent* GetWallRunComponent() const { return WallRunComponent; }
+
 	FORCEINLINE USoundBase* GetPlayerDamagedSound() const { return PlayerDamagedSound; }
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -478,4 +480,6 @@ public:
 	FORCEINLINE float GetPlayerHealth() { return Health; }
 	FORCEINLINE float GetPlayerMaxHealth() { return MaxHealth; }
 	void SetPlayerHealth(float RecoveryAmount);
+
+	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 };

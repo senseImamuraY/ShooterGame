@@ -23,10 +23,9 @@
 #include "Engine/DataTable.h"
 #include "../Public/Core/LevelSystem/PlayerLevelSystem.h"
 #include "../Public/Core/InGameHUD.h"
-
-
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
+
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() : 
@@ -64,7 +63,7 @@ AShooterCharacter::AShooterCharacter() :
 	CameraInterpElevation(65.f),
 	// Starting ammo amounts
 	Starting9mmAmmo(85),
-	StartingARAmmo(120),
+	StartingShellsAmmo(120),
 	CombatState(ECombatState::ECS_Unoccupied),
 	bCrouching(false),
 	BaseMovementSpeed(650.f),
@@ -264,12 +263,11 @@ void AShooterCharacter::FireWeapon()
 	if (WeaponHasAmmo())
 	{
 		PlayFireSound();
-		SendBullet();
+		EquippedWeapon->Fire(this);
 		PlayGunfireMontage();
 		EquippedWeapon->DecrementAmmo();
 
 		StartCrosshairBulletFire();
-
 		StartFireTimer();
 	}
 }
@@ -466,39 +464,6 @@ bool AShooterCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 			if (OutHitResult.bBlockingHit)
 			{
 				OutHitLocation = OutHitResult.Location;
-
-				//// ヒットしたアクターの名前を取得
-				//AActor* HitActor = OutHitResult.GetActor();
-				//if (HitActor)
-				//{
-				//	FString ActorName = HitActor->GetName();
-
-				//	// GEngineを使用して画面にアクターの名前を出力
-				//	if (GEngine)
-				//	{
-				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Hit Actor: %s"), *ActorName));
-				//	}
-				//	// Check if the hit was on a CollisionBox
-				//	if (OutHitResult.Component->IsA<UBoxComponent>())
-				//	{
-				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit a CollisionBox"));
-				//	}
-				//	// ヒットしたコンポーネントがNiagaraパーティクルシステムのものかどうかをチェック
-				//	else if (OutHitResult.Component->IsA<UNiagaraComponent>())
-				//	{
-				//		// Niagaraパーティクルシステムにヒットしたことをログに出力
-				//		if (GEngine)
-				//		{
-				//			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Hit a Niagara Particle System"));
-				//		}
-				//	}
-				//	// Check if the hit was on a mesh
-				//	else if (OutHitResult.Component->IsA<UMeshComponent>())
-				//	{
-				//		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Hit a Mesh"));
-				//	}
-				//}
-
 				return true;
 			}
 
@@ -593,7 +558,7 @@ void AShooterCharacter::SelectButtonReleased()
 void AShooterCharacter::InitializeAmmoMap()
 {
 	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
-	AmmoMap.Add(EAmmoType::EAT_AR, StartingARAmmo);
+	AmmoMap.Add(EAmmoType::EAT_Shells, StartingShellsAmmo);
 }
 
 bool AShooterCharacter::WeaponHasAmmo()
@@ -608,71 +573,6 @@ void AShooterCharacter::PlayFireSound()
 	if (FireSound)
 	{
 		UGameplayStatics::PlaySound2D(this, FireSound);
-	}
-}
-
-void AShooterCharacter::SendBullet()
-{
-	const USkeletalMeshSocket* BarrelSocket = EquippedWeapon->GetItemMesh()->GetSocketByName("BarrelSocket");
-	if (BarrelSocket)
-	{
-		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
-
-		if (MuzzleFlash)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
-		}
-
-		FHitResult BeamHitResult;
-		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResult);
-
-		if (bBeamEnd)
-		{
-			if (BeamHitResult.GetActor())
-			{
-				IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
-
-				if (BulletHitInterface)
-				{
-					BulletHitInterface->BulletHit_Implementation(BeamHitResult, this, GetController());
-
-					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
-
-					if (HitEnemy)
-					{
-						float WeaponDamage = EquippedWeapon->GetDamage();
-						float TotalDamage = WeaponDamage + PlayerAttackPower;
-
-						UGameplayStatics::ApplyDamage(
-							BeamHitResult.GetActor(),
-							TotalDamage,
-							GetController(),
-							this,
-							UDamageType::StaticClass());
-					}
-				}
-				else
-				{
-					if (ImpactParticles)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(
-							GetWorld(),
-							ImpactParticles,
-							BeamHitResult.Location);
-					}
-				}
-			}
-
-			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
-				BeamParticles,
-				SocketTransform);
-
-			if (Beam)
-			{
-				Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
-			}
-		}
 	}
 }
 
@@ -956,6 +856,29 @@ void AShooterCharacter::Tick(float DeltaTime)
 	if (WallRunComponent)
 	{
 		WallRunComponent->WallRun();
+	}
+
+	if (GEngine)
+	{
+		int32 MessageIndex = 0;
+		for (const auto& Pair : AmmoMap)
+		{
+			EAmmoType AmmoType = Pair.Key;
+			int32 AmmoCount = Pair.Value;
+
+			// AmmoType は enum なので、その名前を取得する
+			const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EAmmoType"), true);
+			FString AmmoTypeName = (EnumPtr != nullptr) ? EnumPtr->GetNameStringByIndex(static_cast<int32>(AmmoType)) : TEXT("Unknown");
+
+			// ログメッセージを作成
+			FString LogMessage = FString::Printf(TEXT("AmmoType: %s, Count: %d"), *AmmoTypeName, AmmoCount);
+
+			// 画面にログを表示
+			GEngine->AddOnScreenDebugMessage(MessageIndex, 5.f, FColor::White, LogMessage);
+
+			// メッセージインデックスをインクリメント
+			MessageIndex++;
+		}
 	}
 
 }

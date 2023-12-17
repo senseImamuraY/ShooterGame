@@ -34,6 +34,7 @@ enum class EItemState : uint8
 	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
 	EIS_Equipped UMETA(DisplayName = "Equipped"),
 	EIS_Falling UMETA(DisplayName = "Falling"),
+	EIS_InPool UMETA(DisplayName = "InPool"),
 
 	EIS_MAX UMETA(DisplayName = "DefaultMAX")
 };
@@ -48,6 +49,9 @@ enum class EItemType : uint8
 	EIT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemReturnRequested, AItem*, Item);
+
 UCLASS()
 class SHOOTERGAME_API AItem : public AActor
 {
@@ -56,8 +60,14 @@ class SHOOTERGAME_API AItem : public AActor
 public:
 	// Sets default values for this actor's properties
 	AItem();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
-	//virtual void PickupItem(AShooterCharacter* ShooterCharacter) override;
+	// AShooterCharacter::GetPickupItemで使用
+	void PlayEquipSound();
+
+	// デリゲートの公開インスタンス
+	FOnItemReturnRequested OnItemReturnRequested;
 
 protected:
 	// Called when the game starts or when spawned
@@ -95,16 +105,18 @@ protected:
 
 	void PlayPickupSound();
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+protected:
+	// Pickup Widgetに表示されるアイテムの名前
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FString ItemName;
 
-	// AShooterCharacter::GetPickupItemで使用
-	void PlayEquipSound();
+	// Itemの数（ammoなど）
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 ItemCount;
 
 private:
 	// Itemのスケルタルメッシュ
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* ItemMesh;
 
 	// ItemのCollision
@@ -118,14 +130,6 @@ private:
 	// 接触しているアイテムのみをトレースできるようにする
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USphereComponent* AreaSphere;
-
-	// Pickup Widgetに表示されるアイテムの名前
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	FString ItemName;
-
-	// Itemの数（ammoなど）
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	int32 ItemCount;
 
 	// Itemのrarity
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
@@ -184,16 +188,25 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	int32 InterpLocIndex;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* AmmoIcon;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }
 	FORCEINLINE EItemState GetItemState() const { return ItemState; }
 	void SetItemState(EItemState State);
-	FORCEINLINE USkeletalMeshComponent* GetItemMesh() const { return ItemMesh; }
-	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
-	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
 	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
+	virtual FORCEINLINE USkeletalMeshComponent* GetItemMesh() const { return ItemMesh; }
+
+	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
+	FORCEINLINE void SetPickupSound(USoundCue* Sound) { PickupSound = Sound; }
+	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
+	FORCEINLINE void SetEquipSound(USoundCue* Sound) { EquipSound = Sound; }
+
+	FORCEINLINE void SetItemName(FString Name) { ItemName = Name; }
+	FORCEINLINE void SetAmmoIcon(UTexture2D* Icon) { AmmoIcon = Icon; }
 
 	void StartItemCurve(AShooterCharacter* Char);
 };

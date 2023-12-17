@@ -32,6 +32,8 @@ void AWeapon::Tick(float DeltaTime)
 		const FRotator MeshRotation{ 0.f, GetItemMesh()->GetComponentRotation().Yaw, 0.f };
 		GetItemMesh()->SetWorldRotation(MeshRotation, false, nullptr, ETeleportType::TeleportPhysics);
 	}
+
+	ItemCount = Ammo;
 }
 
 void AWeapon::PickupItem(AShooterCharacter* ShooterCharacter)
@@ -59,7 +61,6 @@ void AWeapon::DropWeapon(AShooterCharacter* ShooterCharacter)
 
 void AWeapon::EquipWeapon(AShooterCharacter* ShooterCharacter)
 {
-
 	// AreaSphere‚ÆCollisonBox‚ÌƒRƒŠƒWƒ‡ƒ“–³Ž‹
 	this->GetAreaSphere()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	this->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
@@ -77,24 +78,6 @@ void AWeapon::EquipWeapon(AShooterCharacter* ShooterCharacter)
 
 void AWeapon::ThrowWeapon()
 {
-	FRotator MeshRotation{ 0.f, GetItemMesh()->GetComponentRotation().Yaw, 0.f };
-	GetItemMesh()->SetWorldRotation(
-		MeshRotation,
-		false,
-		nullptr,
-		ETeleportType::TeleportPhysics);
-
-	const FVector MeshForward{ GetItemMesh()->GetForwardVector() };
-	const FVector MeshRight{ GetItemMesh()->GetRightVector() };
-
-	// Weapon‚ð“Š‚°‚é•ûŒü
-	FVector ImpulseDirection = MeshRight.RotateAngleAxis(-20.f, MeshForward);
-
-	float RandomRotation{ FMath::FRandRange(-40.f, 40.f)};
-	ImpulseDirection = ImpulseDirection.RotateAngleAxis(RandomRotation,FVector(0.f, 0.f, 1.f));
-	ImpulseDirection *= 20'000.f;
-	GetItemMesh()->AddImpulse(ImpulseDirection);
-
 	bFalling = true;
 	GetWorldTimerManager().SetTimer(
 		ThrowWeaponTimer,
@@ -130,5 +113,61 @@ void AWeapon::StopFalling()
 {
 	bFalling = false;
 	SetItemState(EItemState::EIS_Pickup);
+}
+
+void AWeapon::OnConstruction(const FTransform& Transform)
+{
+	const FString WeaponTablePath = TEXT("/Script/Engine.DataTable'/Game/ShooterGame/Blueprints/Weapons/DT_Weapon.DT_Weapon'");
+	UDataTable* WeaponTableObject = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *WeaponTablePath));
+
+	if (!WeaponTableObject) return;
+
+	FWeaponDataTable* WeaponDataRow = nullptr;
+
+	switch (WeaponType)
+	{
+		case EWeaponType::EWT_SubmachineGun:
+			WeaponDataRow = WeaponTableObject->FindRow<FWeaponDataTable>(FName("SubmachineGun"), TEXT(""));
+			break;
+		case EWeaponType::EWT_ShotGun:
+			WeaponDataRow = WeaponTableObject->FindRow<FWeaponDataTable>(FName("ShotGun"), TEXT(""));
+			break;
+	}
+
+	if (WeaponDataRow)
+	{
+		AmmoType = WeaponDataRow->AmmoType;
+		Ammo = WeaponDataRow->WeaponAmmo;
+		MagazineCapacity = WeaponDataRow->MagazingCapacity;
+		SetPickupSound(WeaponDataRow->PickupSound);
+		SetEquipSound(WeaponDataRow->EquipSound);
+		GetItemMesh()->SetSkeletalMesh(WeaponDataRow->ItemMesh);
+		SetItemName(WeaponDataRow->ItemName);
+		SetAmmoIcon(WeaponDataRow->AmmoIcon);
+	}
+}
+
+void AWeapon::Fire(AShooterCharacter* ShooterCharacter)
+{
+}
+
+bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AShooterCharacter* ShooterCharacter)
+{
+	return false;
+}
+
+bool AWeapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation, AShooterCharacter* ShooterCharacter)
+{
+	return false;
+}
+
+bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FHitResult>& OutHitResults, AShooterCharacter* ShooterCharacter)
+{
+	return false;
+}
+
+bool AWeapon::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FVector>& OutHitLocations, AShooterCharacter* ShooterCharacter)
+{
+	return false;
 }
 

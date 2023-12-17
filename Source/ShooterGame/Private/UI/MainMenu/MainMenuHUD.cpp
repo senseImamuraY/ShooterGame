@@ -8,21 +8,15 @@
 
 void AMainMenuHUD::BeginPlay()
 {
-	// WidgetBlueprint‚ÌClass‚ðŽæ“¾‚·‚é
 	FString Path = TEXT("/Game/ShooterGame/Blueprints/Widgets/BPW_MainMenu.BPW_MainMenu_C");
 	TSubclassOf<UUserWidget> WidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*Path)).LoadSynchronous();
-	
-	// PlayerController‚ðŽæ“¾‚·‚é
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
 	if (WidgetClass && PlayerController)
 	{
-		// Widget‚ðì¬‚·‚é
+		// Widget‚ðì¬‚µ‚ÄViewport‚É’Ç‰Á‚·‚é
 		UUserWidget* UserWidget = UWidgetBlueprintLibrary::Create(GetWorld(), WidgetClass, PlayerController);
-
 		float UserWidgetZOrder = 0;
-
-		// Viewport‚É’Ç‰Á‚·‚é
 		UserWidget->AddToViewport(UserWidgetZOrder);
 
 		// MouseCursor‚ð•\Ž¦‚·‚é

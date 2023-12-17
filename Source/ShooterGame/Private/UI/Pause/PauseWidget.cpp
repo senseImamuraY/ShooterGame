@@ -22,10 +22,7 @@ void UPauseWidget::NativeConstruct()
 
 void UPauseWidget::OnButtonResumeClicked()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// Pauseを解除する
@@ -34,10 +31,7 @@ void UPauseWidget::OnButtonResumeClicked()
 
 void UPauseWidget::OnButtonQuitClicked()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// ゲームを終了する
@@ -46,10 +40,7 @@ void UPauseWidget::OnButtonQuitClicked()
 
 void UPauseWidget::OnButtonTitleClicked()
 {
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
 
 	// Pauseを解除する

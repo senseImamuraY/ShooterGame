@@ -97,66 +97,64 @@ void AShooterEnemy::Shoot(AActor* Victim)
 	}
 
 	const USkeletalMeshSocket* BarrelSocket = EquippedWeapon->GetItemMesh()->GetSocketByName("BarrelSocket");
-	if (BarrelSocket)
+	if (!BarrelSocket) return;
+
+	const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
+
+	if (MuzzleFlash)
 	{
-		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+	}
 
-		if (MuzzleFlash)
+	FHitResult BeamHitResult;
+	bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResult, Victim);
+
+	UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
+		GetWorld(),
+		BeamParticles,
+		SocketTransform);
+
+	if (Beam)
+	{
+		Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
+	}
+
+	if (!bBeamEnd) return;
+
+	if (BeamHitResult.GetActor())
+	{
+		AShooterCharacter* HitCharacter = Cast<AShooterCharacter>(BeamHitResult.GetActor());
+
+		if (HitCharacter)
 		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
-		}
+			float WeaponDamage = EquippedWeapon->GetDamage();
+			float TotalDamage = WeaponDamage;
 
-		FHitResult BeamHitResult;
-		bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResult, Victim);
+			UGameplayStatics::ApplyDamage(
+				BeamHitResult.GetActor(),
+				TotalDamage,
+				GetController(),
+				this,
+				UDamageType::StaticClass());
 
-		if (bBeamEnd)
-		{
-			if (BeamHitResult.GetActor())
+			if (HitPlayerImpactSound)
 			{
-				AShooterCharacter* HitCharacter = Cast<AShooterCharacter>(BeamHitResult.GetActor());
-
-				if (HitCharacter)
-				{
-					float WeaponDamage = EquippedWeapon->GetDamage();
-					float TotalDamage = WeaponDamage;
-
-					UGameplayStatics::ApplyDamage(
-						BeamHitResult.GetActor(),
-						TotalDamage,
-						GetController(),
-						this,
-						UDamageType::StaticClass());
-
-					if (HitPlayerImpactSound)
-					{
-						UGameplayStatics::PlaySoundAtLocation(this, HitPlayerImpactSound, GetActorLocation());
-					}
-
-					if (HitPlayerImpactParticles)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitPlayerImpactParticles, BeamHitResult.Location, FRotator(0.f), true);
-					}
-				}
-				else
-				{
-					if (EnemyWeaponImpactParticles)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(
-							GetWorld(),
-							EnemyWeaponImpactParticles,
-							BeamHitResult.Location);
-					}
-				}
+				UGameplayStatics::PlaySoundAtLocation(this, HitPlayerImpactSound, GetActorLocation());
 			}
 
-			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
-				BeamParticles,
-				SocketTransform);
-
-			if (Beam)
+			if (HitPlayerImpactParticles)
 			{
-				Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitPlayerImpactParticles, BeamHitResult.Location, FRotator(0.f), true);
+			}
+		}
+		else
+		{
+			if (EnemyWeaponImpactParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					EnemyWeaponImpactParticles,
+					BeamHitResult.Location);
 			}
 		}
 	}
@@ -286,13 +284,11 @@ bool AShooterEnemy::TraceFromEnemyGuns(FHitResult& OutHitResult, FVector& OutHit
 	{
 		OutHitLocation = OutHitResult.Location;
 
-		AActor* HitActor = OutHitResult.GetActor();
-		if (HitActor)
-		{
-			FString ActorName = HitActor->GetName();
-			FString ActorClass = HitActor->GetClass()->GetName();
-		}
 		return true;
+	}
+	else
+	{
+		OutHitLocation = End;
 	}
 
 	return false;

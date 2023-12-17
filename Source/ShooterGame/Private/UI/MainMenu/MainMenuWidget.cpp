@@ -20,16 +20,14 @@ void UMainMenuWidget::NativeConstruct()
 
 void UMainMenuWidget::OnButtonPlayClicked()
 {
-	// Level01をLoadする
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("DefaultMap")));
 }
 
 void UMainMenuWidget::OnButtonQuitClicked()
 {
-	// PlayerControllerを取得する
+	// ゲームを終了する
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 	{
-		// ゲームを終了する
 		UKismetSystemLibrary::QuitGame(GetWorld(), PlayerController, EQuitPreference::Quit, false);
 	}
 }
