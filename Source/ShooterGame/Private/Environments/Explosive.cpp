@@ -69,8 +69,6 @@ void AExplosive::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter,
 
             for (auto Actor : OverlappingActors)
             {
-                //UE_LOG(LogTemp, Warning, TEXT("Actor damaged by explosive: %s"), *Actor->GetName());
-
                 // ‚«”ò‚Î‚µŒø‰Ê‚ğ“K—p
                 ACharacter* Character = Cast<ACharacter>(Actor);
                 if (Character)

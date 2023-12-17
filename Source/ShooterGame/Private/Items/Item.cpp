@@ -138,8 +138,6 @@ void AItem::SetItemProperties(EItemState State)
 	{
 	case EItemState::EIS_Pickup:
 		// Mesh AreaSphere CollisionBoxのプロパティを設定
-		//ItemMesh->SetSimulatePhysics(true);
-		//ItemMesh->SetEnableGravity(true);	
 		ItemMesh->SetSimulatePhysics(false);
 		ItemMesh->SetEnableGravity(false);
 		ItemMesh->SetVisibility(true);
@@ -308,35 +306,27 @@ FVector AItem::GetInterpLocation()
 
 void AItem::PlayPickupSound()
 {
-	if (Character)
+	if (!Character) return;
+	if (!Character->ShouldPlayPickupSound())
+
+	Character->StartPickupSoundTimer();
+	if (PickupSound)
 	{
-		if (Character->ShouldPlayPickupSound())
-		{
-			Character->StartPickupSoundTimer();
-			if (PickupSound)
-			{
-				UGameplayStatics::PlaySound2D(this, PickupSound);
-			}
-		}
+		UGameplayStatics::PlaySound2D(this, PickupSound);
 	}
 }
 
 void AItem::PlayEquipSound()
 {
-	if (Character)
+	if (!Character) return;
+	if (!Character->ShouldPlayEquipSound()) return;
+
+	Character->StartEquipSoundTimer();
+	if (EquipSound)
 	{
-		if (Character->ShouldPlayEquipSound())
-		{
-			Character->StartEquipSoundTimer();
-			if (EquipSound)
-			{
-				UGameplayStatics::PlaySound2D(this, EquipSound);
-			}
-		}
+		UGameplayStatics::PlaySound2D(this, EquipSound);
 	}
 }
-
-// Called every frame
 
 
 // Called every frame

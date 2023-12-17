@@ -48,8 +48,6 @@ void AAmmo::PickupItem(AShooterCharacter* ShooterCharacter)
 			ShooterCharacter->ReloadWeapon();
 		}
 	}
-
-	//this->Destroy();
 }
 
 void AAmmo::BeginPlay()
@@ -63,21 +61,10 @@ void AAmmo::SetItemProperties(EItemState State)
 {
 	Super::SetItemProperties(State);
 
-	// Stateを文字列に変換してログに出力
-	//FString StateString = TEXT("Unknown");
-
 	switch (State)
 	{
 		case EItemState::EIS_Pickup:
-			//StateString = TEXT("Pickup");
-			// Mesh AreaSphere CollisionBoxのプロパティを設定
-			//AmmoMesh->SetSimulatePhysics(true);
-			//AmmoMesh->SetEnableGravity(true);	
-			//AmmoMesh->SetSimulatePhysics(false);
-			//AmmoMesh->SetEnableGravity(false);
 			AmmoMesh->SetVisibility(true);
-			//AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-			//AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 			AmmoMesh->SetCollisionResponseToChannel(
 				ECollisionChannel::ECC_WorldStatic,
@@ -85,7 +72,6 @@ void AAmmo::SetItemProperties(EItemState State)
 			AmmoCollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			break;
 		case EItemState::EIS_Equipped:
-			//StateString = TEXT("Equipped");
 			AmmoMesh->SetSimulatePhysics(false);
 			AmmoMesh->SetEnableGravity(false);
 			AmmoMesh->SetVisibility(true);
@@ -93,7 +79,6 @@ void AAmmo::SetItemProperties(EItemState State)
 			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			break;
 		case EItemState::EIS_Falling:
-			//StateString = TEXT("Falling");
 			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			AmmoMesh->SetSimulatePhysics(true);
 			AmmoMesh->SetEnableGravity(true);
@@ -103,7 +88,6 @@ void AAmmo::SetItemProperties(EItemState State)
 				ECollisionResponse::ECR_Block);
 			break;
 		case EItemState::EIS_EquipInterping:
-			//StateString = TEXT("EquipInterping");
 			AmmoMesh->SetSimulatePhysics(false);
 			AmmoMesh->SetEnableGravity(false);
 			AmmoMesh->SetVisibility(true);
@@ -111,7 +95,6 @@ void AAmmo::SetItemProperties(EItemState State)
 			AmmoMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			break;
 		case EItemState::EIS_InPool:
-			//StateString = TEXT("InPool");
 			AmmoMesh->SetSimulatePhysics(false);
 			AmmoMesh->SetEnableGravity(false);
 			AmmoMesh->SetVisibility(false);
@@ -120,11 +103,6 @@ void AAmmo::SetItemProperties(EItemState State)
 			AmmoCollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			break;
 	}
-
-	//if (GEngine)
-	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Item State: %s"), *StateString));
-	//}
 }
 
 void AAmmo::AmmoSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -137,12 +115,6 @@ void AAmmo::AmmoSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		{
 			StartItemCurve(OverlappedCharacter);
 			AmmoCollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-			// ログ出力
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Ammo overlapped with: %s"), *OtherActor->GetName()));
-			}
 		}
 	}
 }

@@ -45,8 +45,6 @@ void APotion::PickupItem(AShooterCharacter* ShooterCharacter)
 	}
 
 	PlayEquipSound();
-    
-    //this->Destroy();
 }
 
 void APotion::BeginPlay()
@@ -63,14 +61,7 @@ void APotion::SetItemProperties(EItemState State)
 	switch (State)
 	{
 	case EItemState::EIS_Pickup:
-		// Mesh AreaSphere CollisionBoxのプロパティを設定
-		//PotionMesh->SetSimulatePhysics(true);
-		//PotionMesh->SetEnableGravity(true);
-		//PotionMesh->SetSimulatePhysics(false);
-		//PotionMesh->SetEnableGravity(false);
 		PotionMesh->SetVisibility(true);
-		//PotionMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		//PotionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		PotionMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 		PotionMesh->SetCollisionResponseToChannel(
 			ECollisionChannel::ECC_WorldStatic,
@@ -101,7 +92,6 @@ void APotion::SetItemProperties(EItemState State)
 		PotionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	case EItemState::EIS_InPool:
-		//StateString = TEXT("InPool");
 		PotionMesh->SetSimulatePhysics(false);
 		PotionMesh->SetEnableGravity(false);
 		PotionMesh->SetVisibility(false);

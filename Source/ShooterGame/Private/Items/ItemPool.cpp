@@ -10,7 +10,6 @@ UItemPool::UItemPool()
 {
 	static ConstructorHelpers::FObjectFinder<UClass> BP_Ammo9mm(TEXT("Blueprint'/Game/ShooterGame/Blueprints/Items/BP_Ammo9mm.BP_Ammo9mm_C'"));
 	static ConstructorHelpers::FObjectFinder<UClass> BP_AmmoShells(TEXT("Blueprint'/Game/ShooterGame/Blueprints/Items/BP_AmmoShells.BP_AmmoShells_C'"));
-	//static ConstructorHelpers::FObjectFinder<UClass> BP_Potion(TEXT("/Script/Engine.Blueprint'/Game/ShooterGame/Blueprints/Items/BP_Potion.BP_Potion'"));
 	static ConstructorHelpers::FObjectFinder<UClass> BP_Potion(TEXT("Blueprint'/Game/ShooterGame/Blueprints/Items/BP_Potion.BP_Potion_C'"));
 
 
@@ -52,24 +51,11 @@ void UItemPool::InitializeItemPool(UClass* ItemClass, int32 ItemNum)
 		AItem* NewItem = WorldReference->SpawnActor<AItem>(ItemClass, FVector(0.f, 0.f, 100.f), FRotator::ZeroRotator);
 		if (NewItem)
 		{
-			//NewItem->OnItemReturnRequested.AddDynamic(this, &UItemPool::ReturnItem);
 			NewItem->SetActorHiddenInGame(true);
 			NewItem->SetActorEnableCollision(false);
 			NewItem->SetActorTickEnabled(false);
-			//NewItem->SetActorHiddenInGame(false);
-			//NewItem->SetActorEnableCollision(true);
-			//NewItem->SetActorTickEnabled(true);
-
 			NewItem->SetItemState(EItemState::EIS_InPool);
 			ItemArray.Add(NewItem);
-
-			//// 重力を有効にする
-			//UPrimitiveComponent* PrimaryComponent = Cast<UPrimitiveComponent>(NewItem->GetRootComponent());
-			//if (PrimaryComponent)
-			//{
-			//	//PrimaryComponent->SetSimulatePhysics(true);
-			//	//PrimaryComponent->SetEnableGravity(true);
-			//}
 		}
 	}
 }
@@ -101,7 +87,7 @@ TSubclassOf<AActor> UItemPool::GetRandomItemClass()
 	{
 		return Ammo9mmClass;
 	}
-	// それ以外の場合は何も返さない
+	// それ以外の場合はnullptrを返す
 	else
 	{
 		return nullptr;
@@ -114,44 +100,17 @@ AItem* UItemPool::GetItem(UClass* ItemClass)
 
 	if (ItemArray && ItemArray->Num() > 0)
 	{
-		// 配列の内容をログに出力
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 50.f, FColor::Yellow, FString::Printf(TEXT("ItemArray Size: %d"), ItemArray->Num()));
-			for (int32 i = 0; i < ItemArray->Num(); ++i)
-			{
-				AItem* CurrentItem = (*ItemArray)[i];
-				FString ItemStatus = CurrentItem ? CurrentItem->GetName() : TEXT("nullptr");
-				GEngine->AddOnScreenDebugMessage(-1, 50.f, FColor::Yellow, FString::Printf(TEXT("Item %d: %s"), i, *ItemStatus));
-			}
-		}
 		AItem* ItemToReturn = ItemArray->Pop();
-
-		//ItemToReturn->SetActorHiddenInGame(true);
-		//ItemToReturn->SetActorEnableCollision(false);
-		//ItemToReturn->SetActorTickEnabled(false);
-		//ItemToReturn->SetItemState(EItemState::EIS_InPool);
 		ItemToReturn->SetItemState(EItemState::EIS_Pickup);
 		ItemToReturn->SetActorHiddenInGame(false);
 		ItemToReturn->SetActorEnableCollision(true);
 		ItemToReturn->SetActorTickEnabled(true);
-		// 重力を有効にする
+
 		UPrimitiveComponent* PrimaryComponent = Cast<UPrimitiveComponent>(ItemToReturn->GetRootComponent());
 		if (PrimaryComponent)
 		{
-			//PrimaryComponent->SetSimulatePhysics(false);
-			//PrimaryComponent->SetEnableGravity(false);	
 			PrimaryComponent->SetSimulatePhysics(true);
 			PrimaryComponent->SetEnableGravity(true);
-			//PrimaryComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-		}
-
-		//// ログ出力
-		if (GEngine)
-		{
-			FString ItemName = ItemToReturn->GetName();
-			int32 RemainingItems = ItemArray->Num();
-			GEngine->AddOnScreenDebugMessage(-1, 50.f, FColor::Red, FString::Printf(TEXT("Item Returned: %s, Remaining in Pool: %d"), *ItemName, RemainingItems));
 		}
 
 		return ItemToReturn;
@@ -170,13 +129,5 @@ void UItemPool::ReturnItem(AItem* Item)
 	Item->SetActorTickEnabled(false);
 	Item->SetItemState(EItemState::EIS_InPool);
 	ItemArray.Add(Item);
-
-	// ログ出力
-	if (GEngine)
-	{
-		FString ItemName = Item->GetName();
-		int32 RemainingItems = ItemArray.Num();
-		GEngine->AddOnScreenDebugMessage(-1, 50.f, FColor::Green, FString::Printf(TEXT("Item Returned: %s, Remaining in Pool: %d"), *ItemName, RemainingItems));
-	}
 }
 
