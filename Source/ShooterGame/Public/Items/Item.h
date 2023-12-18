@@ -96,7 +96,7 @@ protected:
 	virtual void SetItemProperties(EItemState State);
 
 	// 補間アニメーションが終わると呼ばれる
-	void FinishInterping();
+	virtual void FinishInterping();
 
 	// EquipIntreping stateのときに補間アニメーションを行う
 	void ItemInterp(float DeltaTime);

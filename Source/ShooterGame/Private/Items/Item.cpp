@@ -224,8 +224,8 @@ void AItem::FinishInterping()
 		Character->IncrementInterpLocItemCount(InterpLocIndex, -1);
 		Character->GetPickupItem(this);
 
-		// デリゲートを使用して、登録された関数を呼び出す
-		OnItemReturnRequested.Broadcast(this);
+		//// デリゲートを使用して、登録された関数を呼び出す
+		//OnItemReturnRequested.Broadcast(this);
 	}
 
 	const FVector ActorScale = FVector(1.f);

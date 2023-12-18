@@ -119,3 +119,11 @@ void AAmmo::AmmoSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	}
 }
 
+void AAmmo::FinishInterping()
+{
+	Super::FinishInterping();
+
+	// デリゲートを使用して、登録された関数を呼び出す
+	OnItemReturnRequested.Broadcast(this);
+}
+

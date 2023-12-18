@@ -115,3 +115,11 @@ void APotion::PotionSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
         }
     }
 }
+
+void APotion::FinishInterping()
+{
+	Super::FinishInterping();
+
+	// デリゲートを使用して、登録された関数を呼び出す
+	OnItemReturnRequested.Broadcast(this);
+}

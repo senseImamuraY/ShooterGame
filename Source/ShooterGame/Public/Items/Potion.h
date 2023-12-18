@@ -47,4 +47,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Potion, meta = (AllowPrivateAccess = "true"))
 	float RecoveryAmount;
+
+	virtual void FinishInterping() override;
 };

@@ -39,6 +39,7 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult);
 
+	virtual void FinishInterping() override;
 private:
 	// AmmoŽæ“¾‚Ì‚½‚ß‚ÌMesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))
