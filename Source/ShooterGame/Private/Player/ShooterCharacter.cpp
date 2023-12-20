@@ -152,6 +152,8 @@ void AShooterCharacter::BeginPlay()
 	}
 	// default weaponをスポーンさせてそれをメッシュにアタッチ
 	EquipWeapon(SpawnDefaultWeapon());
+	WeaponInventory.Add(EquippedWeapon);
+	EquippedWeapon->SetSlotIndex(0);
 
 	InitializeAmmoMap();
 	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
@@ -485,6 +487,10 @@ void AShooterCharacter::TraceForItems()
 		if (ItemTraceResult.bBlockingHit)
 		{
 			TraceHitItem = Cast<AItem>(ItemTraceResult.GetActor());
+			if (TraceHitItem && TraceHitItem->GetItemState() == EItemState::EIS_EquipInterping)
+			{
+				TraceHitItem = nullptr;
+			}
 
 			if (TraceHitItem && TraceHitItem->GetPickupWidget() && TraceHitItem->IsOverlappingActor(this))
 			{
@@ -537,6 +543,15 @@ void AShooterCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 			HandSocket->AttachActor(WeaponToEquip, GetMesh());
 		}
 
+		if (EquippedWeapon == nullptr)
+		{
+			EquipItemDelegate.Broadcast(-1, WeaponToEquip->GetSlotIndex());
+		}
+		else
+		{
+			EquipItemDelegate.Broadcast(EquippedWeapon->GetSlotIndex(), WeaponToEquip->GetSlotIndex());
+		}
+
 		EquippedWeapon = WeaponToEquip;
 		EquippedWeapon->SetItemState(EItemState::EIS_Equipped);
 	}
@@ -544,9 +559,11 @@ void AShooterCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 
 void AShooterCharacter::SelectButtonPressed()
 {
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
 	if (TraceHitItem)
 	{
 		TraceHitItem->StartItemCurve(this);
+		TraceHitItem = nullptr;
 	}
 }
 
@@ -858,6 +875,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 		WallRunComponent->WallRun();
 	}
 
+	// あとで削除
 	if (GEngine)
 	{
 		int32 MessageIndex = 0;
@@ -911,7 +929,15 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AShooterCharacter::ReloadButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AShooterCharacter::CrouchButtonPressed);
+
+	PlayerInputComponent->BindAction("FKey", IE_Pressed, this, &AShooterCharacter::FKeyPressed);
+	PlayerInputComponent->BindAction("1Key", IE_Pressed, this, &AShooterCharacter::OneKeyPressed);
+	PlayerInputComponent->BindAction("2Key", IE_Pressed, this, &AShooterCharacter::TwoKeyPressed);
+	PlayerInputComponent->BindAction("3Key", IE_Pressed, this, &AShooterCharacter::ThreeKeyPressed);
+
 }
+
+
 
 float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
@@ -1020,6 +1046,88 @@ void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
 			PlayerAttackPower = ExPRow->PlayerAttackPower;
 		}
 	}
+}
+
+void AShooterCharacter::FKeyPressed()
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("FKeyPressed called"));
+	}
+
+	if (EquippedWeapon->GetSlotIndex() == 0) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 0);
+}
+
+void AShooterCharacter::OneKeyPressed()
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("OneKeyPressed called"));
+	}
+
+	if (EquippedWeapon->GetSlotIndex() == 1) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 1);
+}
+
+void AShooterCharacter::TwoKeyPressed()
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("TwoKeyPressed called"));
+	}
+
+	if (EquippedWeapon->GetSlotIndex() == 2) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 2);
+}
+
+void AShooterCharacter::ThreeKeyPressed()
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("ThreeKeyPressed called"));
+	}
+
+
+	if (EquippedWeapon->GetSlotIndex() == 3) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 3);
+}
+
+void AShooterCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("ExchangeInventoryItems called: CurrentItemIndex: %d, NewItemIndex: %d"), CurrentItemIndex, NewItemIndex));
+	}
+
+	// WeaponInventoryの中身を出力
+	for (int32 i = 0; i < WeaponInventory.Num(); ++i)
+	{
+		AWeapon* Weapon = Cast<AWeapon>(WeaponInventory[i]);
+		if (Weapon && GEngine)
+		{
+			FString WeaponName = Weapon->GetName();
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("WeaponInventory[%d]: %s"), i, *WeaponName));
+		}
+	}
+
+	if ((CurrentItemIndex == NewItemIndex) || (NewItemIndex >= WeaponInventory.Num()) || (CombatState != ECombatState::ECS_Unoccupied)) return;
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("KeyPressed called"));
+	}
+
+	auto OldEquippedWeapon = EquippedWeapon;
+	auto NewWeapon = Cast<AWeapon>(WeaponInventory[NewItemIndex]);
+	EquipWeapon(NewWeapon);
+
+	OldEquippedWeapon->SetItemState(EItemState::EIS_PickedUp);
+	NewWeapon->SetItemState(EItemState::EIS_Equipped);
 }
 
 void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)

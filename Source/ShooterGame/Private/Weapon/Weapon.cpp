@@ -39,8 +39,27 @@ void AWeapon::Tick(float DeltaTime)
 void AWeapon::PickupItem(AShooterCharacter* ShooterCharacter)
 {
 	PlayEquipSound();
-	DropWeapon(ShooterCharacter);
-	EquipWeapon(ShooterCharacter);
+
+	TArray<AItem*>& WeaponInventory = ShooterCharacter->GetWeaponInventory();
+
+	if (WeaponInventory.Num() < ShooterCharacter->GetINVENTORY_CAPACITY())
+	{
+		SetSlotIndex(WeaponInventory.Num());
+		WeaponInventory.Add(this);
+		SetItemState(EItemState::EIS_PickedUp);
+	}
+	else
+	{
+		if (WeaponInventory.Num() - 1 >= GetSlotIndex())
+		{
+			WeaponInventory[ShooterCharacter->GetEquippedWeapon()->GetSlotIndex()] = this;
+			SetSlotIndex(ShooterCharacter->GetEquippedWeapon()->GetSlotIndex());
+		}
+		DropWeapon(ShooterCharacter);
+		EquipWeapon(ShooterCharacter);
+	}
+	//DropWeapon(ShooterCharacter);
+	//EquipWeapon(ShooterCharacter);
 	ShooterCharacter->SetTraceHitItem(nullptr);
 	ShooterCharacter->SetTraceHitItemLastFrame(nullptr);
 }
@@ -71,9 +90,19 @@ void AWeapon::EquipWeapon(AShooterCharacter* ShooterCharacter)
 	if (HandSocket)
 	{
 		HandSocket->AttachActor(this, ShooterCharacter->GetMesh());
-		ShooterCharacter->SetEquippedWeapon(this);
-		this->SetItemState(EItemState::EIS_Equipped);
 	}
+
+	if (ShooterCharacter->GetEquippedWeapon() == nullptr)
+	{
+		ShooterCharacter->EquipItemDelegate.Broadcast(-1, this->GetSlotIndex());
+	}
+	else
+	{
+		ShooterCharacter->EquipItemDelegate.Broadcast(ShooterCharacter->GetEquippedWeapon()->GetSlotIndex(), this->GetSlotIndex());
+	}
+
+	ShooterCharacter->SetEquippedWeapon(this);
+	this->SetItemState(EItemState::EIS_Equipped);
 }
 
 void AWeapon::ThrowWeapon()

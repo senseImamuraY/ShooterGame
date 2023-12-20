@@ -43,6 +43,8 @@ struct FInterpLocation
 	int32 ItemCount;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipItemDelegate, int32, CurrentSlot, int32, NewSlotIndex);
+
 UCLASS()
 class SHOOTERGAME_API AShooterCharacter : public ACharacter, public IExPointsInterface
 {
@@ -62,9 +64,13 @@ public:
 
 	void ReloadWeapon();
 
-		// 最後のフレームでヒットしたアイテム
+	// 最後のフレームでヒットしたアイテム
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	AItem* TraceHitItemLastFrame;
+
+	// スロットの情報をInventoryBarに渡すためのデリゲート
+	UPROPERTY(BlueprintAssignable, Category = Delegates, meta = (AllowPrivateAccess = "true"))
+	FEquipItemDelegate EquipItemDelegate;
 
 protected:
 	// Called when the game starts or when spawned
@@ -169,6 +175,13 @@ protected:
 	void InitializeInterpLocations();
 
 	virtual void CalculateExPoints_Implementation(float AddedExPoints) override; 
+
+	void FKeyPressed();
+	void OneKeyPressed();
+	void TwoKeyPressed();
+	void ThreeKeyPressed();
+
+	void ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex);
 
 private:
 	// キャラクターの後ろにカメラを置く
@@ -428,6 +441,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	USoundBase* PlayerDamagedSound;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	TArray<AItem*> WeaponInventory;
+
+	const int32 INVENTORY_CAPACITY{ 4 };
+
 public:
 	// オーバーヘッドを減らすためにインライン化
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -482,4 +500,7 @@ public:
 	void SetPlayerHealth(float RecoveryAmount);
 
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+
+	FORCEINLINE TArray<AItem*>& GetWeaponInventory() { return WeaponInventory; }
+	FORCEINLINE int32 GetINVENTORY_CAPACITY() { return INVENTORY_CAPACITY; }
 };
