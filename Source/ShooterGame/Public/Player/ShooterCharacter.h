@@ -25,6 +25,7 @@ enum class ECombatState : uint8
 	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
 	ECS_FireTimerInProgress UMETA(DisplayName = "FireTimerInProgress"),
 	ECS_Reloading UMETA(DisplayName = "Reloading"),
+	ECS_Equipping UMETA(DisplayName = "Equipping"),
 
 	ECS_MAX UMETA(DisplayName = "Default Max")
 };
@@ -44,6 +45,7 @@ struct FInterpLocation
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipItemDelegate, int32, CurrentSlot, int32, NewSlotIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHighlightIconDelegate, int32, SlotIndex, bool, bStartAnimation);
 
 UCLASS()
 class SHOOTERGAME_API AShooterCharacter : public ACharacter, public IExPointsInterface
@@ -71,6 +73,15 @@ public:
 	// スロットの情報をInventoryBarに渡すためのデリゲート
 	UPROPERTY(BlueprintAssignable, Category = Delegates, meta = (AllowPrivateAccess = "true"))
 	FEquipItemDelegate EquipItemDelegate;
+
+	// スロットの情報をIconAnimationに渡すためのデリゲート
+	UPROPERTY(BlueprintAssignable, Category = Delegates, meta = (AllowPrivateAccess = "true"))
+	FHighlightIconDelegate HighlightIconDelegate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	int32 HighlightedSlot;
+
+	void UnHighlightInventorySlot();
 
 protected:
 	// Called when the game starts or when spawned
@@ -182,6 +193,10 @@ protected:
 	void ThreeKeyPressed();
 
 	void ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex);
+
+	int32 GetEmptyInventorySlot();
+
+	void HighlightInventorySlot();
 
 private:
 	// キャラクターの後ろにカメラを置く
@@ -330,8 +345,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ReloadMontage;
 
+	// reloadアニメーションのMontage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* EquipMontage;
+
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
 
 	// リロードアニメーション中に使用
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))

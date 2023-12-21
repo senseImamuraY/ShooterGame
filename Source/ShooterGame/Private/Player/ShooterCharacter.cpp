@@ -85,7 +85,9 @@ AShooterCharacter::AShooterCharacter() :
 	PlayerAttackPower(10),
 	// プレイヤーの体力
 	Health(100.f),
-	MaxHealth(100.f)
+	MaxHealth(100.f),
+	// IconAnimationで使用
+	HighlightedSlot(-1)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -154,6 +156,7 @@ void AShooterCharacter::BeginPlay()
 	EquipWeapon(SpawnDefaultWeapon());
 	WeaponInventory.Add(EquippedWeapon);
 	EquippedWeapon->SetSlotIndex(0);
+	EquippedWeapon->SetCharacter(this);
 
 	InitializeAmmoMap();
 	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
@@ -487,6 +490,24 @@ void AShooterCharacter::TraceForItems()
 		if (ItemTraceResult.bBlockingHit)
 		{
 			TraceHitItem = Cast<AItem>(ItemTraceResult.GetActor());
+			const auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
+
+			if (TraceHitWeapon)
+			{
+				if (HighlightedSlot == -1)
+				{
+					// 使われていないスロットをハイライトに設定
+					HighlightInventorySlot();
+				}
+			}
+			else
+			{
+				if (HighlightedSlot != -1)
+				{
+					UnHighlightInventorySlot();
+				}
+			}
+
 			if (TraceHitItem && TraceHitItem->GetItemState() == EItemState::EIS_EquipInterping)
 			{
 				TraceHitItem = nullptr;
@@ -496,6 +517,15 @@ void AShooterCharacter::TraceForItems()
 			{
 				// ItemのPickup Widgetを出現させる
 				TraceHitItem->GetPickupWidget()->SetVisibility(true);
+
+				if (WeaponInventory.Num() >= INVENTORY_CAPACITY)
+				{
+					TraceHitItem->SetCharacterInventoryFull(true);
+				}
+				else
+				{
+					TraceHitItem->SetCharacterInventoryFull(false);
+				}
 			}
 
 			// 範囲内にある1つのアイテムのみ、widgetを出現させる
@@ -562,7 +592,7 @@ void AShooterCharacter::SelectButtonPressed()
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 	if (TraceHitItem)
 	{
-		TraceHitItem->StartItemCurve(this);
+		TraceHitItem->StartItemCurve(this, true);
 		TraceHitItem = nullptr;
 	}
 }
@@ -1007,6 +1037,11 @@ void AShooterCharacter::FinishReloading()
 	}
 }
 
+void AShooterCharacter::FinishEquipping()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+}
+
 void AShooterCharacter::ResetPickupSoundTimer()
 {
 	bShouldPlayPickupSound = true;
@@ -1099,28 +1134,7 @@ void AShooterCharacter::ThreeKeyPressed()
 
 void AShooterCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("ExchangeInventoryItems called: CurrentItemIndex: %d, NewItemIndex: %d"), CurrentItemIndex, NewItemIndex));
-	}
-
-	// WeaponInventoryの中身を出力
-	for (int32 i = 0; i < WeaponInventory.Num(); ++i)
-	{
-		AWeapon* Weapon = Cast<AWeapon>(WeaponInventory[i]);
-		if (Weapon && GEngine)
-		{
-			FString WeaponName = Weapon->GetName();
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("WeaponInventory[%d]: %s"), i, *WeaponName));
-		}
-	}
-
 	if ((CurrentItemIndex == NewItemIndex) || (NewItemIndex >= WeaponInventory.Num()) || (CombatState != ECombatState::ECS_Unoccupied)) return;
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("KeyPressed called"));
-	}
 
 	auto OldEquippedWeapon = EquippedWeapon;
 	auto NewWeapon = Cast<AWeapon>(WeaponInventory[NewItemIndex]);
@@ -1128,6 +1142,45 @@ void AShooterCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 New
 
 	OldEquippedWeapon->SetItemState(EItemState::EIS_PickedUp);
 	NewWeapon->SetItemState(EItemState::EIS_Equipped);
+
+	CombatState = ECombatState::ECS_Equipping;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && EquipMontage)
+	{
+		AnimInstance->Montage_Play(EquipMontage, 1.0f);
+		AnimInstance->Montage_JumpToSection(FName("Equip"));
+	}
+	NewWeapon->PlayEquipSound(true);
+}
+
+int32 AShooterCharacter::GetEmptyInventorySlot()
+{
+	for (int32 i = 0; i < WeaponInventory.Num(); i++)
+	{
+		if (WeaponInventory[i] == nullptr)
+		{
+			return i;
+		}
+	}
+	if (WeaponInventory.Num() < INVENTORY_CAPACITY)
+	{
+		return WeaponInventory.Num();
+	}
+
+	return -1;
+}
+
+void AShooterCharacter::HighlightInventorySlot()
+{
+	const int32 EmptySlot = GetEmptyInventorySlot();
+	HighlightIconDelegate.Broadcast(EmptySlot, true);
+	HighlightedSlot = EmptySlot;
+}
+
+void AShooterCharacter::UnHighlightInventorySlot()
+{
+	HighlightIconDelegate.Broadcast(HighlightedSlot, false);
+	HighlightedSlot = -1;
 }
 
 void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)

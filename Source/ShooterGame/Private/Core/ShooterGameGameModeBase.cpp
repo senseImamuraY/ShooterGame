@@ -91,8 +91,8 @@ void AShooterGameGameModeBase::BeginPlay()
 	float EnemySpawnInterval = 5.f;
 	float TimeUntilGoalAppears = 60.f;
 
-	//GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
-	//GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
+	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
+	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
 }
 
 void AShooterGameGameModeBase::KillPlayer()

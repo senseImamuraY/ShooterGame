@@ -130,6 +130,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Crouching, meta = (AllowPrivateAccess = "true"));
 	bool bCrouching;
 
+	// ‘•”õ“®ì’†‚Étrue
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipping, meta = (AllowPrivateAccess = "true"));
+	bool bEquipping;
+
 	// ”½“®‚Ì‘å‚«‚³‚ğ•ÏX‚·‚é
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
 	float RecoilWeight;

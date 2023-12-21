@@ -48,6 +48,7 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		bCrouching = ShooterCharacter->GetCrouching();
 		bReloading = ShooterCharacter->GetCombatState() == ECombatState::ECS_Reloading;
 		bShouldUseFABRIK = ShooterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied || ShooterCharacter->GetCombatState() == ECombatState::ECS_FireTimerInProgress;
+		bEquipping = ShooterCharacter->GetCombatState() == ECombatState::ECS_Equipping;
 
 		FVector Velocity{ ShooterCharacter->GetVelocity() };
 		Velocity.Z = 0;
@@ -276,17 +277,17 @@ void UShooterAnimInstance::TurnInPlace()
 
 	if (bTurningInPlace)
 	{
-		RecoilWeight = bReloading ? FullRecoil : NoRecoil;
+		RecoilWeight = (bReloading || bEquipping) ? FullRecoil : NoRecoil;
 	}
 	else
 	{
 		if (bCrouching)
 		{
-			RecoilWeight = bReloading ? FullRecoil : LightRecoil;
+			RecoilWeight = (bReloading || bEquipping) ? FullRecoil : LightRecoil;
 		}
 		else
 		{
-			RecoilWeight = (bAiming || bReloading) ? FullRecoil : MediumRecoil;
+			RecoilWeight = (bAiming || bReloading || bEquipping) ? FullRecoil : MediumRecoil;
 		}
 	}
 }

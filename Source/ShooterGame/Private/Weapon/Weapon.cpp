@@ -58,8 +58,7 @@ void AWeapon::PickupItem(AShooterCharacter* ShooterCharacter)
 		DropWeapon(ShooterCharacter);
 		EquipWeapon(ShooterCharacter);
 	}
-	//DropWeapon(ShooterCharacter);
-	//EquipWeapon(ShooterCharacter);
+
 	ShooterCharacter->SetTraceHitItem(nullptr);
 	ShooterCharacter->SetTraceHitItemLastFrame(nullptr);
 }
