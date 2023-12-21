@@ -183,6 +183,12 @@ void AShooterEnemy::EquipWeapon(AWeapon* WeaponToEquip)
 
 void AShooterEnemy::DoDamage(AActor* Victim)
 {
+	Super::DoDamage(Victim);
+
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Victim);
+	if (!ShooterCharacter) return;
+	if (ShooterCharacter->GetbIsDead()) return;
+
 	if (Health <= 0) return;
 	Shoot(Victim);
 }

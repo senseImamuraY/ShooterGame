@@ -468,6 +468,21 @@ private:
 
 	const int32 INVENTORY_CAPACITY{ 4 };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
+
+	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
+
+	void ResetTimeDilation();
+
+	TSubclassOf<UCameraShakeBase> CameraShakeClass;
+
+	// PlayerのHealthが0以下ならture
+	bool bIsDead;
+
 public:
 	// オーバーヘッドを減らすためにインライン化
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -525,4 +540,6 @@ public:
 
 	FORCEINLINE TArray<AItem*>& GetWeaponInventory() { return WeaponInventory; }
 	FORCEINLINE int32 GetINVENTORY_CAPACITY() { return INVENTORY_CAPACITY; }
+
+	FORCEINLINE bool GetbIsDead() const { return bIsDead; }
 };

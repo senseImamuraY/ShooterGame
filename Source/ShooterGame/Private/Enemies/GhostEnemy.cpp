@@ -59,11 +59,12 @@ void AGhostEnemy::Die()
 
 void AGhostEnemy::DoDamage(AActor* Victim)
 {
+	Super::DoDamage(Victim);
+
 	if (Victim == nullptr) return;
 	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Victim);
-
-	// ÚG‚µ‚½Actor‚ªBallPlayer‚©”»’è‚·‚é
 	if (!ShooterCharacter) return;
+	if (ShooterCharacter->GetbIsDead()) return;
 
 	UGameplayStatics::ApplyDamage(
 		ShooterCharacter,

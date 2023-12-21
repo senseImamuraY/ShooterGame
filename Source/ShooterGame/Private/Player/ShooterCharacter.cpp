@@ -25,7 +25,7 @@
 #include "../Public/Core/InGameHUD.h"
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
-
+#include "Camera/CameraShakeBase.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() : 
@@ -86,6 +86,7 @@ AShooterCharacter::AShooterCharacter() :
 	// プレイヤーの体力
 	Health(100.f),
 	MaxHealth(100.f),
+	bIsDead(false),
 	// IconAnimationで使用
 	HighlightedSlot(-1)
 {
@@ -139,8 +140,13 @@ AShooterCharacter::AShooterCharacter() :
 	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRunComponent"));
 
 	LevelUpSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/ShooterGame/Audio/SE/LevelUp/LevelUpSound.LevelUpSound"));
-}
 
+	static ConstructorHelpers::FClassFinder<UCameraShakeBase> CameraShake(TEXT("/Game/ShooterGame/Blueprints/Graphics/BP_CameraShakeForDeath.BP_CameraShakeForDeath_C"));
+	if (CameraShake.Class != NULL)
+	{
+		CameraShakeClass = CameraShake.Class;
+	}
+}
 
 // Called when the game starts or when spawned
 void AShooterCharacter::BeginPlay()
@@ -964,7 +970,6 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("1Key", IE_Pressed, this, &AShooterCharacter::OneKeyPressed);
 	PlayerInputComponent->BindAction("2Key", IE_Pressed, this, &AShooterCharacter::TwoKeyPressed);
 	PlayerInputComponent->BindAction("3Key", IE_Pressed, this, &AShooterCharacter::ThreeKeyPressed);
-
 }
 
 
@@ -974,15 +979,7 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	if (Health - DamageAmount <= 0.f)
 	{
 		Health = 0.f;
-
-		// PlayerControllerを取得する
-		const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-		// InGameHUDクラスを取得する
-		AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
-
-		// ゲームオーバー画面を表示する
-		HUD->DispGameOver();
+		Die();
 	}
 	else
 	{
@@ -1001,6 +998,60 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		}
 	}
 	return DamageAmount;
+}
+
+void AShooterCharacter::Die()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+
+	bIsDead = true;
+
+	// ゲームの時間の流れを一時的に停止（実際には0.0001の値が入っている）
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0f);
+
+	// 1.5秒後に時間の流れを元に戻す
+	FTimerHandle TimerHandle;
+	float StopTime = 0.00015f; // 実際には時間の流れは、0秒ではなく、小さい値(0.0001)が設定されているため、この時間は1.5秒に相当
+
+	if (CameraShakeClass != NULL)
+	{
+		APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+		if (PC)
+		{
+			PC->ClientStartCameraShake(CameraShakeClass);
+		}
+	}
+
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AShooterCharacter::ResetTimeDilation, StopTime, false);
+}
+
+void AShooterCharacter::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC)
+	{
+		DisableInput(PC);
+	}
+
+	// PlayerControllerを取得する
+	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+	// InGameHUDクラスを取得する
+	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
+
+	// ゲームオーバー画面を表示する
+	HUD->DispGameOver();
+}
+
+void AShooterCharacter::ResetTimeDilation()
+{
+	// ゲームの時間の流れを元に戻す
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 }
 
 void AShooterCharacter::FinishReloading()
