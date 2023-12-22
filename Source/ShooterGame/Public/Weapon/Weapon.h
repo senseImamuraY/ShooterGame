@@ -64,6 +64,8 @@ public:
 
 	virtual void DropWeapon(AShooterCharacter* ShooterCharacter);
 
+	void ResetFiringCooldown();
+
 protected:
 	void StopFalling();
 
@@ -95,6 +97,9 @@ protected:
 	// ‚±‚Ìweapon‚Ìammo‚ÌŽí—Þ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	EAmmoType AmmoType;
+
+	bool bIsFiringCooldown;
+	float CooldownTime;
 
 private:
 	FTimerHandle ThrowWeaponTimer;
@@ -146,4 +151,9 @@ public:
 	FORCEINLINE void SetMovingClip(bool Move) { bMovingClip = Move; }
 
 	bool ClipIsFull();
+
+	FORCEINLINE bool GetbIsFiringCooldown() const { return bIsFiringCooldown; }
+	FORCEINLINE void SetbIsFiringCooldown(bool IsCooldown) { bIsFiringCooldown = IsCooldown; }
+	FORCEINLINE float GetCooldownTime() { return CooldownTime; }
+	FORCEINLINE void SetCooldownTime(float Time) { CooldownTime = Time; }
 };

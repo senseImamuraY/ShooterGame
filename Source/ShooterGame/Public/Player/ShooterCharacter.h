@@ -128,7 +128,7 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 
-	void StartFireTimer();
+	void StartFireTimer(float Time);
 
 	UFUNCTION()
 	void AutoFireReset();

@@ -199,3 +199,8 @@ bool AWeapon::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FVe
 	return false;
 }
 
+void AWeapon::ResetFiringCooldown()
+{
+	bIsFiringCooldown = false;
+}
+

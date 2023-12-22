@@ -19,10 +19,16 @@ void AShotGun::BeginPlay()
 AShotGun::AShotGun()
 {
 	BeamLineLocations.Init(FVector(0.f, 0.f, 0.f), 5);
+	CooldownTime = 0.7;
 }
 
 void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 {
+	SetbIsFiringCooldown(true);
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AWeapon::ResetFiringCooldown, 0.2f, false);
+
 	const USkeletalMeshSocket* BarrelSocket = GetItemMesh()->GetSocketByName("BarrelSocket");
 	if (!BarrelSocket) return;
 
@@ -41,7 +47,7 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 
 	for (const FHitResult& BeamHitResult : BeamHitResults) 
 	{
-		if (!BeamHitResult.GetActor()) return;
+		if (!BeamHitResult.GetActor()) continue;
 		IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
 
 		if (BulletHitInterface)
@@ -49,7 +55,7 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 			BulletHitInterface->BulletHit_Implementation(BeamHitResult, ShooterCharacter, ShooterCharacter->GetController());
 
 			AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
-			if (!HitEnemy) return;
+			if (!HitEnemy) continue;
 
 			float WeaponDamage = this->GetDamage();
 			float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
@@ -78,15 +84,9 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 {
 	TArray<FVector> OutBeamLocations;
 	OutBeamLocations.Init(FVector(0.f, 0.f, 0.f), 5);
-
 	BeamLineLocations.Init(FVector(0.f, 0.f, 0.f), 5);
 
-	// crosshairのtrace hitをチェック
-	TArray<FHitResult> CrosshairBeamHitResults;
-	CrosshairBeamHitResults.Init(FHitResult(), 5);
-
-	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairBeamHitResults, OutBeamLocations, ShooterCharacter);
-	
+	bool bCrosshairHit = TraceUnderCrosshairs(OutHitResults, OutBeamLocations, ShooterCharacter);
 	const float RaycastDistance = 25'000.f;
 
 	// 散弾のレイトレースを実行
@@ -94,8 +94,7 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 	{
 		const FVector WeaponTraceStart{ MuzzleSocketLocation };
 		const FVector StartToEnd{ OutBeamLocations[i] - MuzzleSocketLocation };
-
-		FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd };
+		FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd.GetSafeNormal() * RaycastDistance};
 
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(ShooterCharacter);
@@ -108,11 +107,6 @@ bool AShotGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FH
 			WeaponTraceEnd,
 			ECollisionChannel::ECC_Visibility,
 			Params);
-
-		if (OutHitResults[i].bBlockingHit)
-		{
-			OutHitResults[i].Location = OutBeamLocations[i];
-		}
 
 		UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),

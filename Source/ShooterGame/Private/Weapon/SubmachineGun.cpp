@@ -13,6 +13,7 @@ void ASubmachineGun::BeginPlay()
 {
 	Super::BeginPlay();
 
+	CooldownTime = 0.0f;
 }
 
 
@@ -102,10 +103,6 @@ bool ASubmachineGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHi
 		ECollisionChannel::ECC_Visibility,
 		Params);
 
-	FColor LineColor = FColor::Red;
-	//DrawDebugLine(GetWorld(), WeaponTraceStart, WeaponTraceEnd, LineColor, false, 30.0f, 0, 1.0f);
-
-
 	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
 	{
 		OutHitResult.Location = OutBeamLocation;;
@@ -148,7 +145,6 @@ bool ASubmachineGun::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& Out
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(ShooterCharacter);
 	Params.AddIgnoredActor(this);
-
 
 	GetWorld()->LineTraceSingleByChannel(
 		OutHitResult,

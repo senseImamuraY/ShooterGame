@@ -271,7 +271,7 @@ void AShooterCharacter::FireWeapon()
 	if (EquippedWeapon == nullptr) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	if (WeaponHasAmmo())
+	if (EquippedWeapon->GetbIsFiringCooldown() || WeaponHasAmmo())
 	{
 		PlayFireSound();
 		EquippedWeapon->Fire(this);
@@ -279,7 +279,18 @@ void AShooterCharacter::FireWeapon()
 		EquippedWeapon->DecrementAmmo();
 
 		StartCrosshairBulletFire();
-		StartFireTimer();
+		StartFireTimer(EquippedWeapon->GetCooldownTime());
+	}
+	else if (WeaponHasAmmo())
+	{
+		PlayFireSound();
+		EquippedWeapon->Fire(this);
+		PlayGunfireMontage();
+		EquippedWeapon->DecrementAmmo();
+
+		StartCrosshairBulletFire();
+		float NoTime = 0;
+		StartFireTimer(NoTime);
 	}
 }
 
@@ -397,7 +408,7 @@ void AShooterCharacter::FireButtonReleased()
 	bFireButtonPressed = false;
 }
 
-void AShooterCharacter::StartFireTimer()
+void AShooterCharacter::StartFireTimer(float Time)
 {
 	CombatState = ECombatState::ECS_FireTimerInProgress;
 
@@ -405,7 +416,7 @@ void AShooterCharacter::StartFireTimer()
 		AutoFireTimer,
 		this,
 		&AShooterCharacter::AutoFireReset,
-		AutomaticFireRate);
+		AutomaticFireRate + Time);
 }
 
 void AShooterCharacter::AutoFireReset()
