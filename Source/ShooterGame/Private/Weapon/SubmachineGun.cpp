@@ -67,11 +67,11 @@ void ASubmachineGun::Fire(AShooterCharacter* ShooterCharacter)
 		}
 		else
 		{
-			if (ImpactParticles)
+			if (DefaultHitParticles)
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(
 					GetWorld(),
-					ImpactParticles,
+					DefaultHitParticles,
 					BeamHitResult.Location);
 			}
 		}

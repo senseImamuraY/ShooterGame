@@ -31,7 +31,13 @@ struct FWeaponDataTable : public FTableRowBase
 	USoundCue* PickupSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundCue* EquipSound;
+	USoundCue* EquipSound;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* EnemyHitSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UParticleSystem* EnemyHitParticles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USkeletalMesh* ItemMesh;
@@ -66,21 +72,31 @@ public:
 
 	void ResetFiringCooldown();
 
+	void PlayFireSound();
+
 protected:
 	void StopFalling();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	// 銃を撃ったときにランダムに音声を流す
+	// 発砲音
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	USoundCue* FireSound;
+	USoundCue* FireSound;	
+	
+	// 敵にヒットした時の音
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USoundCue* EnemyHitSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* MuzzleFlash;
 
-	// 銃弾のヒットエフェクト
+	// 敵にヒットしなかったときの銃弾のヒットエフェクト
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	UParticleSystem* ImpactParticles;
+	UParticleSystem* DefaultHitParticles;
+
+	// 敵にヒットしたときの銃弾のヒットエフェクト
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* EnemyHitParticles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BeamParticles;
@@ -156,4 +172,6 @@ public:
 	FORCEINLINE void SetbIsFiringCooldown(bool IsCooldown) { bIsFiringCooldown = IsCooldown; }
 	FORCEINLINE float GetCooldownTime() { return CooldownTime; }
 	FORCEINLINE void SetCooldownTime(float Time) { CooldownTime = Time; }
+	FORCEINLINE USoundCue* GetEnemyHitSound() { return EnemyHitSound; }
+	FORCEINLINE UParticleSystem* GetEnemyHitParticles() { return EnemyHitParticles; }
 };

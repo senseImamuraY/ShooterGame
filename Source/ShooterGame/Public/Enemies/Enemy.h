@@ -48,7 +48,6 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ShowHealthBar();
-	//void ShowHealthBar_Implementation();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void HideHealthBar();
@@ -64,15 +63,8 @@ protected:
 	virtual void DoDamage(AActor* Victim);
 
 private:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	UParticleSystem* ImpactParticles;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* DeadParticles;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	USoundCue* ImpactSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;

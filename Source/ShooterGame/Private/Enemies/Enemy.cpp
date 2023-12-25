@@ -16,7 +16,8 @@
 #include "Blueprint/UserWidget.h"
 #include "../Public/Core/ScoreSystem/ScoreCounter.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Sound/SoundCue.h"
+#include "../Public/Weapon/Weapon.h"
 
 // Sets default values
 AEnemy::AEnemy() :
@@ -89,14 +90,19 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AEnemy::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* ShooterController)
 {
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Shooter);
+	if (!ShooterCharacter) return;
+
+	USoundCue* ImpactSound = ShooterCharacter->GetEquippedWeapon()->GetEnemyHitSound();
 	if (ImpactSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
 
-	if (ImpactParticles)
+	UParticleSystem* EnemyHitParticle = ShooterCharacter->GetEquippedWeapon()->GetEnemyHitParticles();
+	if (EnemyHitParticle)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EnemyHitParticle, HitResult.Location, FRotator(0.f), true);
 	}
 }
 

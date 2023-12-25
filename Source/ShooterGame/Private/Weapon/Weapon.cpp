@@ -6,6 +6,8 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 
 AWeapon::AWeapon():
@@ -172,11 +174,21 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 		GetItemMesh()->SetSkeletalMesh(WeaponDataRow->ItemMesh);
 		SetItemName(WeaponDataRow->ItemName);
 		SetAmmoIcon(WeaponDataRow->AmmoIcon);
+		EnemyHitParticles = WeaponDataRow->EnemyHitParticles;
+		EnemyHitSound = WeaponDataRow->EnemyHitSound;
 	}
 }
 
 void AWeapon::Fire(AShooterCharacter* ShooterCharacter)
 {
+}
+
+void AWeapon::PlayFireSound()
+{
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
 }
 
 bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AShooterCharacter* ShooterCharacter)

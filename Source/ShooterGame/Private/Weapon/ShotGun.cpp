@@ -7,6 +7,7 @@
 #include "../Public/Interfaces/BulletHitInterface.h"
 #include "../Public/Enemies/Enemy.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 
 void AShotGun::BeginPlay()
@@ -45,17 +46,21 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 	bool bBeamEnd = GetBeamEndLocation(SocketTransform.GetLocation(), BeamHitResults, ShooterCharacter);
 	if (!bBeamEnd) return;
 
-	for (const FHitResult& BeamHitResult : BeamHitResults) 
-	{
-		if (!BeamHitResult.GetActor()) continue;
-		IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
+	int HitCount = 0;
+	int NumHits = BeamHitResults.Num();
 
+	for (int i = 0; i < NumHits; i++)
+	{
+		const FHitResult& BeamHitResult = BeamHitResults[i];
+		if (!BeamHitResult.GetActor()) continue;
+
+		IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
 		if (BulletHitInterface)
 		{
-			BulletHitInterface->BulletHit_Implementation(BeamHitResult, ShooterCharacter, ShooterCharacter->GetController());
-
 			AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
 			if (!HitEnemy) continue;
+
+			HitCount++;
 
 			float WeaponDamage = this->GetDamage();
 			float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
@@ -65,16 +70,32 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 				TotalDamage,
 				ShooterCharacter->GetController(),
 				ShooterCharacter,
-				UDamageType::StaticClass());	
+				UDamageType::StaticClass());
 		}
 		else
 		{
-			if (!ImpactParticles) return;
+			if (!DefaultHitParticles) return;
 
 			UGameplayStatics::SpawnEmitterAtLocation(
 				GetWorld(),
-				ImpactParticles,
+				DefaultHitParticles,
 				BeamHitResult.Location);
+		}
+
+		// ループの最後で、かつHitCountが1以上の場合にEnemyにHitした時の音やパーティクルを再生
+		// レイキャストを使った当たり判定を1回の処理で5回行っているため、音声が重複するバグを避けるために個別に
+		// インターフェースを利用せずに、個別に実装した
+		if (i == NumHits - 1 && HitCount > 0)
+		{
+			if (EnemyHitSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, EnemyHitSound, BeamHitResult.Location);
+			}
+
+			if (EnemyHitParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EnemyHitParticles, BeamHitResult.Location, FRotator(0.f), true);
+			}
 		}
 	}
 }

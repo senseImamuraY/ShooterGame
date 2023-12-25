@@ -273,7 +273,7 @@ void AShooterCharacter::FireWeapon()
 
 	if (EquippedWeapon->GetbIsFiringCooldown() || WeaponHasAmmo())
 	{
-		PlayFireSound();
+		EquippedWeapon->PlayFireSound();
 		EquippedWeapon->Fire(this);
 		PlayGunfireMontage();
 		EquippedWeapon->DecrementAmmo();
@@ -283,7 +283,7 @@ void AShooterCharacter::FireWeapon()
 	}
 	else if (WeaponHasAmmo())
 	{
-		PlayFireSound();
+		EquippedWeapon->PlayFireSound();
 		EquippedWeapon->Fire(this);
 		PlayGunfireMontage();
 		EquippedWeapon->DecrementAmmo();
@@ -630,14 +630,6 @@ bool AShooterCharacter::WeaponHasAmmo()
 	if (EquippedWeapon == nullptr) return false;
 
 	return EquippedWeapon->GetAmmo() > 0;
-}
-
-void AShooterCharacter::PlayFireSound()
-{
-	if (FireSound)
-	{
-		UGameplayStatics::PlaySound2D(this, FireSound);
-	}
 }
 
 void AShooterCharacter::PlayGunfireMontage()

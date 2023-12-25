@@ -156,7 +156,6 @@ protected:
 
 
 	// FireWeaponで使用する関数
-	void PlayFireSound();
 	void PlayGunfireMontage();
 
 	// 入力を確認
@@ -246,10 +245,6 @@ private:
 	// マウスのlook感度。AimingしているときのLookUpRate
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"), meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MouseAimingLookUpRate;
-
-	// 銃を撃ったときにランダムに音声を流す
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	USoundCue* FireSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* MuzzleFlash;
