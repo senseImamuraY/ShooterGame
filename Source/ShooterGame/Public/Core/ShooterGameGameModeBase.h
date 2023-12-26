@@ -31,10 +31,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-protected:
-	UFUNCTION(BlueprintImplementableEvent)
-	void StartGame();
-
 private:
 	FTimerHandle SpawnEnemyTimerHandle;
 	void SpawnEnemy();

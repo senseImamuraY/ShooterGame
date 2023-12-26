@@ -136,7 +136,7 @@ void AShooterGameGameModeBase::HandleGameStart()
 	AShooterCharacter* Player = Cast<AShooterCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
 	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
 
-	StartGame();
+	//StartGame();
 
 	if (PlayerController)
 	{
