@@ -10,6 +10,7 @@
 #include "Engine/Engine.h"
 #include "../Public/Weapon/Weapon.h"
 #include "Components/SphereComponent.h"
+#include "../Public/Interfaces/BulletHitInterface.h"
 
 
 // Sets default values for this component's properties
@@ -71,7 +72,10 @@ void UWallRunComponent::WallRun()
 
 		if (bHit)
 		{
-			if (ShooterCharacter->GetMovementComponent()->IsFalling() == false || ShooterCharacter->GetVelocity().Size() <= 0 || bCanWallRun == false) return;
+			if (ShooterCharacter->GetMovementComponent()->IsFalling() == false || bCanWallRun == false) return;
+			//if (ShooterCharacter->GetMovementComponent()->IsFalling() == false || ShooterCharacter->GetVelocity().Size() <= 0 || bCanWallRun == false) return;
+			IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(HitResult.GetActor());
+			if (BulletHitInterface) return;
 
 			float threshold = 0.1f;
 			float dotProduct = FVector::DotProduct(HitResult.Normal, ShooterCharacter->GetActorUpVector());

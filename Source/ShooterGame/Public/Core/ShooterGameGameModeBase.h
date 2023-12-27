@@ -45,10 +45,6 @@ private:
 	UFUNCTION()
 	void HandleEnemyDeath(AEnemy* DeadEnemy);
 
-	FTimerHandle GoalTimerHandle;
-	void SpawnGoal();
-	AGoal* Goal;
-
 	float StartDelaty;
 	void HandleGameStart();
 	void EnablePlayer();

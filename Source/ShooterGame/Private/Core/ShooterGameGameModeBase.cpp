@@ -7,7 +7,6 @@
 #include "./Player/ShooterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Public/Enemies/Enemy.h"
-#include "../Public/Environments/Goal.h"
 #include "../Public/Enemies/EnemyPool.h"
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
@@ -55,16 +54,6 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
-	for (TActorIterator<AGoal> It(GetWorld()); It; ++It)
-	{
-		Goal = *It;
-
-		if (Goal)
-		{
-			break;
-		}
-	}
-
 	// マップを全探索して、それぞれのHandleを適切なActorにバインド
 	for (TActorIterator<AEnemy> It(GetWorld()); It; ++It)
 	{
@@ -92,7 +81,6 @@ void AShooterGameGameModeBase::BeginPlay()
 	float TimeUntilGoalAppears = 60.f;
 
 	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
-	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
 }
 
 void AShooterGameGameModeBase::KillPlayer()
@@ -124,11 +112,6 @@ void AShooterGameGameModeBase::SpawnEnemy()
 			SpawnedEnemy->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 		}
 	}
-}
-
-void AShooterGameGameModeBase::SpawnGoal()
-{
-	Goal->Spawn();
 }
 
 void AShooterGameGameModeBase::HandleGameStart()
