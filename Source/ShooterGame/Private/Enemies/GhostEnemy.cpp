@@ -55,6 +55,7 @@ void AGhostEnemy::Die()
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
 	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
 	ScoreWidget->UpdateScore(GhostEnemyExpPoint);
+	ScoreWidget->UpdateComboCount();
 }
 
 void AGhostEnemy::DoDamage(AActor* Victim)

@@ -52,4 +52,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "CountDown")
     void SetTotalScore(int score);
+
+    UFUNCTION(BlueprintCallable, Category = "CountDown")
+    void SetMaxComboCount(int score);
 };

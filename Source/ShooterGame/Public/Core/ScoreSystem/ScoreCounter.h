@@ -19,16 +19,33 @@ public:
     UScoreCounter(const FObjectInitializer& ObjectInitializer);
 
     void UpdateScore(int score);
+    void UpdateComboCount();
 
 protected:
     UTextBlock* ScoreText;
 
     virtual void NativeOnInitialized() override;
 
+    UTextBlock* ComboCounterText;
+
+    UFUNCTION(BlueprintCallable)
+    void CheckComboTimeLimit();
+
+    int ComboCounter;
+    float LastKillTime;
+    float ComboTimeLimit;
+    
 private:
     int TotalScore;
+    int MaxComboCount;
 
 public:
     UFUNCTION(BlueprintCallable)
-    FORCEINLINE int GetTotalScore() { return TotalScore; }
+    FORCEINLINE int GetTotalScore() { return TotalScore; }  
+    
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE int GetMaxComboCount() { return MaxComboCount; }    
+    
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE int GetComboCounter() { return ComboCounter; }
 };

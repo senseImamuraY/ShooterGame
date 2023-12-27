@@ -109,8 +109,6 @@ protected:
 
 	void FireWeapon(); // 銃のボタンを押したときに呼び出す
 	 
-	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult);
-
 	// bAimingの真偽を設定する
 	void AimingButtonPressed();
 	void AimingButtonReleased();

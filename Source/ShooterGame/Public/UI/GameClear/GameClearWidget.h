@@ -21,6 +21,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	int GetTotalScore() { return TotalScore; }
 
+	UFUNCTION(BlueprintCallable)
+	int GetMaxCombo() { return MaxCombo; }
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ButtonContinue;
@@ -43,6 +46,10 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	int TotalScore;
 
+	UPROPERTY(meta = (BindWidget))
+	int MaxCombo;
+
 public:
 	FORCEINLINE void SetTotalScore(int score) { TotalScore = score; }
+	FORCEINLINE void SetMaxComboCount(int count) { MaxCombo = count; }
 };

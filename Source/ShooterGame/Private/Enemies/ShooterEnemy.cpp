@@ -87,6 +87,7 @@ void AShooterEnemy::Die()
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
 	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
 	ScoreWidget->UpdateScore(ShooterEnemyExpPoint);
+	ScoreWidget->UpdateComboCount();
 }
 
 void AShooterEnemy::Shoot(AActor* Victim)

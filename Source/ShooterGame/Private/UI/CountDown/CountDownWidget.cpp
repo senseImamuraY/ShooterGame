@@ -41,6 +41,21 @@ void UCountDownWidget::SetTotalScore(int score)
     GameClearWidget->SetTotalScore(score);
 }
 
+void UCountDownWidget::SetMaxComboCount(int count)
+{
+    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+    if (!PlayerController) return;
+
+    AHUD* HUD = PlayerController->GetHUD();
+    AInGameHUD* InGameHUD = Cast<AInGameHUD>(HUD);
+    if (!InGameHUD) return;
+
+    UUserWidget* UserWidget = InGameHUD->GetGameClearWidget();
+    UGameClearWidget* GameClearWidget = Cast<UGameClearWidget>(UserWidget);
+
+    GameClearWidget->SetMaxComboCount(count);
+}
+
 void UCountDownWidget::UpdateCountDown(float DeltaTime)
 {
     if (!bShouldCountDown) return;

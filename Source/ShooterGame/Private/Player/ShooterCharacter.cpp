@@ -294,40 +294,6 @@ void AShooterCharacter::FireWeapon()
 	}
 }
 
-bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult)
-{
-	FVector OutBeamLocation;
-	// crosshairのtrace hitをチェック
-	FHitResult CrosshairHitResult;
-	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairHitResult, OutBeamLocation);
-
-	// Barrelからトレースを行う。Barrelからの軌道を優先して当たり判定を行う。
-	const FVector WeaponTraceStart{ MuzzleSocketLocation };
-	const FVector StartToEnd{ OutBeamLocation - MuzzleSocketLocation };
-	// Locationがピッタリの場合、接触しない（桁落ちで衝突判定が不安定になる）可能性があるため、1.25倍する
-	const FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd * 1.25 };
-
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	Params.AddIgnoredActor(EquippedWeapon);
-
-	GetWorld()->LineTraceSingleByChannel(
-		OutHitResult,
-		WeaponTraceStart,
-		WeaponTraceEnd,
-		ECollisionChannel::ECC_Visibility,
-		Params);
-
-	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
-	{
-		OutHitResult.Location = OutBeamLocation;;
-		return false;
-	}
-
-	return true;
-}
-
-
 void AShooterCharacter::AimingButtonPressed()
 {
 	bAimingButtonPressed = true;
@@ -913,31 +879,6 @@ void AShooterCharacter::Tick(float DeltaTime)
 	{
 		WallRunComponent->WallRun();
 	}
-
-	// あとで削除
-	if (GEngine)
-	{
-		int32 MessageIndex = 0;
-		for (const auto& Pair : AmmoMap)
-		{
-			EAmmoType AmmoType = Pair.Key;
-			int32 AmmoCount = Pair.Value;
-
-			// AmmoType は enum なので、その名前を取得する
-			const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EAmmoType"), true);
-			FString AmmoTypeName = (EnumPtr != nullptr) ? EnumPtr->GetNameStringByIndex(static_cast<int32>(AmmoType)) : TEXT("Unknown");
-
-			// ログメッセージを作成
-			FString LogMessage = FString::Printf(TEXT("AmmoType: %s, Count: %d"), *AmmoTypeName, AmmoCount);
-
-			// 画面にログを表示
-			GEngine->AddOnScreenDebugMessage(MessageIndex, 5.f, FColor::White, LogMessage);
-
-			// メッセージインデックスをインクリメント
-			MessageIndex++;
-		}
-	}
-
 }
 
 // Called to bind functionality to input
@@ -1011,6 +952,12 @@ void AShooterCharacter::Die()
 		AnimInstance->Montage_Play(DeathMontage);
 	}
 
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC)
+	{
+		DisableInput(PC);
+	}
+
 	bIsDead = true;
 
 	// ゲームの時間の流れを一時的に停止（実際には0.0001の値が入っている）
@@ -1022,7 +969,6 @@ void AShooterCharacter::Die()
 
 	if (CameraShakeClass != NULL)
 	{
-		APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 		if (PC)
 		{
 			PC->ClientStartCameraShake(CameraShakeClass);
@@ -1035,19 +981,9 @@ void AShooterCharacter::Die()
 void AShooterCharacter::FinishDeath()
 {
 	GetMesh()->bPauseAnims = true;
-	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-	if (PC)
-	{
-		DisableInput(PC);
-	}
 
-	// PlayerControllerを取得する
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	// InGameHUDクラスを取得する
 	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
-
-	// ゲームオーバー画面を表示する
 	HUD->DispGameOver();
 }
 
@@ -1139,11 +1075,6 @@ void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
 
 void AShooterCharacter::FKeyPressed()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("FKeyPressed called"));
-	}
-
 	if (EquippedWeapon->GetSlotIndex() == 0) return;
 
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 0);
@@ -1151,11 +1082,6 @@ void AShooterCharacter::FKeyPressed()
 
 void AShooterCharacter::OneKeyPressed()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("OneKeyPressed called"));
-	}
-
 	if (EquippedWeapon->GetSlotIndex() == 1) return;
 
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 1);
@@ -1163,11 +1089,6 @@ void AShooterCharacter::OneKeyPressed()
 
 void AShooterCharacter::TwoKeyPressed()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("TwoKeyPressed called"));
-	}
-
 	if (EquippedWeapon->GetSlotIndex() == 2) return;
 
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 2);
@@ -1175,12 +1096,6 @@ void AShooterCharacter::TwoKeyPressed()
 
 void AShooterCharacter::ThreeKeyPressed()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("ThreeKeyPressed called"));
-	}
-
-
 	if (EquippedWeapon->GetSlotIndex() == 3) return;
 
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 3);
