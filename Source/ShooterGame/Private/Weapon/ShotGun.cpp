@@ -8,6 +8,7 @@
 #include "../Public/Enemies/Enemy.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "../Public/Environments/Explosive.h"
 
 
 void AShotGun::BeginPlay()
@@ -15,7 +16,6 @@ void AShotGun::BeginPlay()
 	Super::BeginPlay();
 
 }
-
 
 AShotGun::AShotGun()
 {
@@ -57,6 +57,14 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 		IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BeamHitResult.GetActor());
 		if (BulletHitInterface)
 		{
+			// 複数回レイキャストをする関係上、個別にHit処理を制御する必要があるため、やや冗長になっている
+			// TODO:時間があればリファクタリングしたほうがいい
+			AExplosive* HitExplosive = Cast<AExplosive>(BeamHitResult.GetActor());
+			if (HitExplosive)
+			{
+				HitExplosive->BulletHit_Implementation(BeamHitResult, ShooterCharacter, ShooterCharacter->GetController());
+			}
+
 			AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
 			if (!HitEnemy) continue;
 

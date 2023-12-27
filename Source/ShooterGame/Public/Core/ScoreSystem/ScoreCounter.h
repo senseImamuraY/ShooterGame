@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/TextBlock.h"
 #include "ScoreCounter.generated.h"
 
+class UTextBlock;
 /**
  * 
  */
@@ -29,6 +29,6 @@ private:
     int TotalScore;
 
 public:
-    
-
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE int GetTotalScore() { return TotalScore; }
 };

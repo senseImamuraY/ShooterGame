@@ -55,6 +55,7 @@ AEnemy* UEnemyPool::GetEnemy()
 		EnemyToReturn->SetActorEnableCollision(true); // ƒRƒŠƒWƒ‡ƒ“‚ð—LŒø‚É‚·‚é
 		EnemyToReturn->SetActorTickEnabled(true);
 		EnemyToReturn->InitEnemyHealth();
+		EnemyToReturn->SetbIsDead(false);
 
 		AShooterEnemy* ShooterEnemy = Cast<AShooterEnemy>(EnemyToReturn);
 

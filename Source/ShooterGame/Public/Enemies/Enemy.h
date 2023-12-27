@@ -56,6 +56,7 @@ protected:
 	virtual void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	virtual void Die();
+	bool bIsDead;
 	
 	FTimerHandle DamageTimerHandle;
 	TMap<AActor*, float> LastDamageTimes;
@@ -81,4 +82,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float BaseEnemyAttackPower;
+
+public:
+	void SetbIsDead(bool value) { bIsDead = value; }
 };

@@ -49,4 +49,7 @@ public:
 
     UFUNCTION(BlueprintPure, Category = "CountDown")
     float GetSeconds() { return Seconds; }
+
+    UFUNCTION(BlueprintCallable, Category = "CountDown")
+    void SetTotalScore(int score);
 };

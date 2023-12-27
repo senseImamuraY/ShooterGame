@@ -25,7 +25,8 @@ AEnemy::AEnemy() :
 	MaxHealth(100.f),
 	HealthBarDisplayTime(4.f),
 	BaseEnemyAttackPower(20.f),
-	DamageInterval(2.f)
+	DamageInterval(2.f),
+	bIsDead(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -108,10 +109,13 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, ACo
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	if (bIsDead) return -1; // 一度に複数回のレイキャストをした場合の処理で複数回Die()が発火するバグを防ぐため
+
 	if (Health - DamageAmount <= 0.f)
 	{
 		Health = 0.f;
 		Die();
+		bIsDead = true;
 	}
 	else
 	{

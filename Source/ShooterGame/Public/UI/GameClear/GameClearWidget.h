@@ -7,6 +7,7 @@
 #include "GameClearWidget.generated.h"
 
 class UButton;
+class UTextBlock;
 
 UCLASS()
 class SHOOTERGAME_API UGameClearWidget : public UUserWidget
@@ -17,8 +18,10 @@ protected:
 	// NativeConstruct
 	void NativeConstruct() override;
 
-private:
+	UFUNCTION(BlueprintCallable)
+	int GetTotalScore() { return TotalScore; }
 
+private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ButtonContinue;
 
@@ -36,4 +39,10 @@ private:
 
 	UFUNCTION()
 	void OnButtonQuitClicked();
+
+	UPROPERTY(meta = (BindWidget))
+	int TotalScore;
+
+public:
+	FORCEINLINE void SetTotalScore(int score) { TotalScore = score; }
 };

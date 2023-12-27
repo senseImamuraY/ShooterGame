@@ -51,4 +51,7 @@ private:
 
 	UPROPERTY()
 	UCrosshairWidget* CrosshairWidgetInstance;
+
+public:
+	FORCEINLINE UUserWidget* GetGameClearWidget() { return GameClearWidget; }
 };

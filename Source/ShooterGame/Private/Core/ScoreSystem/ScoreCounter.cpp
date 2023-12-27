@@ -2,6 +2,7 @@
 
 
 #include "Core/ScoreSystem/ScoreCounter.h"
+#include "Components/TextBlock.h"
 
 UScoreCounter::UScoreCounter(const FObjectInitializer& ObjectInitializer) :
 	UUserWidget(ObjectInitializer),

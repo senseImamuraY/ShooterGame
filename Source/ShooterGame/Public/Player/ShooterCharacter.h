@@ -442,7 +442,7 @@ private:
 	float PreExPoints; // レベルアップに必要な経験値
 	float EarnExPoints; // そのレベル帯で獲得した経験値　
 
-	UPROPERTY(meta = (AllowPrivateAccess = "true")) // TODO: バグあり。
+	UPROPERTY(meta = (AllowPrivateAccess = "true"))
 	float PlayerAttackPower; // そのレベルの攻撃力
 
 	class USoundBase* LevelUpSound;

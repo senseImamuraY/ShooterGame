@@ -8,13 +8,14 @@
 #include "Sound/SoundCue.h"
 #include "Components/AudioComponent.h"
 #include "../Public/Player/ShooterCharacter.h"
+#include "../Public/UI/GameClear/GameClearWidget.h"
 
 
 void UCountDownWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    TimeRemaining = 10.f;
+    TimeRemaining = 90.f;
     Minutes = FMath::FloorToInt(TimeRemaining / 60.0f);
     Seconds = FMath::FloorToInt(TimeRemaining) % 60;
     bShouldCountDown = false;
@@ -23,6 +24,21 @@ void UCountDownWidget::NativeConstruct()
     float StartDelay = 3.0f;
     FTimerHandle TimerHandle;
     GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UCountDownWidget::StartTimeLimitCountDown, StartDelay, false);
+}
+
+void UCountDownWidget::SetTotalScore(int score)
+{
+    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+    if (!PlayerController) return;
+
+    AHUD* HUD = PlayerController->GetHUD();
+    AInGameHUD* InGameHUD = Cast<AInGameHUD>(HUD);
+    if (!InGameHUD) return;
+
+    UUserWidget* UserWidget = InGameHUD->GetGameClearWidget();
+    UGameClearWidget* GameClearWidget = Cast<UGameClearWidget>(UserWidget);
+
+    GameClearWidget->SetTotalScore(score);
 }
 
 void UCountDownWidget::UpdateCountDown(float DeltaTime)
@@ -58,6 +74,8 @@ void UCountDownWidget::UpdateCountDown(float DeltaTime)
     }
 
     InGameHUD->DispGameClear();
+    UUserWidget* UserWidget = InGameHUD->GetGameClearWidget();
+    UGameClearWidget* GameClearWidget = Cast<UGameClearWidget>(UserWidget);
 
     bShouldCountDown = false;
 }
