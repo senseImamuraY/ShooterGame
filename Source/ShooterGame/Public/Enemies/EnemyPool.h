@@ -48,6 +48,9 @@ private:
 	// ShooterEnemyのBlueprintクラス
 	TSubclassOf<AActor> ShooterEnemyClass;
 
+	// KrakenEnemyのBlueprintクラス
+	TSubclassOf<AActor> KrakenEnemyClass;
+
 	AEnemy* RandomSpawn();
 
 	TArray<UClass*> EnemyClasses;

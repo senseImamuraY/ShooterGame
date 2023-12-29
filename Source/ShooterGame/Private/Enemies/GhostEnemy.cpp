@@ -12,6 +12,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 
+
 AGhostEnemy::AGhostEnemy() :
 	GhostEnemyExpPoint(100.f),
 	GhostEnemyAttackPower(40.f)
@@ -56,6 +57,14 @@ void AGhostEnemy::Die()
 	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
 	ScoreWidget->UpdateScore(GhostEnemyExpPoint);
 	ScoreWidget->UpdateComboCount();
+}
+
+void AGhostEnemy::PlayDeathAnimation()
+{
+	Super::PlayDeathAnimation();
+
+	// GhostEnemyにDeathアニメーションは無いのでC++側から呼び出す
+	Die();
 }
 
 void AGhostEnemy::DoDamage(AActor* Victim)

@@ -24,7 +24,6 @@ AEnemy::AEnemy() :
 	Health(100.f),
 	MaxHealth(100.f),
 	HealthBarDisplayTime(4.f),
-	BaseEnemyAttackPower(20.f),
 	DamageInterval(2.f),
 	bIsDead(false)
 {
@@ -71,15 +70,19 @@ void AEnemy::Die()
 	HideHealthBar();
 }
 
+void AEnemy::PlayDeathAnimation()
+{
+	this->SetActorEnableCollision(false); // ƒRƒŠƒWƒ‡ƒ“‚ð–³Œø‚É‚·‚é
+	this->SetActorTickEnabled(false);
+}
+
 
 void AEnemy::DoDamage(AActor* Victim)
 {
-
 }
 
 void AEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	
+{	
 }
 
 
@@ -114,7 +117,8 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	if (Health - DamageAmount <= 0.f)
 	{
 		Health = 0.f;
-		Die();
+		PlayDeathAnimation();
+		//Die();
 		bIsDead = true;
 	}
 	else

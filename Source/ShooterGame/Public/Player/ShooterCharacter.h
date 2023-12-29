@@ -535,4 +535,6 @@ public:
 	FORCEINLINE int32 GetINVENTORY_CAPACITY() { return INVENTORY_CAPACITY; }
 
 	FORCEINLINE bool GetbIsDead() const { return bIsDead; }
+
+	FORCEINLINE TSubclassOf<UCameraShakeBase> GetCameraShakeClass() const { return CameraShakeClass; }
 };

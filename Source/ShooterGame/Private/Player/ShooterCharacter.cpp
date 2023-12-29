@@ -268,7 +268,8 @@ void AShooterCharacter::LookUp(float Value)
 
 void AShooterCharacter::FireWeapon()
 {
-	if (EquippedWeapon == nullptr) return;
+	if (!EquippedWeapon) return;
+	if (bIsDead) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
 	if (EquippedWeapon->GetbIsFiringCooldown() || WeaponHasAmmo())
@@ -946,6 +947,8 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 
 void AShooterCharacter::Die()
 {
+	bIsDead = true;
+
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && DeathMontage)
 	{
@@ -957,8 +960,6 @@ void AShooterCharacter::Die()
 	{
 		DisableInput(PC);
 	}
-
-	bIsDead = true;
 
 	// ゲームの時間の流れを一時的に停止（実際には0.0001の値が入っている）
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0f);

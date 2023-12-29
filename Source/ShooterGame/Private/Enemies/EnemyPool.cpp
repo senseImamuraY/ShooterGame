@@ -13,6 +13,7 @@ UEnemyPool::UEnemyPool() :
 {
 	static ConstructorHelpers::FObjectFinder<UClass> GhostEnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/BP_GhostEnemy.BP_GhostEnemy_C"));
 	static ConstructorHelpers::FObjectFinder<UClass> ShooterEnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/ShooterEnemyAI/BP_ShooterEnemy.BP_ShooterEnemy_C"));
+	static ConstructorHelpers::FObjectFinder<UClass> KrakenEnemyBlueprint(TEXT("/Game/ShooterGame/Blueprints/Enemies/KrakenEnemy/BP_KrakenEnemy.BP_KrakenEnemy_C"));
 	
 	if (GhostEnemyBlueprint.Succeeded())
 	{
@@ -24,6 +25,12 @@ UEnemyPool::UEnemyPool() :
 	{
 		EnemyClasses.Add(ShooterEnemyBlueprint.Object);
 		ShooterEnemyClass = ShooterEnemyBlueprint.Object;
+	}
+
+	if (KrakenEnemyBlueprint.Succeeded())
+	{
+		EnemyClasses.Add(KrakenEnemyBlueprint.Object);
+		KrakenEnemyClass = KrakenEnemyBlueprint.Object;
 	}
 }
 
@@ -96,7 +103,7 @@ FVector UEnemyPool::GetRandomLocation()
 	// 角度を使用してxおよびyのオフセットを計算。回転する際はUEの座標に合わせる。
 	float OffsetX = Radius * FMath::Sin(FMath::DegreesToRadians(RandomAngle));
 	float OffsetY = Radius * FMath::Cos(FMath::DegreesToRadians(RandomAngle));
-	float OffsetZ = 0.f;
+	float OffsetZ = 500.f;
 
 	// 新しいスポーン位置を計算
 	return StageCenter + FVector(OffsetX, OffsetY, OffsetZ);
@@ -107,11 +114,15 @@ AEnemy* UEnemyPool::RandomSpawn()
 	// 7回に1回ShooterEnemyを選択
 	UClass* SelectedClass = nullptr;
 
-	if (SpawnCounter % 7 == 0 && ShooterEnemyClass != nullptr)
+	if (SpawnCounter % 6 == 0 && ShooterEnemyClass)
 	{
 		SelectedClass = ShooterEnemyClass;
 	}
-	else if (GhostEnemyClass != nullptr)
+	else if (SpawnCounter % 7 == 0 && KrakenEnemyClass)
+	{
+		SelectedClass = KrakenEnemyClass;
+	}
+	else if (GhostEnemyClass)
 	{
 		// それ以外の場合はGhostEnemyを選択
 		SelectedClass = GhostEnemyClass;

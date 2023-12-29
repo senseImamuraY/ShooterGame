@@ -24,7 +24,7 @@
 
 AShooterEnemy::AShooterEnemy() :
 	ShooterEnemyExpPoint(1000.f),
-	GhostEnemyAttackPower(10.f)
+	ShooterEnemyAttackPower(10.f)
 {
 }
 
@@ -90,6 +90,17 @@ void AShooterEnemy::Die()
 	ScoreWidget->UpdateComboCount();
 }
 
+void AShooterEnemy::PlayDeathAnimation()
+{
+	Super::PlayDeathAnimation();
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+}
+
 void AShooterEnemy::Shoot(AActor* Victim)
 {
 	if (FireSound)
@@ -129,7 +140,7 @@ void AShooterEnemy::Shoot(AActor* Victim)
 		if (HitCharacter)
 		{
 			float WeaponDamage = EquippedWeapon->GetDamage();
-			float TotalDamage = WeaponDamage;
+			float TotalDamage = WeaponDamage + ShooterEnemyAttackPower;
 
 			UGameplayStatics::ApplyDamage(
 				BeamHitResult.GetActor(),
