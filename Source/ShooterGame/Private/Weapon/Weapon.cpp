@@ -19,7 +19,7 @@ AWeapon::AWeapon():
 	AmmoType(EAmmoType::EAT_9mm),
 	ReloadMontageSection(FName(TEXT("Reload SMG"))),
 	ClipBoneName(TEXT("smg_clip")),
-	Damage(20.f)
+	WeaponDamage(20.f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -176,6 +176,7 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 		SetAmmoIcon(WeaponDataRow->AmmoIcon);
 		EnemyHitParticles = WeaponDataRow->EnemyHitParticles;
 		EnemyHitSound = WeaponDataRow->EnemyHitSound;
+		WeaponDamage = WeaponDataRow->WeaponDamage;
 	}
 }
 

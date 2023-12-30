@@ -55,8 +55,7 @@ void ASubmachineGun::Fire(AShooterCharacter* ShooterCharacter)
 			AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
 			if (!HitEnemy) return;
 
-			float WeaponDamage = this->GetDamage();
-			float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
+			float TotalDamage = GetWeaponDamage() + ShooterCharacter->GetPlayerAttackPower();
 
 			UGameplayStatics::ApplyDamage(
 				BeamHitResult.GetActor(),

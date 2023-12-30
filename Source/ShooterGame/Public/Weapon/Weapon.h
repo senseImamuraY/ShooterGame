@@ -25,7 +25,10 @@ struct FWeaponDataTable : public FTableRowBase
 	int32 WeaponAmmo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 MagazingCapacity;
+	int32 MagazingCapacity;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WeaponDamage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USoundCue* PickupSound;
@@ -143,7 +146,7 @@ private:
 
 	// ëäéËÇ…ó^Ç¶ÇÈÉ_ÉÅÅ[ÉW
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
-	float Damage;
+	float WeaponDamage;
 
 	void EquipWeapon(AShooterCharacter* ShooterCharacter);
 
@@ -160,7 +163,7 @@ public:
 	FORCEINLINE EAmmoType GetAmmoType() const { return AmmoType; }
 	FORCEINLINE FName GetReloadMontageSection() const { return ReloadMontageSection; }
 	FORCEINLINE FName GetClipBoneName() const { return ClipBoneName; }
-	FORCEINLINE float GetDamage() const { return Damage; }
+	FORCEINLINE float GetWeaponDamage() const { return WeaponDamage; }
 
 	void ReloadAmmo(int32 Amount);
 

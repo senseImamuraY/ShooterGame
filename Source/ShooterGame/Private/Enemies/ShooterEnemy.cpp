@@ -139,8 +139,7 @@ void AShooterEnemy::Shoot(AActor* Victim)
 
 		if (HitCharacter)
 		{
-			float WeaponDamage = EquippedWeapon->GetDamage();
-			float TotalDamage = WeaponDamage + ShooterEnemyAttackPower;
+			float TotalDamage = EquippedWeapon->GetWeaponDamage() + ShooterEnemyAttackPower;
 
 			UGameplayStatics::ApplyDamage(
 				BeamHitResult.GetActor(),

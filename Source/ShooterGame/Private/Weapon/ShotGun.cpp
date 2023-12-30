@@ -70,8 +70,7 @@ void AShotGun::Fire(AShooterCharacter* ShooterCharacter)
 
 			HitCount++;
 
-			float WeaponDamage = this->GetDamage();
-			float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
+			float TotalDamage = GetWeaponDamage() + ShooterCharacter->GetPlayerAttackPower();
 
 			UGameplayStatics::ApplyDamage(
 				BeamHitResult.GetActor(),

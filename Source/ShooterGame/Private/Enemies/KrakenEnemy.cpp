@@ -39,8 +39,6 @@ void AKrakenEnemy::BeginPlay()
     {
         NewAIController->Possess(this);
     }
-
-    Roam();
 }
 
 void AKrakenEnemy::Tick(float DeltaTime)
@@ -167,20 +165,17 @@ void AKrakenEnemy::Roam()
 void AKrakenEnemy::ResetbIsRoaming()
 {
     bIsRoaming = false;
-    ChacePlayer();
 }
 
 void AKrakenEnemy::ResetbIsAttacking()
 {
     bIsAttacking = false;
-    ChacePlayer();
 }
 
 void AKrakenEnemy::ChacePlayer()
 {
     if (Target)
     {
-        //float Distance = (Target->GetActorLocation() - this->GetActorLocation()).Size();
         if (!bIsAttacking && CombatRangeSphere->IsOverlappingActor(Target))
         {
             bIsAttacking = true;
@@ -216,8 +211,6 @@ void AKrakenEnemy::MoveToPlayerLocation()
     AAIController* AIController = Cast<AAIController>(this->GetController());
     float TargetRadius = 1200.f;
     AIController->MoveToLocation(LastSeenPlayerPosition, TargetRadius);
-
-    Roam();
 }
 
 void AKrakenEnemy::BlowAwayPlayer()
