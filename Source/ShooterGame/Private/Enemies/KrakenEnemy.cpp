@@ -206,7 +206,6 @@ void AKrakenEnemy::ChacePlayer()
     {
         Roam();
     }
-
 }
 
 void AKrakenEnemy::MoveToPlayerLocation()

@@ -41,9 +41,4 @@ protected:
 
 	// ConstructionScript
 	virtual void OnConstruction(const FTransform& Transform) override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

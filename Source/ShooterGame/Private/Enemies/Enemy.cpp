@@ -118,7 +118,6 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	{
 		Health = 0.f;
 		PlayDeathAnimation();
-		//Die();
 		bIsDead = true;
 	}
 	else

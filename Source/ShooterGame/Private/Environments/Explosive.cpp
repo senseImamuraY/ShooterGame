@@ -43,7 +43,7 @@ void AExplosive::Tick(float DeltaTime)
 
 void AExplosive::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* ShooterController)
 {
-    // ディレイを掛けると、短時間で複数レイキャストがヒットする場合があるため、boolを使用
+    // 複数回レイキャストがヒットする場合があるため、boolを使用
     if (bAlreadyExploded)
     {
         return;

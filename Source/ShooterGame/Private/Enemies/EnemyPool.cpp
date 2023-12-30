@@ -97,10 +97,9 @@ FVector UEnemyPool::GetRandomLocation()
 	// ステージを円に見立てたときの、中心からの距離（半径）。やや大きめにとる。
 	float Radius = 4500.0f;
 
-	// ランダムな角度を0から360度の間で生成
 	float RandomAngle = FMath::RandRange(0.0f, 360.0f);
 
-	// 角度を使用してxおよびyのオフセットを計算。回転する際はUEの座標に合わせる。
+	// 角度を使用してxおよびyのオフセットを計算。計算はUEの座標に合わせる。
 	float OffsetX = Radius * FMath::Sin(FMath::DegreesToRadians(RandomAngle));
 	float OffsetY = Radius * FMath::Cos(FMath::DegreesToRadians(RandomAngle));
 	float OffsetZ = 500.f;
@@ -111,14 +110,16 @@ FVector UEnemyPool::GetRandomLocation()
 
 AEnemy* UEnemyPool::RandomSpawn()
 {
-	// 7回に1回ShooterEnemyを選択
+	// 6回に1回ShooterEnemy、7回に一回はKrakenEnemyを選択
 	UClass* SelectedClass = nullptr;
+	int ShooterEnemyNum = 6;
+	int KrakenEnemyNum = 7;
 
-	if (SpawnCounter % 6 == 0 && ShooterEnemyClass)
+	if (SpawnCounter % ShooterEnemyNum == 0 && ShooterEnemyClass)
 	{
 		SelectedClass = ShooterEnemyClass;
 	}
-	else if (SpawnCounter % 7 == 0 && KrakenEnemyClass)
+	else if (SpawnCounter % KrakenEnemyNum == 0 && KrakenEnemyClass)
 	{
 		SelectedClass = KrakenEnemyClass;
 	}
@@ -135,11 +136,10 @@ AEnemy* UEnemyPool::RandomSpawn()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-		// 新しいスポーン位置を計算
 		FVector SpawnLocation = GetRandomLocation();
 		FRotator SpawnRotation = FRotator(0, 0, 0);
 
-		// 敵を新しいスポーン位置でスポーン
+		// 敵を新しい位置でスポーン
 		return WorldReference->SpawnActor<AEnemy>(SelectedClass, SpawnLocation, SpawnRotation, SpawnParams);
 	}
 	else
