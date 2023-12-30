@@ -174,7 +174,7 @@ void AKrakenEnemy::ResetbIsAttacking()
 
 void AKrakenEnemy::ChacePlayer()
 {
-    if (Target)
+    if (Target && !bIsMoving)
     {
         if (!bIsAttacking && CombatRangeSphere->IsOverlappingActor(Target))
         {
@@ -196,7 +196,10 @@ void AKrakenEnemy::ChacePlayer()
         }
         else
         {
-            MoveToPlayerLocation();
+            bIsMoving = true;
+            // タイマーを設定
+            FTimerHandle TimerHandle;
+            GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AKrakenEnemy::MoveToPlayerLocation, 2.0f, false);
         }
     }
     else
@@ -208,9 +211,13 @@ void AKrakenEnemy::ChacePlayer()
 
 void AKrakenEnemy::MoveToPlayerLocation()
 {
+    if (!Target) return;
+
     AAIController* AIController = Cast<AAIController>(this->GetController());
-    float TargetRadius = 1200.f;
-    AIController->MoveToLocation(LastSeenPlayerPosition, TargetRadius);
+    float TargetRadius = 1000.f;
+    AIController->MoveToLocation(Target->GetActorLocation(), TargetRadius);
+
+    bIsMoving = false;
 }
 
 void AKrakenEnemy::BlowAwayPlayer()

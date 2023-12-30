@@ -59,6 +59,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ChacePlayer();
 
+	bool bIsMoving;
+
 	void MoveToPlayerLocation();
 	FVector LastSeenPlayerPosition;
 

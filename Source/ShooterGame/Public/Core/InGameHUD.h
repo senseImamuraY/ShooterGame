@@ -52,6 +52,10 @@ private:
 	UPROPERTY()
 	UCrosshairWidget* CrosshairWidgetInstance;
 
+	// ゲームクリアと同時にゲームオーバーにならないようにする
+	bool bIsGameClear;
+	bool bIsGameOver;
+
 public:
 	FORCEINLINE UUserWidget* GetGameClearWidget() { return GameClearWidget; }
 };

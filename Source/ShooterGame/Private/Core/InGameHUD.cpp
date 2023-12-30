@@ -10,7 +10,9 @@
 #include "CanvasItem.h"
 #include "Engine/Canvas.h"
 
-AInGameHUD::AInGameHUD()
+AInGameHUD::AInGameHUD() :
+	bIsGameClear(false),
+	bIsGameOver(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -72,6 +74,9 @@ void AInGameHUD::Tick(float DeltaTime)
 
 void AInGameHUD::DispGameClear()
 {
+	if (bIsGameOver) return;
+	bIsGameClear = true;
+
 	GameClearWidget->SetVisibility(ESlateVisibility::Visible);
 
 	APlayerController* PlayerController = GetOwningPlayerController();
@@ -82,6 +87,9 @@ void AInGameHUD::DispGameClear()
 
 void AInGameHUD::DispGameOver()
 {
+	if (bIsGameClear) return;
+	bIsGameOver = true;
+
 	GameOverWidget->SetVisibility(ESlateVisibility::Visible);
 
 	APlayerController* PlayerController = GetOwningPlayerController();
