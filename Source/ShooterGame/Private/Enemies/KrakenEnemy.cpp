@@ -174,8 +174,10 @@ void AKrakenEnemy::ResetbIsAttacking()
 
 void AKrakenEnemy::ChacePlayer()
 {
-    if (Target && !bIsMoving)
+    if (Target)
     {
+        if (bIsMoving) return;
+
         if (!bIsAttacking && CombatRangeSphere->IsOverlappingActor(Target))
         {
             bIsAttacking = true;
