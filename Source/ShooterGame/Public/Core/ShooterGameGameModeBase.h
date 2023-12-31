@@ -13,6 +13,7 @@ class ADirectionalLight;
 class UItemPool;
 class AEnemy;
 class AItem;
+class USoundCue;
 
 /**
  * 
@@ -51,4 +52,7 @@ private:
 
 	UFUNCTION()
 	void HandleItemReturn(AItem* Item);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BGM, meta = (AllowPrivateAccess = "true"))
+	USoundCue* GameSound;
 };

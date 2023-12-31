@@ -13,6 +13,7 @@
 #include "../Public/Items/ItemPool.h"
 #include "../Public/Items/Item.h"
 #include "../Public/Weapon/Weapon.h"
+#include "Sound/SoundCue.h"
 
 
 AShooterGameGameModeBase::AShooterGameGameModeBase() :
@@ -26,6 +27,11 @@ AShooterGameGameModeBase::AShooterGameGameModeBase() :
 void AShooterGameGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GameSound)
+	{
+		UGameplayStatics::PlaySound2D(this, GameSound);
+	}
 
 	HandleGameStart();
 
