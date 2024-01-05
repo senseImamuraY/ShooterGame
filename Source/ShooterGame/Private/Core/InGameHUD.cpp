@@ -10,7 +10,9 @@
 #include "CanvasItem.h"
 #include "Engine/Canvas.h"
 
-AInGameHUD::AInGameHUD()
+AInGameHUD::AInGameHUD() :
+	bIsGameClear(false),
+	bIsGameOver(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -72,6 +74,9 @@ void AInGameHUD::Tick(float DeltaTime)
 
 void AInGameHUD::DispGameClear()
 {
+	if (bIsGameOver) return;
+	bIsGameClear = true;
+
 	GameClearWidget->SetVisibility(ESlateVisibility::Visible);
 
 	APlayerController* PlayerController = GetOwningPlayerController();
@@ -82,6 +87,9 @@ void AInGameHUD::DispGameClear()
 
 void AInGameHUD::DispGameOver()
 {
+	if (bIsGameClear) return;
+	bIsGameOver = true;
+
 	GameOverWidget->SetVisibility(ESlateVisibility::Visible);
 
 	APlayerController* PlayerController = GetOwningPlayerController();
@@ -109,32 +117,20 @@ void AInGameHUD::DispPause(const bool bIsPause)
 	{
 		// Pauseメニューを表示する
 
-		// Pauseメニューを表示する
 		PauseWidget->SetVisibility(ESlateVisibility::Visible);
 
 		// UIモードに設定する
 		UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, PauseWidget, EMouseLockMode::DoNotLock, false);
 
-		// GameをPause状態にする
 		UGameplayStatics::SetGamePaused(GetWorld(), true);
-
-		// Mouseカーソルを表示する
 		PlayerController->SetShowMouseCursor(true);
 	}
 	else
 	{
 		// Pause状態を解除する
-
-		// GameのPause状態を解除する
 		UGameplayStatics::SetGamePaused(GetWorld(), false);
-
-		// Mouseカーソルを非表示にする
 		PlayerController->SetShowMouseCursor(false);
-
-		// GameのInput状態に戻す
 		UWidgetBlueprintLibrary::SetInputMode_GameOnly(PlayerController, false);
-
-		// Pauseメニューを折りたたみ状態にする
 		PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

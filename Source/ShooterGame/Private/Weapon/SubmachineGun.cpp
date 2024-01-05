@@ -13,6 +13,7 @@ void ASubmachineGun::BeginPlay()
 {
 	Super::BeginPlay();
 
+	CooldownTime = 0.0f;
 }
 
 
@@ -54,8 +55,7 @@ void ASubmachineGun::Fire(AShooterCharacter* ShooterCharacter)
 			AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
 			if (!HitEnemy) return;
 
-			float WeaponDamage = this->GetDamage();
-			float TotalDamage = WeaponDamage + ShooterCharacter->GetPlayerAttackPower();
+			float TotalDamage = GetWeaponDamage() + ShooterCharacter->GetPlayerAttackPower();
 
 			UGameplayStatics::ApplyDamage(
 				BeamHitResult.GetActor(),
@@ -66,11 +66,11 @@ void ASubmachineGun::Fire(AShooterCharacter* ShooterCharacter)
 		}
 		else
 		{
-			if (ImpactParticles)
+			if (DefaultHitParticles)
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(
 					GetWorld(),
-					ImpactParticles,
+					DefaultHitParticles,
 					BeamHitResult.Location);
 			}
 		}
@@ -101,10 +101,6 @@ bool ASubmachineGun::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHi
 		WeaponTraceEnd,
 		ECollisionChannel::ECC_Visibility,
 		Params);
-
-	FColor LineColor = FColor::Red;
-	//DrawDebugLine(GetWorld(), WeaponTraceStart, WeaponTraceEnd, LineColor, false, 30.0f, 0, 1.0f);
-
 
 	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
 	{
@@ -148,7 +144,6 @@ bool ASubmachineGun::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& Out
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(ShooterCharacter);
 	Params.AddIgnoredActor(this);
-
 
 	GetWorld()->LineTraceSingleByChannel(
 		OutHitResult,

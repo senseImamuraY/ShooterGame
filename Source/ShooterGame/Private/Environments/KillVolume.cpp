@@ -12,18 +12,11 @@ AKillVolume::AKillVolume() :
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// SceneComponentを作成する
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-
-	// SceneComponentをRootComponentに設定する
 	RootComponent = DefaultSceneRoot;
-
 	KillVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
-
-	// BoxComponentをRootComponentにAttachする
 	KillVolume->SetupAttachment(RootComponent);
 
-	// BoxComponentのOnComponentBegineOverlapに関数「OnBoxBeginOverlap」を関連づける
 	KillVolume->OnComponentBeginOverlap.AddDynamic(this, &AKillVolume::OnBoxBeginOverlap);
 }
 
@@ -51,12 +44,5 @@ void AKillVolume::OnConstruction(const FTransform& Transform)
 {
 	// KillVolumeのBox Extentを変更する
 	KillVolume->SetBoxExtent(BoxExtent);
-}
-
-// Called every frame
-void AKillVolume::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 

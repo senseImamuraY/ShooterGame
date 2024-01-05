@@ -25,7 +25,7 @@
 #include "../Public/Core/InGameHUD.h"
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
-
+#include "Camera/CameraShakeBase.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() : 
@@ -85,7 +85,10 @@ AShooterCharacter::AShooterCharacter() :
 	PlayerAttackPower(10),
 	// プレイヤーの体力
 	Health(100.f),
-	MaxHealth(100.f)
+	MaxHealth(100.f),
+	bIsDead(false),
+	// IconAnimationで使用
+	HighlightedSlot(-1)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -137,8 +140,13 @@ AShooterCharacter::AShooterCharacter() :
 	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRunComponent"));
 
 	LevelUpSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/ShooterGame/Audio/SE/LevelUp/LevelUpSound.LevelUpSound"));
-}
 
+	static ConstructorHelpers::FClassFinder<UCameraShakeBase> CameraShake(TEXT("/Game/ShooterGame/Blueprints/Graphics/BP_CameraShakeForDeath.BP_CameraShakeForDeath_C"));
+	if (CameraShake.Class != NULL)
+	{
+		CameraShakeClass = CameraShake.Class;
+	}
+}
 
 // Called when the game starts or when spawned
 void AShooterCharacter::BeginPlay()
@@ -152,6 +160,9 @@ void AShooterCharacter::BeginPlay()
 	}
 	// default weaponをスポーンさせてそれをメッシュにアタッチ
 	EquipWeapon(SpawnDefaultWeapon());
+	WeaponInventory.Add(EquippedWeapon);
+	EquippedWeapon->SetSlotIndex(0);
+	EquippedWeapon->SetCharacter(this);
 
 	InitializeAmmoMap();
 	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
@@ -257,54 +268,32 @@ void AShooterCharacter::LookUp(float Value)
 
 void AShooterCharacter::FireWeapon()
 {
-	if (EquippedWeapon == nullptr) return;
+	if (!EquippedWeapon) return;
+	if (bIsDead) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	if (WeaponHasAmmo())
+	if (EquippedWeapon->GetbIsFiringCooldown() || WeaponHasAmmo())
 	{
-		PlayFireSound();
+		EquippedWeapon->PlayFireSound();
 		EquippedWeapon->Fire(this);
 		PlayGunfireMontage();
 		EquippedWeapon->DecrementAmmo();
 
 		StartCrosshairBulletFire();
-		StartFireTimer();
+		StartFireTimer(EquippedWeapon->GetCooldownTime());
 	}
-}
-
-bool AShooterCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult)
-{
-	FVector OutBeamLocation;
-	// crosshairのtrace hitをチェック
-	FHitResult CrosshairHitResult;
-	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairHitResult, OutBeamLocation);
-
-	// Barrelからトレースを行う。Barrelからの軌道を優先して当たり判定を行う。
-	const FVector WeaponTraceStart{ MuzzleSocketLocation };
-	const FVector StartToEnd{ OutBeamLocation - MuzzleSocketLocation };
-	// Locationがピッタリの場合、接触しない（桁落ちで衝突判定が不安定になる）可能性があるため、1.25倍する
-	const FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd * 1.25 };
-
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	Params.AddIgnoredActor(EquippedWeapon);
-
-	GetWorld()->LineTraceSingleByChannel(
-		OutHitResult,
-		WeaponTraceStart,
-		WeaponTraceEnd,
-		ECollisionChannel::ECC_Visibility,
-		Params);
-
-	if (!OutHitResult.bBlockingHit) // barrelとEndpointの間にオブジェクトがあるか
+	else if (WeaponHasAmmo())
 	{
-		OutHitResult.Location = OutBeamLocation;;
-		return false;
+		EquippedWeapon->PlayFireSound();
+		EquippedWeapon->Fire(this);
+		PlayGunfireMontage();
+		EquippedWeapon->DecrementAmmo();
+
+		StartCrosshairBulletFire();
+		float NoTime = 0;
+		StartFireTimer(NoTime);
 	}
-
-	return true;
 }
-
 
 void AShooterCharacter::AimingButtonPressed()
 {
@@ -386,7 +375,7 @@ void AShooterCharacter::FireButtonReleased()
 	bFireButtonPressed = false;
 }
 
-void AShooterCharacter::StartFireTimer()
+void AShooterCharacter::StartFireTimer(float Time)
 {
 	CombatState = ECombatState::ECS_FireTimerInProgress;
 
@@ -394,7 +383,7 @@ void AShooterCharacter::StartFireTimer()
 		AutoFireTimer,
 		this,
 		&AShooterCharacter::AutoFireReset,
-		AutomaticFireRate);
+		AutomaticFireRate + Time);
 }
 
 void AShooterCharacter::AutoFireReset()
@@ -485,11 +474,42 @@ void AShooterCharacter::TraceForItems()
 		if (ItemTraceResult.bBlockingHit)
 		{
 			TraceHitItem = Cast<AItem>(ItemTraceResult.GetActor());
+			const auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
+
+			if (TraceHitWeapon)
+			{
+				if (HighlightedSlot == -1)
+				{
+					// 使われていないスロットをハイライトに設定
+					HighlightInventorySlot();
+				}
+			}
+			else
+			{
+				if (HighlightedSlot != -1)
+				{
+					UnHighlightInventorySlot();
+				}
+			}
+
+			if (TraceHitItem && TraceHitItem->GetItemState() == EItemState::EIS_EquipInterping)
+			{
+				TraceHitItem = nullptr;
+			}
 
 			if (TraceHitItem && TraceHitItem->GetPickupWidget() && TraceHitItem->IsOverlappingActor(this))
 			{
 				// ItemのPickup Widgetを出現させる
 				TraceHitItem->GetPickupWidget()->SetVisibility(true);
+
+				if (WeaponInventory.Num() >= INVENTORY_CAPACITY)
+				{
+					TraceHitItem->SetCharacterInventoryFull(true);
+				}
+				else
+				{
+					TraceHitItem->SetCharacterInventoryFull(false);
+				}
 			}
 
 			// 範囲内にある1つのアイテムのみ、widgetを出現させる
@@ -537,6 +557,15 @@ void AShooterCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 			HandSocket->AttachActor(WeaponToEquip, GetMesh());
 		}
 
+		if (EquippedWeapon == nullptr)
+		{
+			EquipItemDelegate.Broadcast(-1, WeaponToEquip->GetSlotIndex());
+		}
+		else
+		{
+			EquipItemDelegate.Broadcast(EquippedWeapon->GetSlotIndex(), WeaponToEquip->GetSlotIndex());
+		}
+
 		EquippedWeapon = WeaponToEquip;
 		EquippedWeapon->SetItemState(EItemState::EIS_Equipped);
 	}
@@ -544,9 +573,11 @@ void AShooterCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 
 void AShooterCharacter::SelectButtonPressed()
 {
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
 	if (TraceHitItem)
 	{
-		TraceHitItem->StartItemCurve(this);
+		TraceHitItem->StartItemCurve(this, true);
+		TraceHitItem = nullptr;
 	}
 }
 
@@ -566,14 +597,6 @@ bool AShooterCharacter::WeaponHasAmmo()
 	if (EquippedWeapon == nullptr) return false;
 
 	return EquippedWeapon->GetAmmo() > 0;
-}
-
-void AShooterCharacter::PlayFireSound()
-{
-	if (FireSound)
-	{
-		UGameplayStatics::PlaySound2D(this, FireSound);
-	}
 }
 
 void AShooterCharacter::PlayGunfireMontage()
@@ -639,7 +662,7 @@ void AShooterCharacter::GrabClip()
 	ClipTransform = EquippedWeapon->GetItemMesh()->GetBoneTransform(ClipBoneIndex);
 
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, true);
-	HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("Hand_L")));
+	HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("hand_l")));
 	HandSceneComponent->SetWorldTransform(ClipTransform);
 
 	EquippedWeapon->SetMovingClip(true);
@@ -857,30 +880,6 @@ void AShooterCharacter::Tick(float DeltaTime)
 	{
 		WallRunComponent->WallRun();
 	}
-
-	if (GEngine)
-	{
-		int32 MessageIndex = 0;
-		for (const auto& Pair : AmmoMap)
-		{
-			EAmmoType AmmoType = Pair.Key;
-			int32 AmmoCount = Pair.Value;
-
-			// AmmoType は enum なので、その名前を取得する
-			const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EAmmoType"), true);
-			FString AmmoTypeName = (EnumPtr != nullptr) ? EnumPtr->GetNameStringByIndex(static_cast<int32>(AmmoType)) : TEXT("Unknown");
-
-			// ログメッセージを作成
-			FString LogMessage = FString::Printf(TEXT("AmmoType: %s, Count: %d"), *AmmoTypeName, AmmoCount);
-
-			// 画面にログを表示
-			GEngine->AddOnScreenDebugMessage(MessageIndex, 5.f, FColor::White, LogMessage);
-
-			// メッセージインデックスをインクリメント
-			MessageIndex++;
-		}
-	}
-
 }
 
 // Called to bind functionality to input
@@ -911,22 +910,21 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AShooterCharacter::ReloadButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AShooterCharacter::CrouchButtonPressed);
+
+	PlayerInputComponent->BindAction("FKey", IE_Pressed, this, &AShooterCharacter::FKeyPressed);
+	PlayerInputComponent->BindAction("1Key", IE_Pressed, this, &AShooterCharacter::OneKeyPressed);
+	PlayerInputComponent->BindAction("2Key", IE_Pressed, this, &AShooterCharacter::TwoKeyPressed);
+	PlayerInputComponent->BindAction("3Key", IE_Pressed, this, &AShooterCharacter::ThreeKeyPressed);
 }
+
+
 
 float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (Health - DamageAmount <= 0.f)
 	{
 		Health = 0.f;
-
-		// PlayerControllerを取得する
-		const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-		// InGameHUDクラスを取得する
-		AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
-
-		// ゲームオーバー画面を表示する
-		HUD->DispGameOver();
+		Die();
 	}
 	else
 	{
@@ -945,6 +943,55 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		}
 	}
 	return DamageAmount;
+}
+
+void AShooterCharacter::Die()
+{
+	bIsDead = true;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC)
+	{
+		DisableInput(PC);
+	}
+
+	// ゲームの時間の流れを一時的に停止（実際には0.0001の値が入っている）
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0f);
+
+	// 1.5秒後に時間の流れを元に戻す
+	FTimerHandle TimerHandle;
+	float StopTime = 0.00015f; // 実際には時間の流れは、0秒ではなく、小さい値(0.0001)が設定されているため、この時間は1.5秒に相当
+
+	if (CameraShakeClass != NULL)
+	{
+		if (PC)
+		{
+			PC->ClientStartCameraShake(CameraShakeClass);
+		}
+	}
+
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AShooterCharacter::ResetTimeDilation, StopTime, false);
+}
+
+void AShooterCharacter::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+
+	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	AInGameHUD* HUD = Cast<AInGameHUD>(PlayerController->GetHUD());
+	HUD->DispGameOver();
+}
+
+void AShooterCharacter::ResetTimeDilation()
+{
+	// ゲームの時間の流れを元に戻す
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 }
 
 void AShooterCharacter::FinishReloading()
@@ -979,6 +1026,11 @@ void AShooterCharacter::FinishReloading()
 			AmmoMap.Add(AmmoType, CarriedAmmo);
 		}
 	}
+}
+
+void AShooterCharacter::FinishEquipping()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
 }
 
 void AShooterCharacter::ResetPickupSoundTimer()
@@ -1020,6 +1072,85 @@ void AShooterCharacter::CalculateExPoints_Implementation(float AddedExPoints)
 			PlayerAttackPower = ExPRow->PlayerAttackPower;
 		}
 	}
+}
+
+void AShooterCharacter::FKeyPressed()
+{
+	if (EquippedWeapon->GetSlotIndex() == 0) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 0);
+}
+
+void AShooterCharacter::OneKeyPressed()
+{
+	if (EquippedWeapon->GetSlotIndex() == 1) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 1);
+}
+
+void AShooterCharacter::TwoKeyPressed()
+{
+	if (EquippedWeapon->GetSlotIndex() == 2) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 2);
+}
+
+void AShooterCharacter::ThreeKeyPressed()
+{
+	if (EquippedWeapon->GetSlotIndex() == 3) return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 3);
+}
+
+void AShooterCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
+{
+	if ((CurrentItemIndex == NewItemIndex) || (NewItemIndex >= WeaponInventory.Num()) || (CombatState != ECombatState::ECS_Unoccupied)) return;
+
+	auto OldEquippedWeapon = EquippedWeapon;
+	auto NewWeapon = Cast<AWeapon>(WeaponInventory[NewItemIndex]);
+	EquipWeapon(NewWeapon);
+
+	OldEquippedWeapon->SetItemState(EItemState::EIS_PickedUp);
+	NewWeapon->SetItemState(EItemState::EIS_Equipped);
+
+	CombatState = ECombatState::ECS_Equipping;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && EquipMontage)
+	{
+		AnimInstance->Montage_Play(EquipMontage, 1.0f);
+		AnimInstance->Montage_JumpToSection(FName("Equip"));
+	}
+	NewWeapon->PlayEquipSound(true);
+}
+
+int32 AShooterCharacter::GetEmptyInventorySlot()
+{
+	for (int32 i = 0; i < WeaponInventory.Num(); i++)
+	{
+		if (WeaponInventory[i] == nullptr)
+		{
+			return i;
+		}
+	}
+	if (WeaponInventory.Num() < INVENTORY_CAPACITY)
+	{
+		return WeaponInventory.Num();
+	}
+
+	return -1;
+}
+
+void AShooterCharacter::HighlightInventorySlot()
+{
+	const int32 EmptySlot = GetEmptyInventorySlot();
+	HighlightIconDelegate.Broadcast(EmptySlot, true);
+	HighlightedSlot = EmptySlot;
+}
+
+void AShooterCharacter::UnHighlightInventorySlot()
+{
+	HighlightIconDelegate.Broadcast(HighlightedSlot, false);
+	HighlightedSlot = -1;
 }
 
 void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)

@@ -25,6 +25,7 @@ enum class ECombatState : uint8
 	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
 	ECS_FireTimerInProgress UMETA(DisplayName = "FireTimerInProgress"),
 	ECS_Reloading UMETA(DisplayName = "Reloading"),
+	ECS_Equipping UMETA(DisplayName = "Equipping"),
 
 	ECS_MAX UMETA(DisplayName = "Default Max")
 };
@@ -42,6 +43,9 @@ struct FInterpLocation
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 ItemCount;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipItemDelegate, int32, CurrentSlot, int32, NewSlotIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHighlightIconDelegate, int32, SlotIndex, bool, bStartAnimation);
 
 UCLASS()
 class SHOOTERGAME_API AShooterCharacter : public ACharacter, public IExPointsInterface
@@ -62,9 +66,22 @@ public:
 
 	void ReloadWeapon();
 
-		// 最後のフレームでヒットしたアイテム
+	// 最後のフレームでヒットしたアイテム
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	AItem* TraceHitItemLastFrame;
+
+	// スロットの情報をInventoryBarに渡すためのデリゲート
+	UPROPERTY(BlueprintAssignable, Category = Delegates, meta = (AllowPrivateAccess = "true"))
+	FEquipItemDelegate EquipItemDelegate;
+
+	// スロットの情報をIconAnimationに渡すためのデリゲート
+	UPROPERTY(BlueprintAssignable, Category = Delegates, meta = (AllowPrivateAccess = "true"))
+	FHighlightIconDelegate HighlightIconDelegate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	int32 HighlightedSlot;
+
+	void UnHighlightInventorySlot();
 
 protected:
 	// Called when the game starts or when spawned
@@ -92,8 +109,6 @@ protected:
 
 	void FireWeapon(); // 銃のボタンを押したときに呼び出す
 	 
-	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult);
-
 	// bAimingの真偽を設定する
 	void AimingButtonPressed();
 	void AimingButtonReleased();
@@ -111,7 +126,7 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 
-	void StartFireTimer();
+	void StartFireTimer(float Time);
 
 	UFUNCTION()
 	void AutoFireReset();
@@ -139,7 +154,6 @@ protected:
 
 
 	// FireWeaponで使用する関数
-	void PlayFireSound();
 	void PlayGunfireMontage();
 
 	// 入力を確認
@@ -169,6 +183,17 @@ protected:
 	void InitializeInterpLocations();
 
 	virtual void CalculateExPoints_Implementation(float AddedExPoints) override; 
+
+	void FKeyPressed();
+	void OneKeyPressed();
+	void TwoKeyPressed();
+	void ThreeKeyPressed();
+
+	void ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex);
+
+	int32 GetEmptyInventorySlot();
+
+	void HighlightInventorySlot();
 
 private:
 	// キャラクターの後ろにカメラを置く
@@ -218,10 +243,6 @@ private:
 	// マウスのlook感度。AimingしているときのLookUpRate
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"), meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MouseAimingLookUpRate;
-
-	// 銃を撃ったときにランダムに音声を流す
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	USoundCue* FireSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* MuzzleFlash;
@@ -317,8 +338,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ReloadMontage;
 
+	// reloadアニメーションのMontage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* EquipMontage;
+
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
 
 	// リロードアニメーション中に使用
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -412,7 +440,7 @@ private:
 	float PreExPoints; // レベルアップに必要な経験値
 	float EarnExPoints; // そのレベル帯で獲得した経験値　
 
-	UPROPERTY(meta = (AllowPrivateAccess = "true")) // TODO: バグあり。
+	UPROPERTY(meta = (AllowPrivateAccess = "true"))
 	float PlayerAttackPower; // そのレベルの攻撃力
 
 	class USoundBase* LevelUpSound;
@@ -427,6 +455,26 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	USoundBase* PlayerDamagedSound;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	TArray<AItem*> WeaponInventory;
+
+	const int32 INVENTORY_CAPACITY{ 4 };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
+
+	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
+
+	void ResetTimeDilation();
+
+	TSubclassOf<UCameraShakeBase> CameraShakeClass;
+
+	// PlayerのHealthが0以下ならture
+	bool bIsDead;
 
 public:
 	// オーバーヘッドを減らすためにインライン化
@@ -482,4 +530,11 @@ public:
 	void SetPlayerHealth(float RecoveryAmount);
 
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+
+	FORCEINLINE TArray<AItem*>& GetWeaponInventory() { return WeaponInventory; }
+	FORCEINLINE int32 GetINVENTORY_CAPACITY() { return INVENTORY_CAPACITY; }
+
+	FORCEINLINE bool GetbIsDead() const { return bIsDead; }
+
+	FORCEINLINE TSubclassOf<UCameraShakeBase> GetCameraShakeClass() const { return CameraShakeClass; }
 };

@@ -12,6 +12,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 
+
 AGhostEnemy::AGhostEnemy() :
 	GhostEnemyExpPoint(100.f),
 	GhostEnemyAttackPower(40.f)
@@ -55,15 +56,25 @@ void AGhostEnemy::Die()
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
 	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
 	ScoreWidget->UpdateScore(GhostEnemyExpPoint);
+	ScoreWidget->UpdateComboCount();
+}
+
+void AGhostEnemy::PlayDeathAnimation()
+{
+	Super::PlayDeathAnimation();
+
+	// GhostEnemyにDeathアニメーションは無いのでC++側から呼び出す
+	Die();
 }
 
 void AGhostEnemy::DoDamage(AActor* Victim)
 {
+	Super::DoDamage(Victim);
+
 	if (Victim == nullptr) return;
 	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Victim);
-
-	// 接触したActorがBallPlayerか判定する
 	if (!ShooterCharacter) return;
+	if (ShooterCharacter->GetbIsDead()) return;
 
 	UGameplayStatics::ApplyDamage(
 		ShooterCharacter,

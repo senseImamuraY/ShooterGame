@@ -16,15 +16,16 @@
 #include "Blueprint/UserWidget.h"
 #include "../Public/Core/ScoreSystem/ScoreCounter.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Sound/SoundCue.h"
+#include "../Public/Weapon/Weapon.h"
 
 // Sets default values
 AEnemy::AEnemy() :
 	Health(100.f),
 	MaxHealth(100.f),
 	HealthBarDisplayTime(4.f),
-	BaseEnemyAttackPower(20.f),
-	DamageInterval(2.f)
+	DamageInterval(2.f),
+	bIsDead(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -69,15 +70,19 @@ void AEnemy::Die()
 	HideHealthBar();
 }
 
+void AEnemy::PlayDeathAnimation()
+{
+	this->SetActorEnableCollision(false); // コリジョンを無効にする
+	this->SetActorTickEnabled(false);
+}
+
 
 void AEnemy::DoDamage(AActor* Victim)
 {
-	
 }
 
 void AEnemy::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	
+{	
 }
 
 
@@ -89,23 +94,31 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AEnemy::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* ShooterController)
 {
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Shooter);
+	if (!ShooterCharacter) return;
+
+	USoundCue* ImpactSound = ShooterCharacter->GetEquippedWeapon()->GetEnemyHitSound();
 	if (ImpactSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
 
-	if (ImpactParticles)
+	UParticleSystem* EnemyHitParticle = ShooterCharacter->GetEquippedWeapon()->GetEnemyHitParticles();
+	if (EnemyHitParticle)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EnemyHitParticle, HitResult.Location, FRotator(0.f), true);
 	}
 }
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	if (bIsDead) return -1; // 一度に複数回のレイキャストをした場合の処理で複数回Die()が発火するバグを防ぐため
+
 	if (Health - DamageAmount <= 0.f)
 	{
 		Health = 0.f;
-		Die();
+		PlayDeathAnimation();
+		bIsDead = true;
 	}
 	else
 	{

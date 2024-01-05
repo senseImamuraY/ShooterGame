@@ -13,6 +13,7 @@ class ADirectionalLight;
 class UItemPool;
 class AEnemy;
 class AItem;
+class USoundCue;
 
 /**
  * 
@@ -31,10 +32,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-protected:
-	UFUNCTION(BlueprintImplementableEvent)
-	void StartGame();
-
 private:
 	FTimerHandle SpawnEnemyTimerHandle;
 	void SpawnEnemy();
@@ -49,14 +46,13 @@ private:
 	UFUNCTION()
 	void HandleEnemyDeath(AEnemy* DeadEnemy);
 
-	FTimerHandle GoalTimerHandle;
-	void SpawnGoal();
-	AGoal* Goal;
-
 	float StartDelaty;
 	void HandleGameStart();
 	void EnablePlayer();
 
 	UFUNCTION()
 	void HandleItemReturn(AItem* Item);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BGM, meta = (AllowPrivateAccess = "true"))
+	USoundCue* GameSound;
 };

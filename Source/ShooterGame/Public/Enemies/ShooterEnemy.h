@@ -20,7 +20,6 @@ class AItem;
  * 
  */
 
-
 UCLASS()
 class SHOOTERGAME_API AShooterEnemy : public AEnemy
 {
@@ -39,6 +38,14 @@ public:
 
 protected:
 	virtual void Die() override;
+
+	virtual void PlayDeathAnimation() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float ShooterEnemyAttackPower;
 
 	void Shoot(AActor* Victim);
 
@@ -70,8 +77,6 @@ protected:
 	TSubclassOf<AWeapon> DefaultWeaponClass;
 
 private:
-	float GhostEnemyAttackPower;
-
 	AWeapon* SpawnDefaultWeapon();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))

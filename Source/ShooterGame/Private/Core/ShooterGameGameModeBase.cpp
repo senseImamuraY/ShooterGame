@@ -7,12 +7,13 @@
 #include "./Player/ShooterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Public/Enemies/Enemy.h"
-#include "../Public/Environments/Goal.h"
 #include "../Public/Enemies/EnemyPool.h"
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
 #include "../Public/Items/ItemPool.h"
 #include "../Public/Items/Item.h"
+#include "../Public/Weapon/Weapon.h"
+#include "Sound/SoundCue.h"
 
 
 AShooterGameGameModeBase::AShooterGameGameModeBase() :
@@ -26,6 +27,11 @@ AShooterGameGameModeBase::AShooterGameGameModeBase() :
 void AShooterGameGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GameSound)
+	{
+		UGameplayStatics::PlaySound2D(this, GameSound);
+	}
 
 	HandleGameStart();
 
@@ -54,16 +60,6 @@ void AShooterGameGameModeBase::BeginPlay()
 		}
 	}
 
-	for (TActorIterator<AGoal> It(GetWorld()); It; ++It)
-	{
-		Goal = *It;
-
-		if (Goal)
-		{
-			break;
-		}
-	}
-
 	// マップを全探索して、それぞれのHandleを適切なActorにバインド
 	for (TActorIterator<AEnemy> It(GetWorld()); It; ++It)
 	{
@@ -78,6 +74,8 @@ void AShooterGameGameModeBase::BeginPlay()
 	for (TActorIterator<AItem> It(GetWorld()); It; ++It)
 	{
 		AItem* Item = *It;
+		AWeapon* Weapon = Cast<AWeapon>(Item);
+		if (Weapon) continue;
 
 		if (Item)
 		{
@@ -89,7 +87,6 @@ void AShooterGameGameModeBase::BeginPlay()
 	float TimeUntilGoalAppears = 60.f;
 
 	GetWorldTimerManager().SetTimer(SpawnEnemyTimerHandle, this, &AShooterGameGameModeBase::SpawnEnemy, EnemySpawnInterval, true);
-	GetWorldTimerManager().SetTimer(GoalTimerHandle, this, &AShooterGameGameModeBase::SpawnGoal, TimeUntilGoalAppears, false);
 }
 
 void AShooterGameGameModeBase::KillPlayer()
@@ -123,17 +120,10 @@ void AShooterGameGameModeBase::SpawnEnemy()
 	}
 }
 
-void AShooterGameGameModeBase::SpawnGoal()
-{
-	Goal->Spawn();
-}
-
 void AShooterGameGameModeBase::HandleGameStart()
 {
 	AShooterCharacter* Player = Cast<AShooterCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
 	AShooterPlayerController* PlayerController = Cast<AShooterPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
-
-	StartGame();
 
 	if (PlayerController)
 	{

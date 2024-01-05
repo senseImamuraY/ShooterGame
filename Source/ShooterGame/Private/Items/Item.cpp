@@ -25,7 +25,9 @@ AItem::AItem() :
 	ItemInterpY(0.f),
 	InterpInitialYawOffset(0.f),
 	ItemType(EItemType::EIT_MAX),
-	InterpLocIndex(0)
+	InterpLocIndex(0),
+	SlotIndex(0),
+	bCharacterInventoryFull(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -88,6 +90,7 @@ void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		if (ShooterCharacter)
 		{
 			ShooterCharacter->IncrementOverlappedItemCount(-1);
+			ShooterCharacter->UnHighlightInventorySlot();
 		}
 	}
 }
@@ -143,6 +146,7 @@ void AItem::SetItemProperties(EItemState State)
 		ItemMesh->SetVisibility(true);
 		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ItemMesh->SetRenderCustomDepth(true);
 
 		AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -161,6 +165,7 @@ void AItem::SetItemProperties(EItemState State)
 		ItemMesh->SetVisibility(true);
 		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ItemMesh->SetRenderCustomDepth(false);
 
 		AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -172,6 +177,7 @@ void AItem::SetItemProperties(EItemState State)
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		ItemMesh->SetSimulatePhysics(true);
 		ItemMesh->SetEnableGravity(true);
+		ItemMesh->SetVisibility(true);
 		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemMesh->SetCollisionResponseToChannel(
 			ECollisionChannel::ECC_WorldStatic,
@@ -212,6 +218,22 @@ void AItem::SetItemProperties(EItemState State)
 
 		CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	case EItemState::EIS_PickedUp:
+		PickupWidget->SetVisibility(false);
+
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetEnableGravity(false);
+		ItemMesh->SetVisibility(false);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ItemMesh->SetRenderCustomDepth(false);
+
+		AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
 	}
 }
 
@@ -223,6 +245,7 @@ void AItem::FinishInterping()
 	{
 		Character->IncrementInterpLocItemCount(InterpLocIndex, -1);
 		Character->GetPickupItem(this);
+		Character->UnHighlightInventorySlot();
 
 		// デリゲートを使用して、登録された関数を呼び出す
 		OnItemReturnRequested.Broadcast(this);
@@ -304,27 +327,45 @@ FVector AItem::GetInterpLocation()
 	return FVector();
 }
 
-void AItem::PlayPickupSound()
+void AItem::PlayPickupSound(bool bForcePlaySound)
 {
 	if (!Character) return;
-	if (!Character->ShouldPlayPickupSound())
 
-	Character->StartPickupSoundTimer();
-	if (PickupSound)
+	if (bForcePlaySound)
 	{
-		UGameplayStatics::PlaySound2D(this, PickupSound);
+		if (PickupSound)
+		{
+			UGameplayStatics::PlaySound2D(this, PickupSound);
+		}
+	}
+	else if (Character->ShouldPlayPickupSound())
+	{
+		Character->StartPickupSoundTimer();
+		if (PickupSound)
+		{
+			UGameplayStatics::PlaySound2D(this, PickupSound);
+		}
 	}
 }
 
-void AItem::PlayEquipSound()
+void AItem::PlayEquipSound(bool bForcePlaySound)
 {
 	if (!Character) return;
-	if (!Character->ShouldPlayEquipSound()) return;
 
-	Character->StartEquipSoundTimer();
-	if (EquipSound)
+	if (bForcePlaySound)
 	{
-		UGameplayStatics::PlaySound2D(this, EquipSound);
+		if (EquipSound)
+		{
+			UGameplayStatics::PlaySound2D(this, EquipSound);
+		}
+	}
+	else if (Character->ShouldPlayEquipSound())
+	{
+		Character->StartEquipSoundTimer();
+		if (EquipSound)
+		{
+			UGameplayStatics::PlaySound2D(this, EquipSound);
+		}
 	}
 }
 
@@ -343,7 +384,7 @@ void AItem::SetItemState(EItemState State)
 	SetItemProperties(State);
 }
 
-void AItem::StartItemCurve(AShooterCharacter* Char)
+void AItem::StartItemCurve(AShooterCharacter* Char, bool bForcePlaySound)
 {
 	Character = Char;
 
@@ -352,7 +393,7 @@ void AItem::StartItemCurve(AShooterCharacter* Char)
 
 	Character->IncrementInterpLocItemCount(InterpLocIndex, 1);
 
-	PlayPickupSound();
+	PlayPickupSound(bForcePlaySound);
 
 	ItemInterpStartLocation = GetActorLocation();
 	bInterping = true;

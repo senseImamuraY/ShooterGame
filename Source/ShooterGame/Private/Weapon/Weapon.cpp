@@ -6,6 +6,9 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "Components/PrimitiveComponent.h"
 
 
 AWeapon::AWeapon():
@@ -17,7 +20,7 @@ AWeapon::AWeapon():
 	AmmoType(EAmmoType::EAT_9mm),
 	ReloadMontageSection(FName(TEXT("Reload SMG"))),
 	ClipBoneName(TEXT("smg_clip")),
-	Damage(20.f)
+	WeaponDamage(20.f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -39,8 +42,26 @@ void AWeapon::Tick(float DeltaTime)
 void AWeapon::PickupItem(AShooterCharacter* ShooterCharacter)
 {
 	PlayEquipSound();
-	DropWeapon(ShooterCharacter);
-	EquipWeapon(ShooterCharacter);
+
+	TArray<AItem*>& WeaponInventory = ShooterCharacter->GetWeaponInventory();
+
+	if (WeaponInventory.Num() < ShooterCharacter->GetINVENTORY_CAPACITY())
+	{
+		SetSlotIndex(WeaponInventory.Num());
+		WeaponInventory.Add(this);
+		SetItemState(EItemState::EIS_PickedUp);
+	}
+	else
+	{
+		if (WeaponInventory.Num() - 1 >= GetSlotIndex())
+		{
+			WeaponInventory[ShooterCharacter->GetEquippedWeapon()->GetSlotIndex()] = this;
+			SetSlotIndex(ShooterCharacter->GetEquippedWeapon()->GetSlotIndex());
+		}
+		DropWeapon(ShooterCharacter);
+		EquipWeapon(ShooterCharacter);
+	}
+
 	ShooterCharacter->SetTraceHitItem(nullptr);
 	ShooterCharacter->SetTraceHitItemLastFrame(nullptr);
 }
@@ -71,9 +92,19 @@ void AWeapon::EquipWeapon(AShooterCharacter* ShooterCharacter)
 	if (HandSocket)
 	{
 		HandSocket->AttachActor(this, ShooterCharacter->GetMesh());
-		ShooterCharacter->SetEquippedWeapon(this);
-		this->SetItemState(EItemState::EIS_Equipped);
 	}
+
+	if (ShooterCharacter->GetEquippedWeapon() == nullptr)
+	{
+		ShooterCharacter->EquipItemDelegate.Broadcast(-1, this->GetSlotIndex());
+	}
+	else
+	{
+		ShooterCharacter->EquipItemDelegate.Broadcast(ShooterCharacter->GetEquippedWeapon()->GetSlotIndex(), this->GetSlotIndex());
+	}
+
+	ShooterCharacter->SetEquippedWeapon(this);
+	this->SetItemState(EItemState::EIS_Equipped);
 }
 
 void AWeapon::ThrowWeapon()
@@ -144,11 +175,22 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 		GetItemMesh()->SetSkeletalMesh(WeaponDataRow->ItemMesh);
 		SetItemName(WeaponDataRow->ItemName);
 		SetAmmoIcon(WeaponDataRow->AmmoIcon);
+		EnemyHitParticles = WeaponDataRow->EnemyHitParticles;
+		EnemyHitSound = WeaponDataRow->EnemyHitSound;
+		WeaponDamage = WeaponDataRow->WeaponDamage;
 	}
 }
 
 void AWeapon::Fire(AShooterCharacter* ShooterCharacter)
 {
+}
+
+void AWeapon::PlayFireSound()
+{
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
 }
 
 bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult, AShooterCharacter* ShooterCharacter)
@@ -169,5 +211,10 @@ bool AWeapon::GetBeamEndLocation(const FVector& MuzzleSocketLocation, TArray<FHi
 bool AWeapon::TraceUnderCrosshairs(TArray<FHitResult>& OutHitResults, TArray<FVector>& OutHitLocations, AShooterCharacter* ShooterCharacter)
 {
 	return false;
+}
+
+void AWeapon::ResetFiringCooldown()
+{
+	bIsFiringCooldown = false;
 }
 

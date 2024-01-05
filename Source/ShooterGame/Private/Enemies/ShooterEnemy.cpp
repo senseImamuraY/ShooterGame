@@ -24,7 +24,7 @@
 
 AShooterEnemy::AShooterEnemy() :
 	ShooterEnemyExpPoint(1000.f),
-	GhostEnemyAttackPower(10.f)
+	ShooterEnemyAttackPower(10.f)
 {
 }
 
@@ -87,6 +87,18 @@ void AShooterEnemy::Die()
 	UWidget* ChildWidget = Widget->GetWidgetFromName(TEXT("BPW_Score"));
 	UScoreCounter* ScoreWidget = Cast<UScoreCounter>(ChildWidget);
 	ScoreWidget->UpdateScore(ShooterEnemyExpPoint);
+	ScoreWidget->UpdateComboCount();
+}
+
+void AShooterEnemy::PlayDeathAnimation()
+{
+	Super::PlayDeathAnimation();
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
 }
 
 void AShooterEnemy::Shoot(AActor* Victim)
@@ -127,8 +139,7 @@ void AShooterEnemy::Shoot(AActor* Victim)
 
 		if (HitCharacter)
 		{
-			float WeaponDamage = EquippedWeapon->GetDamage();
-			float TotalDamage = WeaponDamage;
+			float TotalDamage = EquippedWeapon->GetWeaponDamage() + ShooterEnemyAttackPower;
 
 			UGameplayStatics::ApplyDamage(
 				BeamHitResult.GetActor(),
@@ -183,6 +194,12 @@ void AShooterEnemy::EquipWeapon(AWeapon* WeaponToEquip)
 
 void AShooterEnemy::DoDamage(AActor* Victim)
 {
+	Super::DoDamage(Victim);
+
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(Victim);
+	if (!ShooterCharacter) return;
+	if (ShooterCharacter->GetbIsDead()) return;
+
 	if (Health <= 0) return;
 	Shoot(Victim);
 }

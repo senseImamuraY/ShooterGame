@@ -25,13 +25,22 @@ struct FWeaponDataTable : public FTableRowBase
 	int32 WeaponAmmo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 MagazingCapacity;
+	int32 MagazingCapacity;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WeaponDamage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USoundCue* PickupSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundCue* EquipSound;
+	USoundCue* EquipSound;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* EnemyHitSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UParticleSystem* EnemyHitParticles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USkeletalMesh* ItemMesh;
@@ -64,21 +73,33 @@ public:
 
 	virtual void DropWeapon(AShooterCharacter* ShooterCharacter);
 
+	void ResetFiringCooldown();
+
+	void PlayFireSound();
+
 protected:
 	void StopFalling();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	// 銃を撃ったときにランダムに音声を流す
+	// 発砲音
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	USoundCue* FireSound;
+	USoundCue* FireSound;	
+	
+	// 敵にヒットした時の音
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USoundCue* EnemyHitSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* MuzzleFlash;
 
-	// 銃弾のヒットエフェクト
+	// 敵にヒットしなかったときの銃弾のヒットエフェクト
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	UParticleSystem* ImpactParticles;
+	UParticleSystem* DefaultHitParticles;
+
+	// 敵にヒットしたときの銃弾のヒットエフェクト
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* EnemyHitParticles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BeamParticles;
@@ -95,6 +116,9 @@ protected:
 	// このweaponのammoの種類
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
 	EAmmoType AmmoType;
+
+	bool bIsFiringCooldown;
+	float CooldownTime;
 
 private:
 	FTimerHandle ThrowWeaponTimer;
@@ -122,7 +146,7 @@ private:
 
 	// 相手に与えるダメージ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"));
-	float Damage;
+	float WeaponDamage;
 
 	void EquipWeapon(AShooterCharacter* ShooterCharacter);
 
@@ -139,11 +163,18 @@ public:
 	FORCEINLINE EAmmoType GetAmmoType() const { return AmmoType; }
 	FORCEINLINE FName GetReloadMontageSection() const { return ReloadMontageSection; }
 	FORCEINLINE FName GetClipBoneName() const { return ClipBoneName; }
-	FORCEINLINE float GetDamage() const { return Damage; }
+	FORCEINLINE float GetWeaponDamage() const { return WeaponDamage; }
 
 	void ReloadAmmo(int32 Amount);
 
 	FORCEINLINE void SetMovingClip(bool Move) { bMovingClip = Move; }
 
 	bool ClipIsFull();
+
+	FORCEINLINE bool GetbIsFiringCooldown() const { return bIsFiringCooldown; }
+	FORCEINLINE void SetbIsFiringCooldown(bool IsCooldown) { bIsFiringCooldown = IsCooldown; }
+	FORCEINLINE float GetCooldownTime() { return CooldownTime; }
+	FORCEINLINE void SetCooldownTime(float Time) { CooldownTime = Time; }
+	FORCEINLINE USoundCue* GetEnemyHitSound() { return EnemyHitSound; }
+	FORCEINLINE UParticleSystem* GetEnemyHitParticles() { return EnemyHitParticles; }
 };

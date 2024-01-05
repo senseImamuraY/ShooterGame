@@ -64,7 +64,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// AShooterCharacter::GetPickupItemで使用
-	void PlayEquipSound();
+	void PlayEquipSound(bool bForcePlaySound = false);
 
 	// デリゲートの公開インスタンス
 	FOnItemReturnRequested OnItemReturnRequested;
@@ -103,7 +103,8 @@ protected:
 
 	FVector GetInterpLocation();
 
-	void PlayPickupSound();
+	// 連続してWeaponをPickupしたときに、PickupSoundで鳴る音がずれてしまうので、対策としてboolを使用してタイミングをコントロールできるようにした
+	void PlayPickupSound(bool bForcePlaySound = false);
 
 protected:
 	// Pickup Widgetに表示されるアイテムの名前
@@ -191,6 +192,18 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 	UTexture2D* AmmoIcon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* IconBackground;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* ItemIcon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	int32 SlotIndex;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	bool bCharacterInventoryFull;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
@@ -207,6 +220,10 @@ public:
 
 	FORCEINLINE void SetItemName(FString Name) { ItemName = Name; }
 	FORCEINLINE void SetAmmoIcon(UTexture2D* Icon) { AmmoIcon = Icon; }
+	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
+	FORCEINLINE void SetSlotIndex(int32 Index) { SlotIndex = Index; }
+	FORCEINLINE void SetCharacter(AShooterCharacter* Char) { Character = Char; }
+	FORCEINLINE void SetCharacterInventoryFull(bool bFull) { bCharacterInventoryFull = bFull; }
 
-	void StartItemCurve(AShooterCharacter* Char);
+	void StartItemCurve(AShooterCharacter* Char, bool bForcePlaySound = false);
 };
