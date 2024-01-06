@@ -123,7 +123,8 @@ void AShooterGameGameModeBase::HandleGameStart()
 	if (PlayerController)
 	{
 		PlayerController->SetPlayerEnabledState(false);
-		
+		PlayerController->DisableInput(PlayerController);
+
 		// 3•bŒã‚ÉEnablePlayerŠÖ”‚ðŒÄ‚Ño‚·
 		FTimerHandle TimerHandle;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &AShooterGameGameModeBase::EnablePlayer, StartDelaty, false);
@@ -136,6 +137,7 @@ void AShooterGameGameModeBase::EnablePlayer()
 	if (PlayerController)
 	{
 		PlayerController->SetPlayerEnabledState(true);
+		PlayerController->EnableInput(PlayerController);
 	}
 }
 

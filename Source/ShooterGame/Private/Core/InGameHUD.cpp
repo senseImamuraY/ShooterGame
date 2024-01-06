@@ -133,13 +133,6 @@ void AInGameHUD::DispPause(const bool bIsPause)
 	// PlayerControllerを取得する
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-	// ログにbIsPauseの値を出力
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("bIsPause: %s"), bIsPause ? TEXT("true") : TEXT("false")));
-	}
-
-
 	if (bIsPause)
 	{
 		// Pauseメニューを表示する
@@ -151,16 +144,6 @@ void AInGameHUD::DispPause(const bool bIsPause)
 
 		UGameplayStatics::SetGamePaused(GetWorld(), true);
 		PlayerController->SetShowMouseCursor(true);
-
-		// ログにBGMComponentの状態を出力
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("BGMComponent: %s"), BGMComponent ? TEXT("Valid") : TEXT("Invalid")));
-			if (BGMComponent)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("BGMComponent->IsPlaying(): %s"), BGMComponent->IsPlaying() ? TEXT("true") : TEXT("false")));
-			}
-		}
 
 		if (BGMComponent)
 		{
@@ -174,16 +157,6 @@ void AInGameHUD::DispPause(const bool bIsPause)
 		PlayerController->SetShowMouseCursor(false);
 		UWidgetBlueprintLibrary::SetInputMode_GameOnly(PlayerController, false);
 		PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
-
-		// ログにBGMComponentの状態を出力
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("BGMComponent: %s"), BGMComponent ? TEXT("Valid") : TEXT("Invalid")));
-			if (BGMComponent)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("BGMComponent->IsPlaying(): %s"), BGMComponent->IsPlaying() ? TEXT("true") : TEXT("false")));
-			}
-		}
 
 		if (BGMComponent)
 		{

@@ -34,6 +34,7 @@ void AKillVolume::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor*
 			GameMode->KillPlayer();
 		}
 	}
+
 	AEnemy* Enemy = Cast<AEnemy>(OtherActor);
 	if (Enemy)
 	{
@@ -50,7 +51,6 @@ void AKillVolume::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor*
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, EnemyKillSound, GetActorLocation());
 		}
-
 	}
 }
 
