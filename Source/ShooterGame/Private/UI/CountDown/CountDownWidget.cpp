@@ -60,6 +60,12 @@ void UCountDownWidget::UpdateCountDown(float DeltaTime)
 {
     if (!bShouldCountDown) return;
 
+    // ゲームがポーズされている場合はカウントダウンを進行させない
+    if (UGameplayStatics::IsGamePaused(GetWorld()))
+    {
+        return;
+    }
+
     TimeRemaining -= DeltaTime;
     
     Minutes = FMath::FloorToInt(TimeRemaining / 60.0f);

@@ -7,6 +7,8 @@
 #include "InGameHUD.generated.h"
 
 class UCrosshairWidget;
+class UAudioComponent;
+class USoundCue;
 
 /**
  * 
@@ -56,6 +58,12 @@ private:
 	bool bIsGameClear;
 	bool bIsGameOver;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BGM, meta = (AllowPrivateAccess = "true"))
+	USoundCue* GameSound;
+
+	UAudioComponent* BGMComponent;
+
 public:
 	FORCEINLINE UUserWidget* GetGameClearWidget() { return GameClearWidget; }
+	FORCEINLINE bool GetbIsGameOver() { return bIsGameOver; }
 };

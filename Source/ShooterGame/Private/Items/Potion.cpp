@@ -8,6 +8,8 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "../Public/Player/ShooterCharacter.h"
+#include "../Public/Core/InGameHUD.h"
+#include "Kismet/GameplayStatics.h"
 
 
 APotion::APotion() :
@@ -33,6 +35,15 @@ void APotion::Tick(float DeltaTime)
 
 void APotion::PickupItem(AShooterCharacter* ShooterCharacter)
 {
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (!PlayerController) return;
+
+	AHUD* HUD = PlayerController->GetHUD();
+	AInGameHUD* InGameHUD = Cast<AInGameHUD>(HUD);
+	if (!InGameHUD) return;
+
+	if (InGameHUD->GetbIsGameOver()) return;
+
 	float CurrentHealth = ShooterCharacter->GetPlayerHealth();
 	float MaxHealth = ShooterCharacter->GetPlayerMaxHealth();
 	if (CurrentHealth + RecoveryAmount >= MaxHealth)

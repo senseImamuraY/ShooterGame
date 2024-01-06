@@ -9,12 +9,16 @@
 #include "../Public/UI/Player/CrosshairWidget.h"
 #include "CanvasItem.h"
 #include "Engine/Canvas.h"
+#include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
+
 
 AInGameHUD::AInGameHUD() :
 	bIsGameClear(false),
 	bIsGameOver(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
+	BGMComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("BGMComponent"));
 }
 
 void AInGameHUD::BeginPlay()
@@ -49,7 +53,7 @@ void AInGameHUD::BeginPlay()
 		GameClearWidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameClearWidgetClass, PlayerController);
 		GameClearWidget->SetVisibility(ESlateVisibility::Collapsed);
 		GameClearWidget->AddToViewport(GameClearWidgetZOrder);
-
+		
 		GameOverWidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameOverWidgetClass, PlayerController);
 		GameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
 		GameOverWidget->AddToViewport(GameOverWidgetZOrder);
@@ -63,6 +67,12 @@ void AInGameHUD::BeginPlay()
 	}
 
 	CrosshairWidgetInstance->InitializeWidget();
+
+	if (GameSound && BGMComponent)
+	{
+		BGMComponent->SetSound(GameSound);
+		BGMComponent->Play();
+	}
 }
 
 void AInGameHUD::Tick(float DeltaTime)
@@ -83,6 +93,11 @@ void AInGameHUD::DispGameClear()
 	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, GameClearWidget, EMouseLockMode::DoNotLock, false);
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
 	PlayerController->SetShowMouseCursor(true);
+
+	if (BGMComponent && BGMComponent->IsPlaying())
+	{
+		BGMComponent->Stop();
+	}
 }
 
 void AInGameHUD::DispGameOver()
@@ -96,6 +111,11 @@ void AInGameHUD::DispGameOver()
 	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController, GameOverWidget, EMouseLockMode::DoNotLock, false);
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
 	PlayerController->SetShowMouseCursor(true);
+
+	if (BGMComponent && BGMComponent->IsPlaying())
+	{
+		BGMComponent->Stop();
+	}
 }
 
 void AInGameHUD::ContinueGame()
@@ -113,6 +133,13 @@ void AInGameHUD::DispPause(const bool bIsPause)
 	// PlayerControllerを取得する
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
+	// ログにbIsPauseの値を出力
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("bIsPause: %s"), bIsPause ? TEXT("true") : TEXT("false")));
+	}
+
+
 	if (bIsPause)
 	{
 		// Pauseメニューを表示する
@@ -124,6 +151,21 @@ void AInGameHUD::DispPause(const bool bIsPause)
 
 		UGameplayStatics::SetGamePaused(GetWorld(), true);
 		PlayerController->SetShowMouseCursor(true);
+
+		// ログにBGMComponentの状態を出力
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("BGMComponent: %s"), BGMComponent ? TEXT("Valid") : TEXT("Invalid")));
+			if (BGMComponent)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("BGMComponent->IsPlaying(): %s"), BGMComponent->IsPlaying() ? TEXT("true") : TEXT("false")));
+			}
+		}
+
+		if (BGMComponent)
+		{
+			BGMComponent->SetPaused(true);
+		}
 	}
 	else
 	{
@@ -132,6 +174,21 @@ void AInGameHUD::DispPause(const bool bIsPause)
 		PlayerController->SetShowMouseCursor(false);
 		UWidgetBlueprintLibrary::SetInputMode_GameOnly(PlayerController, false);
 		PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+		// ログにBGMComponentの状態を出力
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("BGMComponent: %s"), BGMComponent ? TEXT("Valid") : TEXT("Invalid")));
+			if (BGMComponent)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("BGMComponent->IsPlaying(): %s"), BGMComponent->IsPlaying() ? TEXT("true") : TEXT("false")));
+			}
+		}
+
+		if (BGMComponent)
+		{
+			BGMComponent->SetPaused(false);
+		}
 	}
 }
 

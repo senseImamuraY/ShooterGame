@@ -12,7 +12,7 @@
 // Sets default values
 AExplosive::AExplosive() :
 	Damage(100.f),
-    ExplosionLaunchMagnitude(1.f),
+    ExplosionLaunchMagnitude(2.f),
     ExplosionDelay(0.1f),
     bAlreadyExploded(false)
 {
@@ -74,8 +74,8 @@ void AExplosive::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter,
                 if (Character)
                 {
                     FVector LaunchDirection = (Character->GetActorLocation() - GetActorLocation()).GetSafeNormal() + FVector(0, 0, 1);
-                    FVector Direction = (Character->GetActorLocation() - GetActorLocation());
-                    FVector NormalizedDirection = Direction.GetSafeNormal();
+                    //FVector Direction = (Character->GetActorLocation() - GetActorLocation());
+                    //FVector NormalizedDirection = Direction.GetSafeNormal();
 
                     LaunchDirection = LaunchDirection * ExplosionLaunchMagnitude;
                     Character->LaunchCharacter(LaunchDirection, true, true);

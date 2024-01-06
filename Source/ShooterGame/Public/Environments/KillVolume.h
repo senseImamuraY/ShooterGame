@@ -9,6 +9,7 @@
 #include "KillVolume.generated.h"
 
 class UBoxComponent;
+class USoundCue;
 
 UCLASS()
 class SHOOTERGAME_API AKillVolume : public AActor
@@ -34,6 +35,9 @@ private:
 
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USoundCue* EnemyKillSound;
 
 protected:
 	// Called when the game starts or when spawned

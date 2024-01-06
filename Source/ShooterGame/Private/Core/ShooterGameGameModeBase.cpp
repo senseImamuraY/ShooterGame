@@ -28,11 +28,6 @@ void AShooterGameGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GameSound)
-	{
-		UGameplayStatics::PlaySound2D(this, GameSound);
-	}
-
 	HandleGameStart();
 
 	// Poolのインスタンスを生成

@@ -4,6 +4,9 @@
 #include "Environments/KillVolume.h"
 #include "Components/BoxComponent.h"
 #include "../Public/Player/ShooterCharacter.h"
+#include "../Public/Enemies/Enemy.h"
+#include "Sound/SoundCue.h"
+
 
 // Sets default values
 AKillVolume::AKillVolume() :
@@ -30,6 +33,24 @@ void AKillVolume::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor*
 			// KillPlayerを呼び出してPlayerを破棄する
 			GameMode->KillPlayer();
 		}
+	}
+	AEnemy* Enemy = Cast<AEnemy>(OtherActor);
+	if (Enemy)
+	{
+		// 敵が場外に落下したらダメージを与えてhpを0にする。
+		float MaxDamage = 10000.f;
+		UGameplayStatics::ApplyDamage(
+			Enemy,
+			MaxDamage,
+			nullptr,
+			nullptr,
+			UDamageType::StaticClass());
+
+		if (EnemyKillSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, EnemyKillSound, GetActorLocation());
+		}
+
 	}
 }
 
