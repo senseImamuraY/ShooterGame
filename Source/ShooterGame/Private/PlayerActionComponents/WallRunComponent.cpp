@@ -189,6 +189,8 @@ void UWallRunComponent::WallRun()
 
 		if (!bHit)
 		{
+			// •Ç‘–‚è‚ªI‚í‚Á‚½‚çAó‘Ô‚ðŒ³‚É–ß‚·
+
 			FRotator NewRotation = FRotationMatrix::MakeFromXZ(ShooterCharacter->GetActorUpVector() * -1.f, FVector(0.f, 0.f, 1.f)).Rotator();
 
 			NewRotation.Pitch = 0.1f;

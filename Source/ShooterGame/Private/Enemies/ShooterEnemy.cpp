@@ -271,14 +271,16 @@ bool AShooterEnemy::TraceFromEnemyGuns(FHitResult& OutHitResult, FVector& OutHit
 		FVector PlayerFeetLocation = Player->GetActorLocation();
 		AimToCrouchingOrWallRuunningPlayer = PlayerFeetLocation - GunLocation;
 
-		// 60%の確率で精度を落とす
-		if (FMath::RandRange(1, 100) <= 60)
+		// プレイヤーが壁走り or しゃがみをしているときは、一定確率で射撃の精度を落とすことによって難易度を調整する 
+		int ShotMissRate = 60;
+		if (FMath::RandRange(1, 100) <= ShotMissRate)
 		{
 			// ランダムなズレを追加
-			float RandomX = FMath::RandRange(-500.f, 500.f);
-			float RandomY = FMath::RandRange(-500.f, 500.f);
-			FVector RandomOffset(RandomX, RandomY, 0.f);
-			End = AimToCrouchingOrWallRuunningPlayer + Start + RandomOffset;
+			float RandomOffsetValue = 500.f;
+			float RandomX = FMath::RandRange(-RandomOffsetValue, RandomOffsetValue);
+			float RandomY = FMath::RandRange(-RandomOffsetValue, RandomOffsetValue);
+			FVector RandomOffsetVector(RandomX, RandomY, 0.f);
+			End = AimToCrouchingOrWallRuunningPlayer + Start + RandomOffsetVector;
 		}
 		else
 		{
