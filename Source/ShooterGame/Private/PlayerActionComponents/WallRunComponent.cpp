@@ -73,7 +73,7 @@ void UWallRunComponent::WallRun()
 		if (bHit)
 		{
 			if (ShooterCharacter->GetMovementComponent()->IsFalling() == false || bCanWallRun == false) return;
-			//if (ShooterCharacter->GetMovementComponent()->IsFalling() == false || ShooterCharacter->GetVelocity().Size() <= 0 || bCanWallRun == false) return;
+
 			IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(HitResult.GetActor());
 			if (BulletHitInterface) return;
 
@@ -139,7 +139,6 @@ void UWallRunComponent::WallRun()
 		FQuat CharacterYawRotation(FVector::UpVector, FMath::DegreesToRadians(MouseXValue));
 		ShooterCharacter->AddActorLocalRotation(CharacterYawRotation);
 
-
 		if (Camera) {
 			FQuat CameraYawRotation(ShooterCharacter->GetActorUpVector(), FMath::DegreesToRadians(MouseXValue));
 			FQuat CameraPitchRotation(ShooterCharacter->GetActorRightVector(), FMath::DegreesToRadians(MouseYValue));
@@ -164,6 +163,10 @@ void UWallRunComponent::WallRun()
 				ShooterCharacter->GetActorLocation() + NormalizedRotatedCharacterToCamera * InitialCameraDistance,
 				ECC_Visibility, CollisionParams);
 
+			// 初回のレイキャストでは、クオータニオンで回転させたカメラのLocationを考慮したレイキャストができない可能性がある。なぜなら、
+			// Camera->AddWorldRotation(CombinedRotation);
+			// このコードが実行されても、即座にカメラのRotation・Locationの値が変更されない可能性があるから。（ログを出力して確認した。内部処理でそうなっている可能性がある）
+			// そのため、この仕様?による悪影響を回避するためにboolで2回目以降のレイキャスト結果を使用して処理をするよう調整
 			if (bHitBlock && !bFirstRayCast)
 			{
 				if (CharacterToCameraHitResult.GetActor() != ShooterCharacter)
